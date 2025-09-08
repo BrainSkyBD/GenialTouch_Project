@@ -1,0 +1,52 @@
+{% load static %}
+<div class="modal fade" id="product-quickview" tabindex="-1" role="dialog" aria-labelledby="product-quickview" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <span class="modal-close" data-dismiss="modal"><i class="icon-cross2"></i></span>
+            <article class="ps-product--detail ps-product--fullwidth ps-product--quickview">
+                <div class="ps-product__header">
+                    <div class="ps-product__thumbnail" data-vertical="false">
+                        <div class="ps-product__images" data-arrow="true">
+                            <!-- Images will be loaded via AJAX -->
+                        </div>
+                    </div>
+                    <div class="ps-product__info">
+                        <h1 id="quickview-product-title"></h1>
+                        <div class="ps-product__meta">
+                            <p>Brand: <a id="quickview-product-brand" href="#"></a></p>
+                            <div class="ps-product__rating">
+                                <select class="ps-rating" data-read-only="true" id="quickview-product-rating">
+                                    <option value="1">1</option>
+                                    <option value="1">2</option>
+                                    <option value="1">3</option>
+                                    <option value="1">4</option>
+                                    <option value="2">5</option>
+                                </select>
+                                <span id="quickview-product-review-count">(0 reviews)</span>
+                            </div>
+                        </div>
+                        <h4 class="ps-product__price" id="quickview-product-price"></h4>
+                        <div class="ps-product__desc">
+                            <p>Sold By: <a id="quickview-product-vendor" href="#"><strong></strong></a></p>
+                            <ul class="ps-list--dot" id="quickview-product-features">
+                                <!-- Features will be loaded here -->
+                            </ul>
+                        </div>
+                        <div class="ps-product__shopping">
+                            <form id="quickview-add-to-cart" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" id="quickview-product-id">
+                                <button type="submit" class="ps-btn ps-btn--black">Add to cart</button>
+                            </form>
+                            <a class="ps-btn" href="#" id="quickview-buy-now">Buy Now</a>
+                            <div class="ps-product__actions">
+                                <a href="#" class="add-to-wishlist"><i class="icon-heart"></i></a>
+                                <!-- <a href="#" class="add-to-compare"><i class="icon-chart-bars"></i></a> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="ps-add-to-cart-popup" id="addToCartPopup">
+    <div class="ps-popup__overlay"></div>
+    <div class="ps-popup__content">
+        <span class="ps-popup__close"><i class="icon-cross"></i></span>
+        <div class="ps-popup__header">
+            <i class="icon-check-circle"></i>
+            <h4>Product added to cart successfully!</h4>
+        </div>
+        <div class="ps-popup__body">
+            <div class="ps-product--popup">
+                <div class="ps-product__thumbnail">
+                    <img id="popupProductImage" src="" alt="">
+                </div>
+                <div class="ps-product__content">
+                    <h5 id="popupProductName"></h5>
+                    <div id="popupProductVariants" class="variant-info"></div>
+                    <p id="popupProductPrice"></p>
+                    <p>Quantity: <span id="popupProductQuantity">1</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="ps-popup__footer">
+            <a href="{% url 'cart_detail' %}" class="ps-btn">View Cart</a>
+            <a href="{% url 'checkout' %}" class="ps-btn ps-btn--black" style="color: white;">Checkout</a>
+        </div>
+    </div>
+</div>

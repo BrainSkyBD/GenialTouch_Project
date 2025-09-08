@@ -1,0 +1,17 @@
+<div class="ps-remove-from-cart-popup" id="removeFromCartPopup">
+    <div class="ps-popup__overlay"></div>
+    <div class="ps-popup__content">
+        <span class="ps-popup__close"><i class="icon-cross"></i></span>
+        <div class="ps-popup__header">
+            <i class="icon-check-circle"></i>
+            <h4>Item removed from cart</h4>
+        </div>
+        <div class="ps-popup__body">
+            <p>You've successfully removed the item from your cart.</p>
+        </div>
+        <div class="ps-popup__footer">
+            <a href="{% url 'cart_detail' %}" class="ps-btn">View Cart</a>
+            <a href="{% url 'product_list' %}" class="ps-btn ps-btn--black" style="color: white;">Continue Shopping</a>
+        </div>
+    </div>
+</div>

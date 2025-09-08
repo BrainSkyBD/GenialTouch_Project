@@ -1,0 +1,30 @@
+{% for item in cart_items %}
+<div class="ps-product--cart-mobile" id="cart-item-{{ item.cart_key }}">
+    <div class="ps-product__thumbnail">
+        <a href="{{ item.product.get_absolute_url }}">
+            <img src="{{ item.product.images.first.image.url }}" alt="" />
+        </a>
+    </div>
+    <div class="ps-product__content">
+        <a class="ps-product__remove remove-from-cart" 
+        href="{% url 'remove_from_cart' item.cart_key %}" 
+        data-cart-key="{{ item.cart_key }}">
+            <i class="icon-cross"></i>
+        </a>
+        <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+        {% if item.variation %}
+            <div class="variant-info">
+                {% for attr_name, attr_value in item.attributes.items %}
+                    <small>{{ attr_name|title }}: {{ attr_value }}</small><br>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
+        <small>{{ item.quantity }} x ${{ item.price }}</small>
+    </div>
+</div>
+
+
+{% empty %}
+<p>Your cart is empty</p>
+{% endfor %}

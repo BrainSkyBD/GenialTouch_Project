@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>Order Confirmation</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading">Thank you for your order!</h5>
+                        <p>Your order has been placed successfully. Your order number is <strong>{{ order.order_number }}</strong>.</p>
+                        <p>We've sent a confirmation email to <strong>{{ order.email }}</strong>.</p>
+                    </div>
+                    
+                    <div class="order-summary">
+                        <h5>Order Summary</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>${{ item.price }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2">Total</th>
+                                        <th>${{ order.grand_total }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="shipping-info mt-4">
+                        <h5>Shipping Information</h5>
+                        <p><strong>Name:</strong> {{ order.get_full_name }}</p>
+                        <p><strong>Address:</strong> {{ order.get_full_address }}</p>
+                        <p><strong>Phone:</strong> {{ order.phone_number }}</p>
+                        <p><strong>Payment Method:</strong> Cash on Delivery</p>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-primary">Continue Shopping</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

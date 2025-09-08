@@ -1,0 +1,319 @@
+{% load static %}
+<header class="header header--1" data-sticky="true">
+    <div class="header__top" style="background-color: #264653;">
+        <div class="ps-container">
+            <div class="header__left">
+                <div class="menu--product-categories">
+                    <div class="menu__toggle"><i class="icon-menu"></i><span> Shop by Department</span></div>
+                    <div class="menu__content">
+                        <ul class="menu--dropdown">
+                            {% for category in categories %}
+                                {% if not category.parent %}
+                                    <li class="{% if category.children.all %}menu-item-has-children has-mega-menu{% endif %}">
+                                        <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+                                        {% if category.children.all %}
+                                            <span class="sub-toggle"></span>
+                                            <div class="mega-menu">
+                                                <div class="mega-menu__column">
+                                                    <h4>{{ category.name }}<span class="sub-toggle"></span></h4>
+                                                    <ul class="mega-menu__list">
+                                                        {% for child in category.children.all %}
+                                                            <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <a class="ps-logo" href="{% url 'home' %}">
+                    <img src="{% static 'genial_logo4.png' %}" alt="" />
+                </a>
+            </div>
+
+            <div class="header__center">
+                <form class="ps-form--quick-search" action="{% url 'product_list' %}" method="get">
+                    <div class="form-group--icon">
+                        <i class="icon-chevron-down"></i>
+                        <select class="form-control" name="category">
+                            <option value="" selected="selected">All</option>
+                            {% for category in categories %}
+                                {% if not category.parent %}
+                                    <option value="{{ category.slug }}">{{ category.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input class="form-control" type="text" name="q" placeholder="I'm shopping for..." id="input-search" />
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+
+            
+            <div class="header__right">
+                <div class="header__actions" style="color: #ffffff;">
+                    {% comment %}
+                    <a class="header__extra" href="#">
+                        <i class="icon-chart-bars"></i>
+                        <span><i>{{ compare_count|default:0 }}</i></span>
+                    </a>
+                    {% endcomment %}
+                    <a class="header__extra" href="">
+                        <i class="icon-heart"></i>
+                        <span><i>{{ wishlist_count|default:0 }}</i></span>
+                    </a>
+                    <div class="ps-cart--mini">
+                        <a class="header__extra" href="{% url 'cart_detail' %}">
+                            <i class="icon-bag2"></i>
+                            <span><i>{{ cart_item_count|default:0 }}</i></span>
+                        </a>
+                        <div class="ps-cart__content">
+                            <div class="ps-cart__items">
+                                {% for item in cart_items %}
+                                    <div class="ps-product--cart-mobile" id="cart-item-{{ item.cart_key }}">
+                                        <div class="ps-product__thumbnail">
+                                            <a href="{{ item.product.get_absolute_url }}">
+                                                <img src="{{ item.product.images.first.image.url }}" alt="" />
+                                            </a>
+                                        </div>
+                                        <div class="ps-product__content">
+                                            <a class="ps-product__remove remove-from-cart" 
+                                            href="{% url 'remove_from_cart' item.cart_key %}" 
+                                            data-cart-key="{{ item.cart_key }}">
+                                                <i class="icon-cross"></i>
+                                            </a>
+                                            <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                                            {% if item.variation %}
+                                                <div class="variant-info">
+                                                    {% for attr_name, attr_value in item.attributes.items %}
+                                                        <small>{{ attr_name|title }}: {{ attr_value }}</small><br>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
+                                            <small>{{ item.quantity }} x ${{ item.price }}</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                            </div>
+                            <div class="ps-cart__footer">
+                                <h3>Sub Total:<strong>${{ cart_total|default:"0.00" }}</strong></h3>
+                                <figure>
+                                    <a class="ps-btn" href="{% url 'cart_detail' %}">View Cart</a>
+                                    <a class="ps-btn" href="{% url 'checkout' %}">Checkout</a>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ps-block--user-header">
+                        {% if user.is_authenticated %}
+                            <div class="ps-block__left">
+                                <i class="icon-user"></i>
+                            </div>
+                            <div class="ps-block__right">
+                                <a href="{% url 'profile' %}">My Account</a>
+                                <a href="{% url 'logout' %}">Logout</a>
+                            </div>
+                        {% else %}
+                            <div class="ps-block__left">
+                                <i class="icon-user"></i>
+                            </div>
+                            <div class="ps-block__right">
+                                <a href="{% url 'login' %}">Login</a>
+                                <a href="{% url 'register' %}">Register</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="navigation">
+        <div class="ps-container">
+            <div class="navigation__left">
+                <div class="menu--product-categories">
+                    <div class="menu__toggle"><i class="icon-menu"></i><span> Shop by Department</span></div>
+                    <div class="menu__content">
+                        <ul class="menu--dropdown">
+                            {% for category in categories %}
+                                {% if not category.parent %}
+                                    <li class="{% if category.children.all %}menu-item-has-children has-mega-menu{% endif %}">
+                                        <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+                                        {% if category.children.all %}
+                                            <span class="sub-toggle"></span>
+                                            <div class="mega-menu">
+                                                <div class="mega-menu__column">
+                                                    <h4>{{ category.name }}<span class="sub-toggle"></span></h4>
+                                                    <ul class="mega-menu__list">
+                                                        {% for child in category.children.all %}
+                                                            <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="navigation__right">
+                <ul class="menu">
+                    <li class="menu-item-has-children">
+                        <a href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="{% url 'product_list' %}">Shop</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Pages</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Blogs</a>
+                    </li>
+                </ul>
+                <ul class="navigation__extra">
+                    <li><a href="">Sell on GenialTouch</a></li>
+                    <li><a href="">Track your order</a></li>
+                    <li>
+                        <div class="ps-dropdown">
+                            <a href="#">US Dollar</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#">US Dollar</a></li>
+                                <li><a href="#">Euro</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="ps-dropdown language">
+                            <a href="#"><img src="{% static 'img/flag/en.png' %}" alt="" />English</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#"><img src="{% static 'img/flag/germany.png' %}" alt="" /> Germany</a></li>
+                                <li><a href="#"><img src="{% static 'img/flag/fr.png' %}" alt="" /> France</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<header class="header header--mobile" data-sticky="true">
+    <div class="header__top" style="background-color: #264653;">
+        <div class="header__left">
+            <p>Welcome to GenialTouch Online Shopping Store !</p>
+        </div>
+        <div class="header__right">
+            <ul class="navigation__extra">
+                <li><a href="">Sell on GenialTouch</a></li>
+                <li><a href="">Track your order</a></li>
+                <li>
+                    <div class="ps-dropdown"><a href="#">US Dollar</a>
+                        <ul class="ps-dropdown-menu">
+                            <li><a href="#">US Dollar</a></li>
+                            <li><a href="#">Euro</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <div class="ps-dropdown language">
+                        <a href="#"><img src="{% static 'img/flag/en.png' %}" alt="" />English</a>
+                        <ul class="ps-dropdown-menu">
+                            <li><a href="#"><img src="{% static 'img/flag/germany.png' %}" alt="" /> Germany</a></li>
+                            <li><a href="#"><img src="{% static 'img/flag/fr.png' %}" alt="" /> France</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="navigation--mobile">
+        <div class="navigation__left">
+            <a class="ps-logo" href="{% url 'home' %}">
+                <img src="{% static 'img/logo_light.png' %}" alt="" />
+            </a>
+        </div>
+        <div class="navigation__right">
+            <div class="header__actions"  style="color: #ffffff;">
+                <div class="ps-cart--mini">
+                    <a class="header__extra" href="{% url 'cart_detail' %}">
+                        <i class="icon-bag2"></i>
+                        <span><i>{{ cart_item_count|default:0 }}</i></span>
+                    </a>
+                    <div class="ps-cart__content">
+                        <div class="ps-cart__items">
+                            {% for item in cart_items %}
+                                <div class="ps-product--cart-mobile" id="cart-item-{{ item.cart_key }}">
+                                    <div class="ps-product__thumbnail">
+                                        <a href="{{ item.product.get_absolute_url }}">
+                                            <img src="{{ item.product.images.first.image.url }}" alt="" />
+                                        </a>
+                                    </div>
+                                    <div class="ps-product__content">
+                                        <a class="ps-product__remove remove-from-cart" 
+                                        href="{% url 'remove_from_cart' item.cart_key %}" 
+                                        data-cart-key="{{ item.cart_key }}">
+                                            <i class="icon-cross"></i>
+                                        </a>
+                                        <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                                        {% if item.variation %}
+                                            <div class="variant-info">
+                                                {% for attr_name, attr_value in item.attributes.items %}
+                                                    <small>{{ attr_name|title }}: {{ attr_value }}</small><br>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
+                                        <small>{{ item.quantity }} x ${{ item.price }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                        </div>
+                        <div class="ps-cart__footer">
+                            <h3>Sub Total:<strong>${{ cart_total|default:"0.00" }}</strong></h3>
+                            <figure>
+                                <a class="ps-btn" href="{% url 'cart_detail' %}">View Cart</a>
+                                <a class="ps-btn" href="{% url 'checkout' %}">Checkout</a>
+                            </figure>
+                        </div>
+                    </div>
+                </div>
+                <div class="ps-block--user-header">
+                    {% if user.is_authenticated %}
+                        <div class="ps-block__left">
+                            <a href="{% url 'profile' %}"><i class="icon-user"></i></a>
+                        </div>
+                        <div class="ps-block__right">
+                            <a href="{% url 'profile' %}">My Account</a>
+                            <a href="{% url 'logout' %}">Logout</a>
+                        </div>
+                    {% else %}
+                        <div class="ps-block__left">
+                            <a href="{% url 'login' %}"><i class="icon-user"></i></a>
+                        </div>
+                        <div class="ps-block__right">
+                            <a href="{% url 'login' %}">Login</a>
+                            <a href="{% url 'register' %}">Register</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="ps-search--mobile">
+        <form class="ps-form--search-mobile" action="{% url 'product_list' %}" method="get">
+            <div class="form-group--nest">
+                <input class="form-control" type="text" name="q" placeholder="Search something..." />
+                <button type="submit"><i class="icon-magnifier"></i></button>
+            </div>
+        </form>
+    </div>
+</header>

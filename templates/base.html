@@ -1,0 +1,379 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="author" content="">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <title>{% block title %}GenialTouch{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,500,600,700&amp;amp;subset=latin-ext" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'plugins/font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/Linearicons/Linearicons/Font/demo-files/demo.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/owl-carousel/assets/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/owl-carousel/assets/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/slick/slick/slick.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/nouislider/nouislider.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/lightGallery-master/dist/css/lightgallery.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/jquery-bar-rating/dist/themes/fontawesome-stars.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/dist/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        .ps-add-to-cart-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99999;
+            display: none;
+        }
+
+        .ps-popup__overlay {
+            background-color: rgba(0,0,0,0.5);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ps-popup__content {
+            background: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .ps-popup__close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 1;
+        }
+
+        .ps-popup__header {
+            padding: 20px;
+            background: #f5f5f5;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ps-popup__header i {
+            color: #4CAF50;
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .ps-popup__body {
+            padding: 20px;
+        }
+
+        .ps-product--popup {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .ps-product--popup .ps-product__thumbnail {
+            width: 100px;
+            margin-right: 15px;
+        }
+
+        .ps-product--popup .ps-product__thumbnail img {
+            width: 100%;
+        }
+
+        .ps-popup__footer {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #eee;
+        }
+
+        .ps-popup__footer .ps-btn {
+            width: 48%;
+            text-align: center;
+        }
+
+        .ps-remove-from-cart-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99999;
+            display: none;
+        }
+
+        /* Reuse existing popup styles */
+        .ps-remove-from-cart-popup .ps-popup__overlay,
+        .ps-remove-from-cart-popup .ps-popup__content,
+        .ps-remove-from-cart-popup .ps-popup__close,
+        .ps-remove-from-cart-popup .ps-popup__header,
+        .ps-remove-from-cart-popup .ps-popup__body,
+        .ps-remove-from-cart-popup .ps-popup__footer {
+            /* Same styles as add to cart popup */
+        }
+
+        .ps-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 9999;
+            display: none;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    {% include 'partials/header.html' %}
+    
+    {% block content %}
+    {% endblock %}
+    
+    {% include 'partials/footer.html' %}
+    
+    {% include 'partials/mobile_navigation.html' %}
+    
+    <div id="back2top"><i class="icon icon-arrow-up"></i></div>
+    <div class="ps-site-overlay"></div>
+    
+    {% include 'partials/mobile_cart_panel.html' %}
+    
+    {% include 'partials/quick_view_modal.html' %}
+    
+    <div id="loader-wrapper">
+        <div class="loader-section section-left"></div>
+        <div class="loader-section section-right"></div>
+    </div>
+    
+    <div class="ps-search" id="site-search"><a class="ps-btn--close" href="#"></a>
+        <div class="ps-search__content">
+            <form class="ps-form--primary-search" action="{% url 'product_list' %}" method="get">
+                <input class="form-control" type="text" name="q" placeholder="Search for...">
+                <button type="submit"><i class="aroma-magnifying-glass"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'plugins/jquery.min.js' %}"></script>
+    <script src="{% static 'plugins/nouislider/nouislider.min.js' %}"></script>
+    <script src="{% static 'plugins/popper.min.js' %}"></script>
+    <script src="{% static 'plugins/owl-carousel/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'plugins/imagesloaded.pkgd.min.js' %}"></script>
+    <script src="{% static 'plugins/masonry.pkgd.min.js' %}"></script>
+    <script src="{% static 'plugins/isotope.pkgd.min.js' %}"></script>
+    <script src="{% static 'plugins/jquery.matchHeight-min.js' %}"></script>
+    <script src="{% static 'plugins/slick/slick/slick.min.js' %}"></script>
+    <script src="{% static 'plugins/jquery-bar-rating/dist/jquery.barrating.min.js' %}"></script>
+    <script src="{% static 'plugins/slick-animation.min.js' %}"></script>
+    <script src="{% static 'plugins/lightGallery-master/dist/js/lightgallery-all.min.js' %}"></script>
+    <script src="{% static 'plugins/sticky-sidebar/dist/sticky-sidebar.min.js' %}"></script>
+    <script src="{% static 'plugins/select2/dist/js/select2.full.min.js' %}"></script>
+    <script src="{% static 'plugins/gmap3.min.js' %}"></script>
+    <!-- custom scripts-->
+    <script src="{% static 'js/main.js' %}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+        // Quick view functionality
+        $('.quick-view').on('click', function(e) {
+            e.preventDefault();
+            var productId = $(this).data('product-id');
+            
+            $.ajax({
+                url: '/products/' + productId + '/quickview/',
+                method: 'GET',
+                success: function(response) {
+                    $('#quickview-product-title').text(response.name);
+                    $('#quickview-product-brand').text(response.brand.name).attr('href', response.brand.url);
+                    $('#quickview-product-id').val(response.id);
+                    
+                    // Price display
+                    if (response.discount_price) {
+                        $('#quickview-product-price').html(
+                            '<span class="sale">$' + response.discount_price + '</span> ' +
+                            '<del>$' + response.price + '</del>'
+                        );
+                    } else {
+                        $('#quickview-product-price').text('$' + response.price);
+                    }
+                    
+                    // Rating
+                    var ratingSelect = $('#quickview-product-rating');
+                    ratingSelect.find('option').each(function() {
+                        $(this).prop('selected', $(this).val() <= response.average_rating);
+                    });
+                    $('#quickview-product-review-count').text('(' + response.review_count + ' reviews)');
+                    
+                    // Features
+                    var featuresList = $('#quickview-product-features');
+                    featuresList.empty();
+                    $.each(response.features, function(index, feature) {
+                        featuresList.append('<li>' + feature + '</li>');
+                    });
+                    
+                    // Images
+                    var imagesContainer = $('.ps-product__images');
+                    imagesContainer.empty();
+                    $.each(response.images, function(index, image) {
+                        imagesContainer.append(
+                            '<div class="item"><img src="' + image + '" alt=""></div>'
+                        );
+                    });
+                    
+                    // Update buy now link
+                    $('#quickview-buy-now').attr('href', '/checkout/direct/' + response.id + '/');
+                    
+                    // Initialize the carousel again for the new images
+                    $(".ps-product__images").owlCarousel({
+                        items: 1,
+                        nav: true,
+                        dots: false,
+                        loop: false,
+                        mouseDrag: true,
+                        touchDrag: true
+                    });
+                }
+            });
+        });
+
+        // Function to update cart info in navbar
+        function updateCartInfo(response) {
+            // Update cart count in navbar
+            $('.header__extra .icon-bag2').next('span').find('i').text(response.cart_item_count);
+            
+            // Update cart dropdown content
+            if(response.cart_items_html) {
+                $('.ps-cart__items').html(response.cart_items_html);
+                $('.ps-cart__footer h3 strong').text('$' + response.cart_total);
+            }
+            
+            // If cart is empty, update the mini cart display
+            if(response.cart_item_count == 0) {
+                $('.ps-cart__items').html('<p>Your cart is empty</p>');
+            }
+        }
+        
+        
+
+        // Remove item from cart (updated for cart_key)
+        $(document).on('click', '.remove-from-cart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var cartKey = $(this).data('cart-key');
+            var csrfToken = $('[name=csrfmiddlewaretoken]').val();
+            var $cartItem = $(this).closest('.ps-product--cart-mobile');
+            
+            $.ajax({
+                url: '/cart/remove/' + cartKey + '/',
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                data: {
+                    'csrfmiddlewaretoken': csrfToken
+                },
+                success: function(response) {
+                    if(response.status === 'success') {
+                        // Update cart info in navbar
+                        updateCartInfo(response);
+                        
+                        // Remove item from DOM
+                        if($cartItem.length) {
+                            $cartItem.fadeOut(300, function() {
+                                $(this).remove();
+                                if($('.ps-product--cart-mobile').length === 0) {
+                                    $('.ps-cart__items').html('<p>Your cart is empty</p>');
+                                }
+                            });
+                        }
+                        
+                        // Show remove popup if you want
+                        $('#removeFromCartPopup').fadeIn();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error removing item from cart: ' + error);
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+
+    
+
+        // Close all popups
+        $('.ps-popup__close, .ps-popup__overlay').on('click', function() {
+            $('.ps-add-to-cart-popup, .ps-remove-from-cart-popup').fadeOut();
+        });
+
+        
+        // Close popup
+        $('.ps-popup__close').on('click', function() {
+            $('#addToCartPopup').fadeOut();
+        });
+
+        // Close popup when clicking overlay
+        $('.ps-popup__overlay').on('click', function() {
+            $('#addToCartPopup').fadeOut();
+        });
+        
+        // Add to wishlist functionality
+        $('.add-to-wishlist').on('click', function(e) {
+            e.preventDefault();
+            var productId = $(this).data('product-id');
+            
+            $.ajax({
+                url: '/wishlist/add/' + productId + '/',
+                method: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    // Update wishlist count
+                    $('.header__extra .icon-heart').next('span').find('i').text(response.wishlist_count);
+                    
+                    // Show success message
+                    alert('Product added to wishlist!');
+                }
+            });
+        });
+    });
+     
+    </script>
+
+    
+    
+    {% block extra_js %}{% endblock %}
+
+    
+
+    {% include 'partials/add_to_cart_popup.html' %}
+    {% include 'partials/remove_from_cart_popup.html' %}
+</body>
+</html>
