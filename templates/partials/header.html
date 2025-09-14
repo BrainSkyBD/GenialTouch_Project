@@ -1,6 +1,6 @@
 {% load static %}
 <header class="header header--1" data-sticky="true">
-    <div class="header__top" style="background-color: #264653;">
+    <div class="header__top" style="background-color: #bd2428;">
         <div class="ps-container">
             <div class="header__left">
                 <div class="menu--product-categories">
@@ -133,11 +133,11 @@
             </div>
         </div>
     </div>
-    <nav class="navigation">
+    <nav class="navigation" style="background-color: #E0E0E0">
         <div class="ps-container">
             <div class="navigation__left">
                 <div class="menu--product-categories">
-                    <div class="menu__toggle"><i class="icon-menu"></i><span> Shop by Department</span></div>
+                    <div class="menu__toggle"><i class="icon-menu"></i><span> Categories</span></div>
                     <div class="menu__content">
                         <ul class="menu--dropdown">
                             {% for category in categories %}
@@ -166,6 +166,16 @@
             </div>
             <div class="navigation__right">
                 <ul class="menu">
+                    <li class="">
+                        <a href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="has-mega-menu">
+                        <a href="{% url 'product_list' %}">Shop</a>
+                    </li>
+                </ul>
+
+                {% comment %}
+                <ul class="menu">
                     <li class="menu-item-has-children">
                         <a href="{% url 'home' %}">Home</a>
                     </li>
@@ -178,10 +188,13 @@
                     <li class="menu-item-has-children has-mega-menu">
                         <a href="#">Blogs</a>
                     </li>
+                    
                 </ul>
+                {% endcomment %}
                 <ul class="navigation__extra">
-                    <li><a href="">Sell on GenialTouch</a></li>
+                    <li><a href="{% url 'product_list' %}">Browse Products</a></li>
                     <li><a href="">Track your order</a></li>
+                    {% comment %}
                     <li>
                         <div class="ps-dropdown">
                             <a href="#">US Dollar</a>
@@ -200,6 +213,7 @@
                             </ul>
                         </div>
                     </li>
+                    {% endcomment %}
                 </ul>
             </div>
         </div>
