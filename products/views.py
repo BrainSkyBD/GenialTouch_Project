@@ -21,23 +21,151 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 
+# def product_list(request):
+#     # Get all filter parameters
+#     query = request.GET.get('q', '')
+#     category_slug = request.GET.get('category', '')
+#     brand_slugs = request.GET.getlist('brand')
+#     min_price = request.GET.get('min_price')
+#     max_price = request.GET.get('max_price')
+#     rating = request.GET.get('rating')
+#     attribute_values = request.GET.getlist('attribute')
+#     page = request.GET.get('page', 1)
+    
+#     # Base queryset
+#     products = Product.objects.filter(is_active=True).select_related('brand').prefetch_related(
+#         'categories', 'images', 'reviews', 'attributes'
+#     )
+    
+#     # Apply filters
+#     if query:
+#         products = products.filter(
+#             Q(name__icontains=query) | 
+#             Q(description__icontains=query) |
+#             Q(sku__icontains=query)
+#         )
+    
+#     if category_slug:
+#         category = Category.objects.get(slug=category_slug)
+#         products = products.filter(categories=category)
+    
+#     if brand_slugs:
+#         products = products.filter(brand__slug__in=brand_slugs)
+    
+#     if min_price:
+#         products = products.filter(Q(price__gte=min_price) | Q(discount_price__gte=min_price))
+    
+#     if max_price:
+#         products = products.filter(Q(price__lte=max_price) | Q(discount_price__lte=min_price))
+    
+#     if rating:
+#         # Get products with average rating >= selected value
+#         product_ids = Review.objects.values('product').annotate(
+#             avg_rating=Avg('rating')
+#         ).filter(avg_rating__gte=rating).values_list('product', flat=True)
+#         products = products.filter(id__in=product_ids)
+    
+#     if attribute_values:
+#         products = products.filter(attributes__id__in=attribute_values).distinct()
+    
+#     # Get top 10 brands (by product count) for the brand filter
+#     top_brands = Brand.objects.annotate(
+#         product_count=Count('product')
+#     ).filter(product_count__gt=0).order_by('-product_count')[:10]
+    
+#     # Get all active categories for sidebar
+#     categories = Category.objects.filter(is_active=True)
+    
+#     # Get all attributes with values for filtering
+#     attributes = AttributeValue.objects.annotate(
+#         product_count=Count('product')
+#     ).filter(product_count__gt=0).select_related('attribute')
+    
+#     # Group attributes by their type
+#     attribute_groups = {}
+#     for attr in attributes:
+#         if attr.attribute.name not in attribute_groups:
+#             attribute_groups[attr.attribute.name] = []
+#         attribute_groups[attr.attribute.name].append(attr)
+
+#     # Sorting
+#     sort = request.GET.get('sort', '')
+#     if sort == 'price_asc':
+#         products = products.order_by('price')
+#     elif sort == 'price_desc':
+#         products = products.order_by('-price')
+#     elif sort == 'rating':
+#         products = products.annotate(
+#             avg_rating=Avg('reviews__rating')
+#         ).order_by('-avg_rating')
+#     elif sort == 'newest':
+#         products = products.order_by('-created_at')
+#     elif sort == 'popular':
+#         products = products.annotate(
+#             review_count=Count('reviews')
+#         ).order_by('-review_count')
+    
+#     # Pagination
+#     paginator = Paginator(products, 12)  # Show 12 products per page
+#     products = paginator.get_page(page)
+    
+#     context = {
+#         'products': products,
+#         'query': query,
+#         'categories': categories,
+#         'selected_category': category_slug,
+#         'top_brands': top_brands,
+#         'selected_brands': brand_slugs,
+#         'min_price': min_price,
+#         'max_price': max_price,
+#         'selected_rating': rating,
+#         'attribute_groups': attribute_groups,
+#         'selected_attributes': attribute_values,
+#     }
+    
+#     return render(request, 'shop/product_list.html', context)
+
+
+
+
+
+
 def product_list(request):
-    # Get all filter parameters
+    return _product_list_base(request)
+
+def products_by_category(request, slug):
+    return _product_list_base(request, category_slug=slug)
+
+def products_by_brand(request, slug):
+    return _product_list_base(request, brand_slug=slug)
+
+def _product_list_base(request, category_slug=None, brand_slug=None):
+    # Get all filter parameters from GET request
     query = request.GET.get('q', '')
-    category_slug = request.GET.get('category', '')
+    category_slug_get = request.GET.get('category', '')
     brand_slugs = request.GET.getlist('brand')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     rating = request.GET.get('rating')
     attribute_values = request.GET.getlist('attribute')
     page = request.GET.get('page', 1)
+    sort = request.GET.get('sort', '')
     
     # Base queryset
     products = Product.objects.filter(is_active=True).select_related('brand').prefetch_related(
         'categories', 'images', 'reviews', 'attributes'
     )
     
-    # Apply filters
+    # Apply URL-based filters (from category/brand slug in URL)
+    if category_slug:
+        category = get_object_or_404(Category, slug=category_slug, is_active=True)
+        products = products.filter(categories=category)
+    
+    if brand_slug:
+        brand = get_object_or_404(Brand, slug=brand_slug)
+        products = products.filter(brand=brand)
+    
+    # Apply GET parameter filters (from search/filter form)
     if query:
         products = products.filter(
             Q(name__icontains=query) | 
@@ -45,25 +173,41 @@ def product_list(request):
             Q(sku__icontains=query)
         )
     
-    if category_slug:
-        category = Category.objects.get(slug=category_slug)
+    if category_slug_get:
+        category = get_object_or_404(Category, slug=category_slug_get, is_active=True)
         products = products.filter(categories=category)
     
     if brand_slugs:
         products = products.filter(brand__slug__in=brand_slugs)
     
     if min_price:
-        products = products.filter(Q(price__gte=min_price) | Q(discount_price__gte=min_price))
+        try:
+            min_price = float(min_price)
+            products = products.filter(
+                Q(price__gte=min_price) | Q(discount_price__gte=min_price)
+            )
+        except (ValueError, TypeError):
+            pass
     
     if max_price:
-        products = products.filter(Q(price__lte=max_price) | Q(discount_price__lte=min_price))
+        try:
+            max_price = float(max_price)
+            products = products.filter(
+                Q(price__lte=max_price) | Q(discount_price__lte=max_price)
+            )
+        except (ValueError, TypeError):
+            pass
     
     if rating:
-        # Get products with average rating >= selected value
-        product_ids = Review.objects.values('product').annotate(
-            avg_rating=Avg('rating')
-        ).filter(avg_rating__gte=rating).values_list('product', flat=True)
-        products = products.filter(id__in=product_ids)
+        try:
+            rating = float(rating)
+            # Get products with average rating >= selected value
+            product_ids = Review.objects.values('product').annotate(
+                avg_rating=Avg('rating')
+            ).filter(avg_rating__gte=rating).values_list('product', flat=True)
+            products = products.filter(id__in=product_ids)
+        except (ValueError, TypeError):
+            pass
     
     if attribute_values:
         products = products.filter(attributes__id__in=attribute_values).distinct()
@@ -87,9 +231,11 @@ def product_list(request):
         if attr.attribute.name not in attribute_groups:
             attribute_groups[attr.attribute.name] = []
         attribute_groups[attr.attribute.name].append(attr)
-
+    
+    # Determine the currently selected category (from URL or GET param)
+    selected_category = category_slug or category_slug_get
+    
     # Sorting
-    sort = request.GET.get('sort', '')
     if sort == 'price_asc':
         products = products.order_by('price')
     elif sort == 'price_desc':
@@ -104,16 +250,23 @@ def product_list(request):
         products = products.annotate(
             review_count=Count('reviews')
         ).order_by('-review_count')
+    else:
+        # Default sorting
+        products = products.order_by('-created_at')
     
     # Pagination
     paginator = Paginator(products, 12)  # Show 12 products per page
-    products = paginator.get_page(page)
+    try:
+        products_page = paginator.get_page(page)
+    except:
+        products_page = paginator.get_page(1)
     
     context = {
-        'products': products,
+        'products': products_page,
         'query': query,
         'categories': categories,
-        'selected_category': category_slug,
+        'selected_category': selected_category,
+        'selected_brand_slug': brand_slug,
         'top_brands': top_brands,
         'selected_brands': brand_slugs,
         'min_price': min_price,
@@ -121,9 +274,11 @@ def product_list(request):
         'selected_rating': rating,
         'attribute_groups': attribute_groups,
         'selected_attributes': attribute_values,
+        'sort_option': sort,
     }
     
     return render(request, 'shop/product_list.html', context)
+
 
 
 def product_detail(request, slug):
