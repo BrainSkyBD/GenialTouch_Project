@@ -89,7 +89,8 @@ def home(request):
     # Calculate deal end date (24 hours from now)
     from datetime import datetime, timedelta
     deal_end_date = datetime.now() + timedelta(days=1)
-    top_categories = Category.objects.filter(is_active=True)[:9]
+    # top_categories = Category.objects.filter(is_active=True)[:9]
+    top_categories = Category.objects.filter(is_active=True, is_featured=True)
 
 
     context = {
