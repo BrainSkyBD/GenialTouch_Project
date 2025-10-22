@@ -111,3 +111,11 @@ def home(request):
 
 
 
+def return_and_refund_policy(request):
+    return render(request, "policies/return_and_refund_policy.html")
+
+def terms_and_conditions(request):
+    return render(request, "policies/terms_and_conditions.html")
+
+def Replacement_Policy(request):
+    return render(request, "policies/Replacement_Policy.html")
