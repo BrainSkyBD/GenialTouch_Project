@@ -3,7 +3,12 @@
 {% block title %}GenialTouch - Home{% endblock %}
 {% block content %}
 
-
+<style>
+    .ps-block--category img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+</style>
 
 <div id="homepage-1">
 
@@ -16,7 +21,16 @@
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
                     <div class="ps-block--category">
                         <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
-                        <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}"
+                        style="width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                clip-path: polygon(
+                                    25% 6%, 75% 6%,
+                                    100% 50%, 75% 94%,
+                                    25% 94%, 0% 50%
+                                );
+                                transition: transform 0.3s ease, box-shadow 0.3s ease;">
                         <p>{{ category.name }}</p>
                     </div>
                 </div>
@@ -322,7 +336,7 @@
                     <div class="row">
                         <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
                             <div class="ps-block__thumbnail">
-                                <img src="{% static 'img/app.png' %}" alt="">
+                                <img src="{% static 'downloadapp.png' %}" alt="">
                             </div>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
