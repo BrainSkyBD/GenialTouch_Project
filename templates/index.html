@@ -12,12 +12,13 @@
 
 <div id="homepage-1">
 
+    {% comment %}
     <!-- Top Categories -->
     <div class="ps-top-categories">
         <div class="ps-container">
             <h3>Top categories of the month</h3>
             <div class="row">
-                {% for category in top_categories|slice:":8" %}
+                {% for category in top_categories %}
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
                     <div class="ps-block--category">
                         <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
@@ -32,9 +33,42 @@
                                 );
                                 transition: transform 0.3s ease, box-shadow 0.3s ease;">
                         <p>{{ category.name }}</p>
+
+                        
                     </div>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endcomment %}
+
+
+    <div class="ps-deal-of-day" style="margin-top: 25px;">
+        <div class="ps-container">
+            
+            <h3>Top categories of the month</h3>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="30" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="3" data-owl-item-md="4" data-owl-item-lg="5" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for category in top_categories %}
+                    <div class="ps-product ps-product--inner">
+                        <div class="ps-block--category">
+                            <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
+                            <img src="{{ category.image.url }}" alt="{{ category.name }}"
+                            style="width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    clip-path: polygon(
+                                        25% 6%, 75% 6%,
+                                        100% 50%, 75% 94%,
+                                        25% 94%, 0% 50%
+                                    );
+                                    transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                            <p>{{ category.name }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
