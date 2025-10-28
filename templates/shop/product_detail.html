@@ -459,11 +459,11 @@
                                 <div class="price-section">
                                     <h4 class="ps-product__price">
                                         {% if product.discount_price %}
-                                            <span class="current-price">${{ product.discount_price }}</span>
-                                            <span class="original-price">${{ product.price }}</span>
+                                            <span class="current-price">{{ currency_symbol }}{{ product.discount_price }}</span>
+                                            <span class="original-price">{{ currency_symbol }}{{ product.price }}</span>
                                             <span class="discount-badge">Save {{ product.get_discount_percentage }}%</span>
                                         {% else %}
-                                            <span class="current-price">${{ product.price }}</span>
+                                            <span class="current-price">{{ currency_symbol }}{{ product.price }}</span>
                                         {% endif %}
                                     </h4>
                                     <div class="stock-status">
@@ -734,10 +734,10 @@
                                                 <option value="2">5</option>
                                             </select><span>01</span>
                                         </div>
-                                        <p class="ps-product__price sale">${{ product.get_price }} {% if product.price %}<del>${{ product.price }} </del>{% endif %}</p>
+                                        <p class="ps-product__price sale">{{ currency_symbol }}{{ product.get_price }} {% if product.price %}<del>{{ currency_symbol }}{{ product.price }} </del>{% endif %}</p>
                                     </div>
                                     <div class="ps-product__content hover"><a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
-                                        <p class="ps-product__price sale">${{ product.get_price }} {% if product.price %}<del>${{ product.price }} </del>{% endif %}</p>
+                                        <p class="ps-product__price sale">{{ currency_symbol }}{{ product.get_price }} {% if product.price %}<del>{{ currency_symbol }}{{ product.price }} </del>{% endif %}</p>
                                     </div>
                                 </div>
                             </div>
@@ -777,9 +777,9 @@
                                     <div class="ps-product__content">
                                         <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                                         <p class="ps-product__price{% if product.discount_price %} sale{% endif %}">
-                                            ${{ product.get_price }}
+                                            {{ currency_symbol }}{{ product.get_price }}
                                             {% if product.discount_price %}
-                                                <del>${{ product.price }}</del>
+                                                <del>{{ currency_symbol }}{{ product.price }}</del>
                                             {% endif %}
                                         </p>
                                     </div>
@@ -822,9 +822,9 @@
                                 <div class="ps-product__content">
                                     <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                                     <p class="ps-product__price{% if product.discount_price %} sale{% endif %}">
-                                        ${{ product.get_price }}
+                                        {{ currency_symbol }}{{ product.get_price }}
                                         {% if product.discount_price %}
-                                            <del>${{ product.price }}</del>
+                                            <del>{{ currency_symbol }}{{ product.price }}</del>
                                         {% endif %}
                                     </p>
                                 </div>
@@ -879,9 +879,9 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="product-price">
-                                        <span class="font-weight-bold text-primary">${{ product.get_price }}</span>
+                                        <span class="font-weight-bold text-primary">{{ currency_symbol }}{{ product.get_price }}</span>
                                         {% if product.discount_price %}
-                                            <small class="text-muted ml-2"><del>${{ product.price }}</del></small>
+                                            <small class="text-muted ml-2"><del>{{ currency_symbol }}{{ product.price }}</del></small>
                                         {% endif %}
                                     </div>
                                     <div class="product-quantity">
@@ -1036,10 +1036,10 @@ $(document).ready(function() {
             success: function(data) {
                 if(data.price) {
                     // Update price display
-                    $('.current-price').text('$' + data.price);
+                    $('.current-price').text('{{ currency_symbol }}' + data.price);
                     
                     if(data.original_price && data.original_price != data.price) {
-                        $('.original-price').text('$' + data.original_price).show();
+                        $('.original-price').text('{{ currency_symbol }}' + data.original_price).show();
                         var discount = Math.round(((data.original_price - data.price) / data.original_price) * 100);
                         $('.discount-badge').text('Save ' + discount + '%').show();
                     } else {
@@ -1112,7 +1112,7 @@ $(document).ready(function() {
                     
                     // Show success popup
                     $('#popupProductName').text(response.product_name);
-                    $('#popupProductPrice').text('$' + response.product_price);
+                    $('#popupProductPrice').text('{{ currency_symbol }}' + response.product_price);
                     $('#popupProductImage').attr('src', response.product_image);
 
                     // Add variant information to popup

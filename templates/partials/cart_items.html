@@ -20,7 +20,7 @@
             </div>
         {% endif %}
         <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
-        <small>{{ item.quantity }} x ${{ item.price }}</small>
+        <small>{{ item.quantity }} x {{ currency_symbol }}{{ item.price }}</small>
     </div>
 </div>
 

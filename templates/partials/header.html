@@ -96,13 +96,13 @@
                                                 </div>
                                             {% endif %}
                                             <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
-                                            <small>{{ item.quantity }} x ${{ item.price }}</small>
+                                            <small>{{ item.quantity }} x {{ currency_symbol }}{{ item.price }}</small>
                                         </div>
                                     </div>
                                     {% endfor %}
                             </div>
                             <div class="ps-cart__footer">
-                                <h3>Sub Total:<strong>${{ cart_total|default:"0.00" }}</strong></h3>
+                                <h3>Sub Total:<strong>{{ currency_symbol }}{{ cart_total|default:"0.00" }}</strong></h3>
                                 <figure>
                                     <a class="ps-btn" href="{% url 'cart_detail' %}">View Cart</a>
                                     <a class="ps-btn" href="{% url 'checkout' %}">Checkout</a>
@@ -286,13 +286,13 @@
                                             </div>
                                         {% endif %}
                                         <p><strong>Sold by:</strong> {{ item.product.brand.name }}</p>
-                                        <small>{{ item.quantity }} x ${{ item.price }}</small>
+                                        <small>{{ item.quantity }} x {{ currency_symbol }}{{ item.price }}</small>
                                     </div>
                                 </div>
                                 {% endfor %}
                         </div>
                         <div class="ps-cart__footer">
-                            <h3>Sub Total:<strong>${{ cart_total|default:"0.00" }}</strong></h3>
+                            <h3>Sub Total:<strong>{{ currency_symbol }}{{ cart_total|default:"0.00" }}</strong></h3>
                             <figure>
                                 <a class="ps-btn" href="{% url 'cart_detail' %}">View Cart</a>
                                 <a class="ps-btn" href="{% url 'checkout' %}">Checkout</a>
