@@ -204,7 +204,7 @@ class CurrencySettingsTable(models.Model):
     def clean(self):
         # Ensure only one active currency exists
         if self.is_active:
-            active_currencies = CurrencySettings.objects.filter(is_active=True)
+            active_currencies = CurrencySettingsTable.objects.filter(is_active=True)
             if self.pk:
                 active_currencies = active_currencies.exclude(pk=self.pk)
             if active_currencies.exists():
