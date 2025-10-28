@@ -31,14 +31,14 @@
                                     <tr>
                                         <td>{{ item.product.name }}</td>
                                         <td>{{ item.quantity }}</td>
-                                        <td>{{ currency_symbol }}{{ item.price }}</td>
+                                        <td>{{ currency_symbol }} {{ item.price }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <th colspan="2">Total</th>
-                                        <th>{{ currency_symbol }}{{ order.grand_total }}</th>
+                                        <th>{{ currency_symbol }} {{ order.grand_total }}</th>
                                     </tr>
                                 </tfoot>
                             </table>

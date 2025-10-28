@@ -69,9 +69,9 @@
                         </div>
                         <p class="ps-slider__meta">
                             Price: 
-                            <span class="ps-slider__value">{{ currency_symbol }}<span id="min-price-value">{% if min_price %}{{ min_price }}{% else %}0{% endif %}</span></span>
+                            <span class="ps-slider__value">{{ currency_symbol }} <span id="min-price-value">{% if min_price %}{{ min_price }}{% else %}0{% endif %}</span></span>
                             - 
-                            <span class="ps-slider__value">{{ currency_symbol }}<span id="max-price-value">{% if max_price %}{{ max_price }}{% else %}10000{% endif %}</span></span>
+                            <span class="ps-slider__value">{{ currency_symbol }} <span id="max-price-value">{% if max_price %}{{ max_price }}{% else %}10000{% endif %}</span></span>
                         </p>
                         <form id="price-filter-form" method="get">
                             <input type="hidden" name="min_price" id="min-price-input" value="{{ min_price }}">
@@ -227,10 +227,10 @@
                                                         </div>
                                                         <p class="ps-product__price">
                                                             {% if product.discount_price %}
-                                                            <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
-                                                            <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
                                                             {% else %}
-                                                            {{ currency_symbol }}{{ product.price }}
+                                                            {{ currency_symbol }} {{ product.price }}
                                                             {% endif %}
                                                         </p>
                                                     </div>
@@ -238,10 +238,10 @@
                                                         <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                                                         <p class="ps-product__price">
                                                             {% if product.discount_price %}
-                                                            <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
-                                                            <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
                                                             {% else %}
-                                                            {{ currency_symbol }}{{ product.price }}
+                                                            {{ currency_symbol }} {{ product.price }}
                                                             {% endif %}
                                                         </p>
                                                     </div>

@@ -216,11 +216,11 @@
                     // Price display
                     if (response.discount_price) {
                         $('#quickview-product-price').html(
-                            '<span class="sale">{{ currency_symbol }}' + response.discount_price + '</span> ' +
-                            '<del>{{ currency_symbol }}' + response.price + '</del>'
+                            '<span class="sale">{{ currency_symbol }} ' + response.discount_price + '</span> ' +
+                            '<del>{{ currency_symbol }} ' + response.price + '</del>'
                         );
                     } else {
-                        $('#quickview-product-price').text('{{ currency_symbol }}' + response.price);
+                        $('#quickview-product-price').text('{{ currency_symbol }} ' + response.price);
                     }
                     
                     // Rating
@@ -270,7 +270,7 @@
             // Update cart dropdown content
             if(response.cart_items_html) {
                 $('.ps-cart__items').html(response.cart_items_html);
-                $('.ps-cart__footer h3 strong').text('{{ currency_symbol }}' + response.cart_total);
+                $('.ps-cart__footer h3 strong').text('{{ currency_symbol }} ' + response.cart_total);
             }
             
             // If cart is empty, update the mini cart display

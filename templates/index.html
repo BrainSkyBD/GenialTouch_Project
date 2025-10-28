@@ -105,7 +105,7 @@
                     <div class="ps-block__left"><i class="icon-rocket"></i></div>
                     <div class="ps-block__right">
                         <h4>Free Delivery</h4>
-                        <p>For all orders over {{ currency_symbol }}99</p>
+                        <p>For all orders over {{ currency_symbol }} 99</p>
                     </div>
                 </div>
                 <div class="ps-block__item">
@@ -212,13 +212,13 @@
                         <div class="ps-product__container">
                             {% if product.discount_price %}
                             <p class="ps-product__price sale">
-                                {{ currency_symbol }}{{ product.discount_price }} 
-                                <del>{{ currency_symbol }}{{ product.price }}</del>
+                                {{ currency_symbol }} {{ product.discount_price }} 
+                                <del>{{ currency_symbol }} {{ product.price }}</del>
                                 <br>
                                 <small>{{ product.get_discount_percentage }}% off</small>
                             </p>
                             {% else %}
-                            <p class="ps-product__price">{{ currency_symbol }}{{ product.price }}</p>
+                            <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
                             {% endif %}
                             <div class="ps-product__content">
                                 <a class="ps-product__title" href="{{ product.get_absolute_url }}">
@@ -323,9 +323,9 @@
                                 </a>
                                 
                                 {% if product.discount_price %}
-                                <p class="ps-product__price sale">{{ currency_symbol }}{{ product.discount_price }} <del>{{ currency_symbol }}{{ product.price }}</del></p>
+                                <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
                                 {% else %}
-                                <p class="ps-product__price">{{ currency_symbol }}{{ product.price }}</p>
+                                <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
                                 {% endif %}
                             </div>
                             <div class="ps-product__content hover">
@@ -333,9 +333,9 @@
                                     {{ product.name }}
                                 </a>
                                 {% if product.discount_price %}
-                                <p class="ps-product__price sale">{{ currency_symbol }}{{ product.discount_price }} <del>{{ currency_symbol }}{{ product.price }}</del></p>
+                                <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
                                 {% else %}
-                                <p class="ps-product__price">{{ currency_symbol }}{{ product.price }}</p>
+                                <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
                                 {% endif %}
                             </div>
                         </div>
@@ -426,10 +426,10 @@
                                 </a>
                                 <p class="ps-product__price">
                                     {% if product.discount_price %}
-                                    <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
-                                    <del>{{ currency_symbol }}{{ product.price }}</del>
+                                    <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                    <del>{{ currency_symbol }} {{ product.price }}</del>
                                     {% else %}
-                                    {{ currency_symbol }}{{ product.price }}
+                                    {{ currency_symbol }} {{ product.price }}
                                     {% endif %}
                                 </p>
                             </div>
