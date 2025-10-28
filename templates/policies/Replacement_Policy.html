@@ -1,649 +1,271 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}GenialTouch - Replacement Warranty Policy{% endblock %}
+{% block title %}GenialTouch - Terms & Conditions{% endblock %}
 {% block content %}
 
-<div class="warranty-container">
-    <!-- Header Section -->
-    <div class="warranty-header">
-        <div class="header-content">
-            <h1>Replacement Warranty Policy</h1>
-            <p class="subtitle">প্রতিস্থাপন ওয়্যারেন্টি নীতি</p>
-            <div class="header-description">
-                <p>At Genial Touch, we offer genuine products with clear warranty terms to ensure your complete satisfaction.</p>
-                <p>Genial Touch-এ আমরা জেনুইন পণ্য অফার করি যাতে স্পষ্ট ওয়্যারেন্টি শর্তাবলী থাকে আপনার সম্পূর্ণ সন্তুষ্টি নিশ্চিত করার জন্য।</p>
-            </div>
-        </div>
-    </div>
+<div class="terms-container">
+    <div class="terms-content">
+        <div class="refund-policy-section">
+            <h2 class="section-title">CANCELLATION & REFUND DUE TO PRODUCT UNAVAILABILITY</h2>
+            
+            
 
-    <!-- Main Content -->
-    <div class="warranty-content">
-        <!-- Warranty Overview -->
-        <section class="warranty-section">
-            <div class="section-header">
-                <div class="section-icon">📋</div>
-                <h2>Warranty Overview</h2>
-                <span class="section-subtitle">ওয়্যারেন্টি সংক্ষিপ্ত বিবরণ</span>
-            </div>
-            <div class="section-content">
-                <div class="bilingual-card">
-                    <div class="language-column">
-                        <h3>English</h3>
-                        <div class="content-text">
-                            <p>We offer all genuine products at Genial Touch. Many products come with brand warranty and some don't. If there is any warranty for a particular product, it will be clearly written on the website, invoice, or there may be a separate warranty card for different time periods.</p>
-                            <p><strong>Important:</strong> Replacement warranty is valid only once per product. If the product develops the same or other issues after the first replacement, it will be covered under service warranty.</p>
-                        </div>
-                    </div>
-                    <div class="language-column">
-                        <h3>বাংলা</h3>
-                        <div class="content-text">
-                            <p>আমরা Genial Touch-এ সব জেনুইন পণ্য অফার করছি। অনেক পণ্য ব্র্যান্ড ওয়ারেন্টি সহ আসে এবং কিছু আসে না। কোনো নির্দিষ্ট পণ্যের জন্য কোনো ওয়ারেন্টি থাকলে, সেটি ওয়েবসাইটে, চালানে বা আলাদা ওয়ারেন্টি কার্ডে স্পষ্টভাবে লেখা থাকবে।</p>
-                            <p><strong>গুরুত্বপূর্ণ:</strong> প্রতিস্থাপন ওয়্যারেন্টি শুধুমাত্র একবার বৈধ। প্রথম প্রতিস্থাপনের পরে পণ্যটি একই বা অন্যান্য সমস্যা দেখা দিলে এটি সার্ভিস ওয়ারেন্টির আওতায় আসবে।</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <h3>CANCELLATION & REFUND DUE TO PRODUCT UNAVAILABILITY:</h3>
+            <ul>
+                <li>Delivery of the ordered items is subject to the availability of the products at our vendor's depot/warehouse/store. genialtouch.com authority may cancel or deliver any order within 4 to 25 working days if the stock of the ordered item(s) is unavailable.</li>
+                <li>In the case of clause (a), if the customer has already made an advance payment against the order, the customer will receive a full refund, if not received any cashback/refund, within 1-10 working days.</li>
+                <li>After confirming any Order, if the order is canceled by the customer and online payment is already made by the customer against that order, genialtouch.com will charge an Online Gateway Transaction fee while disbursing the refund amount.</li>
+                <li>Advance payment is required for the delivery of certain vendors' products. We may cancel any order if the advance payment is not made by the customer for such orders.</li>
+            </ul>
 
-        <!-- Valid Cases for Replacement -->
-        <section class="warranty-section">
-            <div class="section-header">
-                <div class="section-icon">✅</div>
-                <h2>Valid Cases for Replacement</h2>
-                <span class="section-subtitle">প্রতিস্থাপনের জন্য বৈধ ক্ষেত্র</span>
-            </div>
-            <div class="section-content">
-                <div class="cases-grid">
-                    <div class="case-item valid">
-                        <div class="case-icon">🏭</div>
-                        <div class="case-content">
-                            <h4>Manufacturing Fault</h4>
-                            <p>ম্যানুফ্যাকচারিং ফল্ট</p>
-                        </div>
-                    </div>
-                    <div class="case-item valid">
-                        <div class="case-icon">⚙️</div>
-                        <div class="case-content">
-                            <h4>OS-related Issues</h4>
-                            <p>ওএস-সম্পর্কিত সমস্যা (অ্যাপসের জন্য নয়)</p>
-                        </div>
-                    </div>
-                    <div class="case-item valid">
-                        <div class="case-icon">🔋</div>
-                        <div class="case-content">
-                            <h4>No Power Due to Device Issue</h4>
-                            <p>ডিভাইস সমস্যার কারণে বিদ্যুৎ না থাকা</p>
-                        </div>
-                    </div>
-                    <div class="case-item valid">
-                        <div class="case-icon">📊</div>
-                        <div class="case-content">
-                            <h4>Performance Below 60%</h4>
-                            <p>পারফরম্যান্স ৬০% এর নিচে</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="note-box">
-                    <div class="note-icon">ℹ️</div>
-                    <div class="note-content">
-                        <p><strong>Note:</strong> No warranty for accessories like remote, keyboard, light, battery, etc.</p>
-                        <p><strong>দ্রষ্টব্য:</strong> রিমোট, কীবোর্ড, লাইট, ব্যাটারি ইত্যাদি আনুষাঙ্গিকের জন্য কোনো ওয়ারেন্টি নেই।</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <h3>পণ্যের অনুপলব্ধতার কারণে বাতিলকরণ এবং ফেরত:</h3>
+            <ul>
+                <li>ক) অর্ডারকৃত আইটেমগুলির ডেলিভারি আমাদের বিক্রেতার ডিপো/গুদাম/স্টোরে পণ্যের প্রাপ্যতার সাপেক্ষে। অর্ডার করা আইটেম(গুলি) এর স্টক না থাকলে হলে genialtouch.com কর্তৃপক্ষ ৭ থেকে ২১ কার্যদিবসের মধ্যে যেকোনো অর্ডার বাতিল/ডেলিভারি করতে পারে।</li>
+                <li>খ) ধারা (ক) এর ক্ষেত্রে, যদি গ্রাহক ইতিমধ্যেই অর্ডারের বিপরীতে অগ্রিম অর্থ প্রদান করে থাকেন, তাহলে গ্রাহক ১-১০ কার্যদিবসের রিফান্ড পাবেন। এর মধ্যে কোনো ক্যাশব্যাক/ডিস্কাউন্ট না পেলে সম্পূর্ণ অর্থ ফেরত পাবেন।</li>
+                <li>গ) যেকোন অর্ডার নিশ্চিত করার পর, যদি গ্রাহকের দ্বারা অর্ডারটি বাতিল করা হয় এবং সেই অর্ডারের বিপরীতে গ্রাহকের দ্বারা ইতিমধ্যেই অনলাইন পেমেন্ট করা হয়ে থাকে, genialtouch.com রিফান্ডের পরিমাণ বিতরণ করার সময় একটি অনলাইন গেটওয়ে লেনদেন ফি চার্জ করবে এবং কোন ডিসকাউন্ট থাকলে তা বাদে বাকি অর্থ রিফান্ড করা হবে।</li>
+                <li>ঘ) নির্দিষ্ট বিক্রেতাদের পণ্য সরবরাহের জন্য অগ্রিম অর্থপ্রদান প্রয়োজন। এই ধরনের অর্ডারের জন্য গ্রাহক অগ্রিম অর্থ প্রদান না করলে আমরা যেকোন অর্ডার বাতিল করতে পারি।</li>
+            </ul>
 
-        <!-- Non-Valid Cases -->
-        <section class="warranty-section">
-            <div class="section-header">
-                <div class="section-icon">❌</div>
-                <h2>Non-Valid Cases</h2>
-                <span class="section-subtitle">অবৈধ ক্ষেত্র</span>
-            </div>
-            <div class="section-content">
-                <div class="cases-grid">
-                    <div class="case-item invalid">
-                        <div class="case-icon">💥</div>
-                        <div class="case-content">
-                            <h4>Physical Damage</h4>
-                            <p>শারীরিক ক্ষতি</p>
-                        </div>
-                    </div>
-                    <div class="case-item invalid">
-                        <div class="case-icon">🔥</div>
-                        <div class="case-content">
-                            <h4>Burn Damage</h4>
-                            <p>পোড়া ক্ষতি</p>
-                        </div>
-                    </div>
-                    <div class="case-item invalid">
-                        <div class="case-icon">🏷️</div>
-                        <div class="case-content">
-                            <h4>Missing Original Software/Stickers</h4>
-                            <p>আসল সফটওয়্যার/স্টিকার না থাকা</p>
-                        </div>
-                    </div>
-                    <div class="case-item invalid">
-                        <div class="case-icon">⚠️</div>
-                        <div class="case-content">
-                            <h4>Abnormal Usage</h4>
-                            <p>অস্বাভাবিক ব্যবহার</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <h3>RETURN/REPLACEMENT GUARANTEE MAY NOT APPLY IN ANY OF THE FOLLOWING CONDITIONS:</h3>
+            <ul>
+                <li>Damages due to misuse of the product</li>
+                <li>Incidental damage due to malfunctioning of product</li>
+                <li>Any consumable item which has been used or installed</li>
+                <li>Innerwear, socks, and clothing freebies</li>
+                <li>Products with tampered or missing serial</li>
+                <li>Any damage/defect which is not covered under the manufacturer's warranty</li>
+                <li>Any product that is returned without all original packaging and accessories, including the box, manufacturer's packaging if any, and all other items originally included with the product(s) delivered.</li>
+            </ul>
+            <p><strong>N.B:</strong> Replacement of the product is subject to availability of the same on genialtouch.com</p>
 
-        <!-- Process & Timeline -->
-        <section class="warranty-section">
-            <div class="section-header">
-                <div class="section-icon">⏱️</div>
-                <h2>Process & Timeline</h2>
-                <span class="section-subtitle">প্রক্রিয়া ও সময়সীমা</span>
-            </div>
-            <div class="section-content">
-                <div class="process-steps">
-                    <div class="process-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h4>Inspection</h4>
-                            <p>Product inspection by our technical team</p>
-                            <p class="bengali">আমাদের প্রযুক্তিগত দল দ্বারা পণ্য পরিদর্শন</p>
-                        </div>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h4>Approval</h4>
-                            <p>Warranty claim approval if eligible</p>
-                            <p class="bengali">যোগ্য হলে ওয়ারেন্টি দাবি অনুমোদন</p>
-                        </div>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Replacement</h4>
-                            <p>New product delivery (subject to availability)</p>
-                            <p class="bengali">নতুন পণ্য বিতরণ (প্রাপ্যতার উপর নির্ভরশীল)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="timeline-note">
-                    <div class="timeline-icon">📦</div>
-                    <div class="timeline-content">
-                        <p><strong>Stock Availability:</strong> If replacement products are not immediately available, it may take longer. In case of permanent unavailability, we may offer service warranty instead.</p>
-                        <p><strong>স্টক প্রাপ্যতা:</strong> যদি প্রতিস্থাপন পণ্য অবিলম্বে না পাওয়া যায়, তবে বেশি সময় লাগতে পারে। স্থায়ীভাবে না পাওয়া গেলে, আমরা পরিবর্তে সার্ভিস ওয়ারেন্টি অফার করতে পারি।</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Important Notes -->
-        <section class="warranty-section">
-            <div class="section-header">
-                <div class="section-icon">📝</div>
-                <h2>Important Notes</h2>
-                <span class="section-subtitle">গুরুত্বপূর্ণ নোট</span>
-            </div>
-            <div class="section-content">
-                <div class="notes-list">
-                    <div class="note-item">
-                        <div class="note-bullet">•</div>
-                        <div class="note-text">
-                            <p>Replacement warranty is valid only once per product during the warranty period</p>
-                            <p class="bengali">ওয়ারেন্টি সময়কালে প্রতিস্থাপন ওয়্যারেন্টি শুধুমাত্র একবার বৈধ</p>
-                        </div>
-                    </div>
-                    <div class="note-item">
-                        <div class="note-bullet">•</div>
-                        <div class="note-text">
-                            <p>Keep original packaging and warranty documents safe</p>
-                            <p class="bengali">আসল প্যাকেজিং এবং ওয়ারেন্টি নথি নিরাপদে রাখুন</p>
-                        </div>
-                    </div>
-                    <div class="note-item">
-                        <div class="note-bullet">•</div>
-                        <div class="note-text">
-                            <p>Contact customer support for warranty claims</p>
-                            <p class="bengali">ওয়ারেন্টি দাবির জন্য গ্রাহক সেবার সাথে যোগাযোগ করুন</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Links -->
-        <div class="quick-links">
-            <h3>Related Policies</h3>
-            <div class="links-grid">
-                <a href="{% url 'return_and_refund_policy' %}" class="policy-link">
-                    <div class="link-icon">🔄</div>
-                    <div class="link-content">
-                        <h4>Return Policy</h4>
-                        <p>রিটার্ন নীতি</p>
-                    </div>
-                </a>
-                <a href="{% url 'terms_and_conditions' %}" class="policy-link">
-                    <div class="link-icon">📄</div>
-                    <div class="link-content">
-                        <h4>Terms & Conditions</h4>
-                        <p>শর্তাবলী</p>
-                    </div>
-                </a>
-            </div>
+            <h3>প্রত্যাবর্তন/প্রতিস্থাপন গ্যারান্টি নিম্নোক্ত শর্তাবলীর মধ্যে প্রযোজ্য নাও হতে পারে:</h3>
+            <ul>
+                <li>পণ্যের অপব্যবহারের কারণে ক্ষতি</li>
+                <li>পণ্যের ত্রুটির কারণে আকস্মিক ক্ষতি</li>
+                <li>যেকোন ভোগ্য বস্তু যা ব্যবহার করা হয়েছে বা ইনস্টল করা হয়েছে</li>
+                <li>অন্তর্বাস, মোজা এবং পোশাক বিনামূল্যে</li>
+                <li>টেম্পারড বা অনুপস্থিত সিরিয়াল / UPC নম্বর সহ পণ্য</li>
+                <li>কোন ক্ষতি/ত্রুটি যা প্রস্তুতকারকের ওয়ারেন্টির আওতায় নেই</li>
+                <li>যে কোনও পণ্য যা সমস্ত আসল প্যাকেজিং এবং আনুষাঙ্গিক ছাড়াই ফেরত দেওয়া হয়, বাক্স সহ, প্রস্তুতকারকের প্যাকেজিং যদি থাকে, এবং অন্যান্য সমস্ত আইটেম যা মূলত সরবরাহ করা পণ্যের সাথে অন্তর্ভুক্ত থাকে।</li>
+            </ul>
+            <p><strong>বি.দ্র:</strong> পণ্যের প্রতিস্থাপন genialtouch.com-এ একই প্রাপ্যতা সাপেক্ষে।</p>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
 <style>
-.warranty-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
+    /* Terms and Conditions Styling */
+    .terms-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+    }
 
-.warranty-header {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    color: white;
-    border-radius: 15px;
-    padding: 40px 30px;
-    margin-bottom: 40px;
-    text-align: center;
-}
+    .terms-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #eaeaea;
+    }
 
-.header-content h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
+    .terms-title {
+        color: #ff0000;
+        font-size: 2.2rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
 
-.subtitle {
-    font-size: 1.5rem;
-    opacity: 0.9;
-    margin-bottom: 25px;
-    font-weight: 500;
-}
+    .terms-notice {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #ff0000;
+    }
 
-.header-description p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 10px;
-    opacity: 0.9;
-}
+    .terms-notice p {
+        margin-bottom: 15px;
+    }
 
-.warranty-section {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    margin-bottom: 30px;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+    .terms-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
 
-.warranty-section:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-}
+    .terms-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-.section-header {
-    background: linear-gradient(135deg, #ee0000 0%, #ff6b6b 100%);
-    color: white;
-    padding: 25px 30px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+    .terms-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
 
-.section-icon {
-    font-size: 1.8rem;
-}
+    .section-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eaeaea;
+    }
 
-.section-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    flex-grow: 1;
-}
+    .section-header h2 {
+        color: #ff0000;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
 
-.section-subtitle {
-    opacity: 0.9;
-    font-size: 1rem;
-}
+    .section-content p {
+        margin-bottom: 15px;
+    }
 
-.section-content {
-    padding: 30px;
-}
+    .section-content ul {
+        margin-left: 20px;
+        margin-bottom: 20px;
+    }
 
-.bilingual-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
+    .section-content li {
+        margin-bottom: 8px;
+    }
 
-.language-column h3 {
-    color: #ee0000;
-    margin-bottom: 20px;
-    font-size: 1.3rem;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 10px;
-}
-
-.content-text p {
-    line-height: 1.6;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.cases-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.case-item {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent;
-}
-
-.case-item.valid {
-    border-left-color: #28a745;
-}
-
-.case-item.invalid {
-    border-left-color: #dc3545;
-}
-
-.case-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.case-icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.case-content h4 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-    font-size: 1.1rem;
-}
-
-.case-content p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.note-box {
-    background: #e3f2fd;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    border-left: 4px solid #2196f3;
-}
-
-.note-icon {
-    font-size: 1.3rem;
-    flex-shrink: 0;
-}
-
-.note-content p {
-    margin: 0 0 10px 0;
-    line-height: 1.5;
-}
-
-.note-content p:last-child {
-    margin-bottom: 0;
-}
-
-.process-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.process-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    transition: background 0.3s ease;
-}
-
-.process-step:hover {
-    background: #e9ecef;
-}
-
-.step-number {
-    background: #ee0000;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-
-.step-content h4 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-}
-
-.step-content p {
-    margin: 0 0 5px 0;
-    color: #666;
-}
-
-.step-content .bengali {
-    color: #888;
-    font-size: 0.9rem;
-}
-
-.timeline-note {
-    background: #fff3cd;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-top: 20px;
-    border-left: 4px solid #ffc107;
-}
-
-.timeline-icon {
-    font-size: 1.3rem;
-    flex-shrink: 0;
-}
-
-.timeline-content p {
-    margin: 0 0 10px 0;
-    line-height: 1.5;
-}
-
-.timeline-content p:last-child {
-    margin-bottom: 0;
-}
-
-.notes-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.note-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.note-bullet {
-    color: #ee0000;
-    font-weight: bold;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.note-text p {
-    margin: 0 0 8px 0;
-    line-height: 1.5;
-}
-
-.note-text .bengali {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.quick-links {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    margin-top: 40px;
-}
-
-.quick-links h3 {
-    color: #2c3e50;
-    margin-bottom: 25px;
-    font-size: 1.4rem;
-}
-
-.links-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.policy-link {
-    background: white;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    padding: 20px;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: all 0.3s ease;
-}
-
-.policy-link:hover {
-    border-color: #ee0000;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.link-icon {
-    font-size: 1.8rem;
-    flex-shrink: 0;
-}
-
-.link-content h4 {
-    margin: 0 0 5px 0;
-    color: #2c3e50;
-}
-
-.link-content p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .warranty-container {
+    .contact-info {
+        background-color: #f5f5f5;
         padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
     }
-    
-    .warranty-header {
-        padding: 25px 20px;
+
+    .contact-info p {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
     }
-    
-    .header-content h1 {
-        font-size: 2rem;
-    }
-    
-    .subtitle {
+
+    .icon {
+        margin-right: 10px;
         font-size: 1.2rem;
     }
-    
-    .section-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-        padding: 20px;
-    }
-    
-    .bilingual-card {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .cases-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .process-step {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .note-box, .timeline-note {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .links-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .policy-link {
-        flex-direction: column;
-        text-align: center;
-    }
-}
 
-/* Print Styles */
-@media print {
-    .warranty-header {
-        background: #2c3e50 !important;
-        -webkit-print-color-adjust: exact;
+    .refund-policy-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        margin-top: 20px;
     }
-    
-    .warranty-section {
-        box-shadow: none;
-        border: 1px solid #ddd;
+
+    .section-title {
+        color: #ff0000;
+        text-align: center;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        font-style: italic;
     }
-    
-    .quick-links {
-        display: none;
+
+    .refund-policy-section h3 {
+        color: #ff0000;
+        margin: 20px 0 15px;
+        font-size: 1.3rem;
     }
-}
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .terms-container {
+            padding: 15px;
+        }
+        
+        .terms-title {
+            font-size: 1.8rem;
+        }
+        
+        .terms-section {
+            padding: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.3rem;
+        }
+        
+        .contact-info p {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .icon {
+            margin-bottom: 5px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .terms-title {
+            font-size: 1.5rem;
+        }
+        
+        .section-header h2 {
+            font-size: 1.2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+    }
 </style>
-
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Add smooth scrolling for anchor links
+    document.addEventListener('DOMContentLoaded', function() {
+        const links = document.querySelectorAll('a[href^="#"]');
+        
+        links.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Add active class to current section while scrolling
+        const sections = document.querySelectorAll('.terms-section, .refund-policy-section');
+        
+        function highlightCurrentSection() {
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (window.pageYOffset >= sectionTop - 100) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.getAttribute('id') === currentSection) {
+                    section.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', highlightCurrentSection);
+    });
+</script>
 {% endblock %}
