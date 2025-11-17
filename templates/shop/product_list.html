@@ -187,9 +187,11 @@
                 
                 <!-- Main Content Area -->
                 <div class="ps-layout__right">
+                    {% if category.banner %}
                     <div class="ps-page--single" id="about-us">
                         <img src="{{ category.banner.url }}" alt="">
                     </div>
+                    {% endif %}
                     <div class="ps-shopping ps-tab-root">
                         <div class="ps-shopping__header">
                             <p><strong>{{ products.paginator.count }}</strong> Products found</p>
