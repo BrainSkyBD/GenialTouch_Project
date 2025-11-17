@@ -19,6 +19,9 @@ from django.core.paginator import Paginator
 from .models import Product, Category, Brand, AttributeValue, Attribute
 from django.db.models import Q
 from django.http import JsonResponse
+from orders.models import PaymentMethod, Order, OrderItem, Country, State, City, TaxConfiguration
+
+
 
 
 # def product_list(request):
@@ -321,12 +324,18 @@ def product_detail(request, slug):
     else:
         same_brand_products = None
 
+    payment_methods = PaymentMethod.objects.filter(is_active=True)
+
+    countries = Country.objects.filter(is_active=True)
+
     context = {
         'product': product,
         'variations': variations,
         'related_products': related_products,
         'frequently_bought_together': frequently_bought,
         'same_brand_products': same_brand_products,
+        'payment_methods': payment_methods,
+        'countries': countries,
     }
     return render(request, 'shop/product_detail.html', context)
 

@@ -273,23 +273,36 @@
 </style>
 
 
+
 <style>
-    /* Buy Now Modal Styles */
+    /* Buy Now Modal Styles - Responsive Fix */
     #buyNowModal .modal-dialog {
         max-width: 600px;
+        margin: 0.5rem auto;
+    }
+    
+    #buyNowModal .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
     
     #buyNowModal .modal-header {
         padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border-bottom: none;
     }
     
     #buyNowModal .modal-title {
         font-size: 1.25rem;
         font-weight: 600;
+        color: white;
     }
     
     #buyNowModal .modal-body {
         padding: 1.5rem;
+        max-height: 70vh;
+        overflow-y: auto;
     }
     
     /* Product Summary Card */
@@ -298,6 +311,7 @@
         border-radius: 8px;
         padding: 1rem;
         border: 1px solid #e9ecef;
+        margin-bottom: 1.5rem;
     }
     
     .product-summary-card .product-thumbnail {
@@ -307,17 +321,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
     }
     
     .product-summary-card .product-thumbnail img {
         max-height: 100%;
         width: auto;
+        object-fit: cover;
     }
     
     .product-summary-card .product-title {
         font-size: 1rem;
         font-weight: 500;
         margin-bottom: 0.5rem;
+        line-height: 1.3;
     }
     
     .product-summary-card .product-price {
@@ -332,6 +350,14 @@
     #buyNowModal .form-control {
         padding: 0.75rem 1rem;
         font-size: 0.95rem;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        transition: all 0.2s ease;
+    }
+    
+    #buyNowModal .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
     
     #buyNowModal .form-control::placeholder {
@@ -344,52 +370,242 @@
         display: block;
         margin-bottom: 0.25rem;
         font-size: 0.9rem;
+        color: #6c757d;
     }
     
     /* Payment Section */
     .payment-section h6 {
         font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .payment-option {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        margin-bottom: 1rem;
     }
     
     .payment-option .custom-control-label {
         font-size: 0.95rem;
+        cursor: pointer;
     }
     
     .payment-option .custom-control-label small {
         font-size: 0.85rem;
     }
     
-    /* Buttons */
-    #buyNowModal .btn {
+    /* Buttons - Fixed for Mobile */
+    #buyNowModal .modal-footer {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+    
+    #buyNowModal .modal-footer .btn {
         padding: 0.75rem 1.5rem;
         font-size: 1rem;
         font-weight: 500;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 120px;
+        margin: 0.25rem;
     }
     
     /* Responsive Adjustments */
     @media (max-width: 768px) {
         #buyNowModal .modal-dialog {
-            margin: 1rem auto;
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+        
+        #buyNowModal .modal-body {
+            padding: 1.25rem;
+            max-height: 65vh;
         }
         
         .product-summary-card .product-thumbnail {
             width: 70px;
             height: 70px;
         }
+        
+        #buyNowModal .modal-footer {
+            padding: 1rem;
+            flex-direction: column;
+        }
+        
+        #buyNowModal .modal-footer .btn {
+            width: 100%;
+            margin: 0.25rem 0;
+        }
     }
     
     @media (max-width: 576px) {
         #buyNowModal .modal-body {
-            padding: 1.25rem;
+            padding: 1rem;
+        }
+        
+        #buyNowModal .modal-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        #buyNowModal .modal-footer {
+            padding: 0.75rem;
         }
         
         #buyNowModal .btn {
             padding: 0.6rem 1.25rem;
             font-size: 0.95rem;
         }
+        
+        .product-summary-card {
+            padding: 0.75rem;
+        }
+        
+        .product-summary-card .product-thumbnail {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .product-summary-card .product-title {
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Extra Small Devices */
+    @media (max-width: 375px) {
+        #buyNowModal .modal-body {
+            padding: 0.75rem;
+        }
+        
+        #buyNowModal .modal-header {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        #buyNowModal .modal-title {
+            font-size: 1.1rem;
+        }
+        
+        .product-summary-card {
+            padding: 0.5rem;
+        }
+        
+        .product-summary-card .product-thumbnail {
+            width: 50px;
+            height: 50px;
+        }
+    }
+    
+    /* Animation for modal */
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    #buyNowModal .modal-content {
+        animation: modalSlideIn 0.3s ease-out;
     }
 </style>
 
+
+<style>
+    .payment-card {
+        display: block;
+        cursor: pointer;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .payment-card input[type="radio"] {
+        display: none;
+    }
+
+    .payment-card-body {
+        border: 2px solid #e4e4e4;
+        padding: 15px;
+        border-radius: 12px;
+        transition: all 0.25s ease;
+        background: #fff;
+    }
+
+    .payment-card:hover .payment-card-body {
+        border-color: #007bff;
+        background: #f4f9ff;
+    }
+
+    .payment-card input[type="radio"]:checked + .payment-card-body {
+        border-color: #007bff;
+        background: #eaf2ff;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+    }
+
+    .payment-icon {
+        width: 34px;
+        height: auto;
+    }
+
+    .payment-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .payment-description {
+        font-size: 13px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    /* Mobile improvement */
+    @media (max-width: 576px) {
+        .payment-card-body {
+            padding: 12px;
+        }
+        .payment-icon {
+            width: 28px;
+        }
+    }
+</style>
+
+
+<style>
+    <style>
+.location-select {
+    margin-bottom: 15px;
+}
+
+.location-select select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: white;
+}
+
+.location-select label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+</style>
+</style>
 {% endblock %}
 {% block content %}
 
@@ -843,139 +1059,375 @@
 
 
     <!-- Buy Now Popup -->
-<div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog" aria-labelledby="buyNowModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title" id="buyNowModalLabel">Complete Your Order</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="buyNowForm" method="post" action="{% url 'process_buy_now' %}">
-                {% csrf_token %}
-                <input type="hidden" name="product_id" value="{{ product.id }}">
-                <input type="hidden" name="quantity" id="modal_quantity" value="1">
-                <!-- Hidden fields for selected variations -->
-                {% for attribute_name, values in variations.items %}
-                    <input type="hidden" name="attribute_{{ attribute_name|slugify }}" id="modal_{{ attribute_name|slugify }}" value="{{ values.0 }}">
-                {% endfor %}
-                
-                <div class="modal-body p-4">
-                    <!-- Product Summary -->
-                    <div class="product-summary-card mb-4 p-3 bg-light rounded">
-                        <div class="row align-items-center">
-                            <div class="col-3 pr-3">
-                                <div class="product-thumbnail">
-                                    {% with product.images.first as image %}
-                                        <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-fluid rounded border">
-                                    {% endwith %}
-                                </div>
-                            </div>
-                            <div class="col-9">
-                                <h6 class="product-title mb-2">{{ product.name|truncatechars:40 }}</h6>
-                                <div class="product-variants text-muted mb-2" id="modal_variants_display">
-                                    <!-- Variants will be displayed here -->
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="product-price">
-                                        <span class="font-weight-bold text-primary">{{ currency_symbol }} {{ product.get_price }}</span>
-                                        {% if product.discount_price %}
-                                            <small class="text-muted ml-2"><del>{{ currency_symbol }} {{ product.price }}</del></small>
-                                        {% endif %}
-                                    </div>
-                                    <div class="product-quantity">
-                                        <span class="badge badge-secondary">Qty: <span id="modal_quantity_display">1</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Customer Information -->
-                    <div class="customer-info">
-                        <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <input type="email" class="form-control" placeholder="Email address*" name="email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Street address*" name="address_line1" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Apartment, suite, etc. (optional)" name="address_line2">
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="City*" name="city" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="State/Province*" name="state" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="ZIP/Postal code*" name="postal_code" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" placeholder="Country*" name="country" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Section -->
-                    <div class="payment-section mt-4 pt-3 border-top">
-                        <h6 class="mb-3 font-weight-bold">Payment Method</h6>
-                        <div class="payment-option bg-light p-3 rounded">
-                            <div class="custom-control custom-radio">
-                                <input type="radio" id="cod" name="payment_method" class="custom-control-input" value="cod" checked>
-                                <label class="custom-control-label d-flex align-items-center" for="cod">
-                                    <i class="fas fa-money-bill-wave fa-lg mr-3 text-success"></i>
-                                    <div>
-                                        <span class="d-block font-weight-bold">Cash on Delivery</span>
-                                        <small class="text-muted">Pay when you receive your order</small>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fas fa-check-circle mr-2"></i>Place Order
+    <div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog" aria-labelledby="buyNowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title" id="buyNowModalLabel">Complete Your Order</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-            </form>
+
+
+                {% comment %}
+                <form id="buyNowForm" method="post" action="{% url 'process_buy_now' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="quantity" id="modal_quantity" value="1">
+                    <!-- Hidden fields for selected variations -->
+                    {% for attribute_name, values in variations.items %}
+                        <input type="hidden" name="attribute_{{ attribute_name|slugify }}" id="modal_{{ attribute_name|slugify }}" value="{{ values.0 }}">
+                    {% endfor %}
+                    
+                    <div class="modal-body p-4">
+                        <!-- Product Summary -->
+                        <div class="product-summary-card mb-4 p-3 bg-light rounded">
+                            <div class="row align-items-center">
+                                <div class="col-3 pr-3">
+                                    <div class="product-thumbnail">
+                                        {% with product.images.first as image %}
+                                            <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-fluid rounded border">
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <div class="col-9">
+                                    <h6 class="product-title mb-2">{{ product.name|truncatechars:40 }}</h6>
+                                    <div class="product-variants text-muted mb-2" id="modal_variants_display">
+                                        <!-- Variants will be displayed here -->
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="product-price">
+                                            <span class="font-weight-bold text-primary">{{ currency_symbol }} {{ product.get_price }}</span>
+                                            {% if product.discount_price %}
+                                                <small class="text-muted ml-2"><del>{{ currency_symbol }} {{ product.price }}</del></small>
+                                            {% endif %}
+                                        </div>
+                                        <div class="product-quantity">
+                                            <span class="badge badge-secondary">Qty: <span id="modal_quantity_display">1</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Information -->
+                        <div class="customer-info">
+                            <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Email address*" name="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Street address*" name="address_line1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Apartment, suite, etc. (optional)" name="address_line2">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="City*" name="city" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="State/Province*" name="state" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="ZIP/Postal code*" name="postal_code" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Country*" name="country" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                            </div>
+                        </div>
+                        
+                        
+
+                        <!-- Payment Section -->
+                        <div class="payment-section mt-4 pt-3 border-top">
+                            <h6 class="mb-3 font-weight-bold">Payment Method</h6>
+
+                            <div class="payment-method row g-3">
+                                {% for method in payment_methods %}
+                                <div class="col-12 col-md-6">
+                                    <label class="payment-card">
+                                        <input 
+                                            type="radio" 
+                                            id="payment-{{ method.id }}" 
+                                            name="payment_method" 
+                                            value="{{ method.id }}" 
+                                            {% if forloop.first %}checked{% endif %} 
+                                            required 
+                                        >
+
+                                        <div class="payment-card-body">
+                                            <div class="d-flex align-items-center">
+                                                {% if method.icon %}
+                                                <img src="{{ method.icon.url }}" alt="{{ method.name }}" class="payment-icon me-2">
+                                                {% endif %}
+                                                <span class="payment-title" style="margin-left: 8px;"> {{ method.name }}</span>
+                                            </div>
+                                            <p class="payment-description">{{ method.description }}</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-check-circle mr-2"></i>Place Order
+                        </button>
+                    </div>
+                </form>
+                {% endcomment %}
+
+                <form id="buyNowForm" method="post" action="{% url 'process_buy_now' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="quantity" id="modal_quantity" value="1">
+                    <!-- Hidden fields for selected variations -->
+                    {% for attribute_name, values in variations.items %}
+                        <input type="hidden" name="attribute_{{ attribute_name|slugify }}" id="modal_{{ attribute_name|slugify }}" value="{{ values.0 }}">
+                    {% endfor %}
+                    
+                    <div class="modal-body p-4">
+                        <!-- Product Summary -->
+                        <div class="product-summary-card mb-4 p-3 bg-light rounded">
+                            <div class="row align-items-center">
+                                <div class="col-3 pr-3">
+                                    <div class="product-thumbnail">
+                                        {% with product.images.first as image %}
+                                            <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-fluid rounded border">
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <div class="col-9">
+                                    <h6 class="product-title mb-2">{{ product.name|truncatechars:40 }}</h6>
+                                    <div class="product-variants text-muted mb-2" id="modal_variants_display">
+                                        <!-- Variants will be displayed here -->
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="product-price">
+                                            <span class="font-weight-bold text-primary">{{ currency_symbol }} {{ product.get_price }}</span>
+                                            {% if product.discount_price %}
+                                                <small class="text-muted ml-2"><del>{{ currency_symbol }} {{ product.price }}</del></small>
+                                            {% endif %}
+                                        </div>
+                                        <div class="product-quantity">
+                                            <span class="badge badge-secondary">Qty: <span id="modal_quantity_display">1</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Information -->
+                        <div class="customer-info">
+                            <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Email address*" name="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Street address*" name="address_line1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Apartment, suite, etc. (optional)" name="address_line2">
+                            </div>
+                            
+                            <!-- REPLACE STATIC FIELDS WITH DYNAMIC DROPDOWNS -->
+                            <div class="mb-3">
+                                <label class="form-label">Country*</label>
+                                <select class="form-control" id="buynow_country" name="country" required>
+                                    <option value="">Select Country</option>
+                                    {% for country in countries %}
+                                    <option value="{{ country.id }}" data-requires-state="{{ country.requires_state|yesno:'true,false' }}">
+                                        {{ country.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="buynow_state_container" style="display: none;">
+                                <label class="form-label">State/Province*</label>
+                                <select class="form-control" id="buynow_state" name="state">
+                                    <option value="">Select State/Province</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">City/Town*</label>
+                                <select class="form-control" id="buynow_city" name="city" required>
+                                    <option value="">Select City/Town</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="ZIP/Postal code*" name="postal_code" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Payment Section -->
+                        <div class="payment-section mt-4 pt-3 border-top">
+                            <h6 class="mb-3 font-weight-bold">Payment Method</h6>
+
+                            <div class="payment-method row g-3">
+                                {% for method in payment_methods %}
+                                <div class="col-12 col-md-6">
+                                    <label class="payment-card">
+                                        <input 
+                                            type="radio" 
+                                            id="payment-{{ method.id }}" 
+                                            name="payment_method" 
+                                            value="{{ method.id }}" 
+                                            {% if forloop.first %}checked{% endif %} 
+                                            required 
+                                        >
+                                        <div class="payment-card-body">
+                                            <div class="d-flex align-items-center">
+                                                {% if method.icon %}
+                                                <img src="{{ method.icon.url }}" alt="{{ method.name }}" class="payment-icon me-2">
+                                                {% endif %}
+                                                <span class="payment-title" style="margin-left: 8px;"> {{ method.name }}</span>
+                                            </div>
+                                            <p class="payment-description">{{ method.description }}</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-check-circle mr-2"></i>Place Order
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+    
 {% endblock %}
 
 
 
 {% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Buy Now Form - Country change handler
+    $('#buynow_country').change(function() {
+        const countryId = $(this).val();
+        const requiresState = $(this).find('option:selected').data('requires-state') === 'true';
+        
+        // Reset state and city
+        $('#buynow_state').html('<option value="">Select State/Province</option>');
+        $('#buynow_city').html('<option value="">Select City/Town</option>');
+        
+        // Show/hide state field based on country
+        if (requiresState) {
+            $('#buynow_state_container').show();
+            
+            // Load states for selected country
+            if (countryId) {
+                $.get('/orders/get_states/', {country_id: countryId}, function(data) {
+                    $.each(data, function(i, state) {
+                        $('#buynow_state').append($('<option>', {
+                            value: state.id,
+                            text: state.name
+                        }));
+                    });
+                });
+            }
+        } else {
+            $('#buynow_state_container').hide();
+            
+            // If country doesn't require state, load cities directly
+            if (countryId) {
+                $.get('/orders/get_cities/', {country_id: countryId}, function(data) {
+                    $.each(data, function(i, city) {
+                        $('#buynow_city').append($('<option>', {
+                            value: city.id,
+                            text: city.name
+                        }));
+                    });
+                });
+            }
+        }
+    });
+    
+    // Buy Now Form - State change handler
+    $('#buynow_state').change(function() {
+        const stateId = $(this).val();
+        $('#buynow_city').html('<option value="">Select City/Town</option>');
+        
+        if (stateId) {
+            $.get('/orders/get_cities/', {state_id: stateId}, function(data) {
+                $.each(data, function(i, city) {
+                    $('#buynow_city').append($('<option>', {
+                        value: city.id,
+                        text: city.name
+                    }));
+                });
+            });
+        }
+    });
+    
+    // Form submission handler for buy now form
+    $('#buyNowForm').submit(function() {
+        // You can add any validation or loading state here
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Placing Order...');
+    });
+});
+</script>
+
 <script>
 
 $(document).ready(function() {

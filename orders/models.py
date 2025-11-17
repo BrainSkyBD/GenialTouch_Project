@@ -127,7 +127,12 @@ class OrderItem(models.Model):
         return f"{self.product.name} - {self.quantity}"
     
     def get_total(self):
-        return self.price * self.quantity
+        try:
+            price_x_qty = self.price * self.quantity
+        except Exception as exc:
+            print(exc)
+            price_x_qty = None
+        return price_x_qty
 
 
 class OrderTracking(models.Model):
