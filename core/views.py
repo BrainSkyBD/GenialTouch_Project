@@ -90,7 +90,7 @@ def home(request):
     from datetime import datetime, timedelta
     deal_end_date = datetime.now() + timedelta(days=1)
     # top_categories = Category.objects.filter(is_active=True)[:9]
-    top_categories = Category.objects.filter(is_active=True, is_featured=True)
+    top_categories = Category.objects.filter(parent__isnull=True, is_active=True, is_featured=True)
 
 
     context = {
