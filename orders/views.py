@@ -304,6 +304,30 @@ def process_buy_now(request):
         # Calculate price
         price = variation.get_price() if variation else product.get_price()
         total_price = price * quantity
+
+        get_payment_method_value = request.POST.get('payment_method')
+        get_payment_method_row = None
+        if get_payment_method_value:
+            get_payment_method_row = PaymentMethod.objects.get(id=get_payment_method_value)
+
+        
+        get_country_value = request.POST.get('country')
+        get_country_row = None
+        if get_country_value:
+            get_country_row = Country.objects.get(id=get_country_value)
+
+        get_city_value = request.POST.get('city')
+        get_city_row = None
+        if get_city_value:
+            get_city_row = City.objects.get(id=get_city_value)
+
+        
+        get_state_value = request.POST.get('state')
+        get_state_row = None
+        if get_state_value:
+            get_state_row = State.objects.get(id=get_state_value)
+
+
         
         # Create order
         order = Order(
@@ -314,10 +338,10 @@ def process_buy_now(request):
             phone_number=request.POST.get('phone_number'),
             address_line1=request.POST.get('address_line1'),
             address_line2=request.POST.get('address_line2', ''),
-            city=request.POST.get('city'),
-            state=request.POST.get('state'),
+            city=get_city_row,
+            state=get_state_row,
             postal_code=request.POST.get('postal_code'),
-            country=request.POST.get('country'),
+            country=get_country_row,
             order_note=request.POST.get('order_note', ''),
             order_total=total_price,
             tax=Decimal('0.00'),  # You can add tax calculation
@@ -325,7 +349,8 @@ def process_buy_now(request):
             grand_total=total_price,
             status='pending',
             ip_address=request.META.get('REMOTE_ADDR'),
-            is_ordered=True
+            is_ordered=True,
+            payment_method=get_payment_method_row,
         )
         
         if request.user.is_authenticated:
