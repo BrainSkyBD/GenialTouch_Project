@@ -161,6 +161,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
     
     # Apply URL-based filters (from category/brand slug in URL)
     subcategory_list = None
+    category = None
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug, is_active=True)
         products = products.filter(categories=category)
@@ -282,6 +283,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
         'selected_attributes': attribute_values,
         'sort_option': sort,
         'subcategory_list':subcategory_list,
+        'category':category,
     }
     
     return render(request, 'shop/product_list.html', context)
