@@ -7,9 +7,12 @@ urlpatterns = [
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
 
 
+    # path('category/<slug:slug>/', views.product_list, name='products_by_category'),
+    # path('brand/<slug:slug>/', views.product_list, name='products_by_brand'),
+
     path('', views.product_list, name='product_list'),
-    path('category/<slug:slug>/', views.product_list, name='products_by_category'),
-    path('brand/<slug:slug>/', views.product_list, name='products_by_brand'),
+    path('category/<slug:slug>/', views.products_by_category, name='products_by_category'),
+    path('brand/<slug:slug>/', views.products_by_brand, name='products_by_brand'),
     path('categories/', views.category_list, name='category_list'),
     path('brands/', views.brand_list, name='brand_list'),
     path('<slug:slug>/', views.product_detail, name='product_detail'),

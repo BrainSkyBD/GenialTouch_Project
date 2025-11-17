@@ -694,7 +694,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="price" data-label="Price">${{ item.price }}</td>
+                                        <td class="price" data-label="Price">{{ currency_symbol }} {{ item.price }}</td>
                                         <td data-label="Quantity">
                                             <div class="form-group--number">
                                                 <button class="down" data-cart-key="{{ item.cart_key }}">-</button>
@@ -706,7 +706,7 @@
                                                 <button class="up" data-cart-key="{{ item.cart_key }}">+</button>
                                             </div>
                                         </td>
-                                        <td data-label="Total">${{ item.total }}</td>
+                                        <td data-label="Total">{{ currency_symbol }} {{ item.total }}</td>
                                         <td data-label="Remove">
                                             <a href="#" class="remove-from-cart" data-cart-key="{{ item.cart_key }}">
                                                 <i class="icon-cross"></i>
@@ -730,10 +730,10 @@
                     
                     <div class="ps-block--shopping-total">
                         <div class="ps-block__header">
-                            <p>Subtotal <span>${{ cart_total }}</span></p>
+                            <p>Subtotal <span>{{ currency_symbol }} {{ cart_total }}</span></p>
                         </div>
                         <div class="ps-block__content">
-                            <h3>Total <span>${{ cart_total }}</span></h3>
+                            <h3>Total <span>{{ currency_symbol }} {{ cart_total }}</span></h3>
                             <p>Shipping & taxes calculated at checkout</p>
                             <a class="ps-btn mt-3 w-100 text-center" href="{% url 'checkout' %}">
                                 Secure Checkout <i class="icon-lock"></i>
@@ -798,10 +798,10 @@ $(document).ready(function() {
             success: function(response) {
                 if(response.status === 'success') {
                     // Update the row total
-                    $('#cart-row-' + cartKey + ' td[data-label="Total"]').text('$' + response.item_total);
+                    $('#cart-row-' + cartKey + ' td[data-label="Total"]').text('{{ currency_symbol }} ' + response.item_total);
                     // Update subtotal and total
-                    $('.ps-block__header span').text('$' + response.cart_total);
-                    $('.ps-block__content h3 span').text('$' + response.cart_total);
+                    $('.ps-block__header span').text('{{ currency_symbol }} ' + response.cart_total);
+                    $('.ps-block__content h3 span').text('{{ currency_symbol }} ' + response.cart_total);
                     // Update cart count in header
                     $('.header__extra .icon-bag2').next('span').find('i').text(response.cart_item_count);
                     $('.cart-item-count').text(response.cart_item_count + ' item(s) in cart');
@@ -838,8 +838,8 @@ $(document).ready(function() {
                             
                             if(response.cart_item_count > 0) {
                                 // Update totals
-                                $('.ps-block__header span').text('$' + response.cart_total);
-                                $('.ps-block__content h3 span').text('$' + response.cart_total);
+                                $('.ps-block__header span').text('{{ currency_symbol }} ' + response.cart_total);
+                                $('.ps-block__content h3 span').text('{{ currency_symbol }} ' + response.cart_total);
                             } else {
                                 // Show empty cart message
                                 $('.ps-section__content').html(`

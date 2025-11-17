@@ -89,7 +89,8 @@ def home(request):
     # Calculate deal end date (24 hours from now)
     from datetime import datetime, timedelta
     deal_end_date = datetime.now() + timedelta(days=1)
-    top_categories = Category.objects.filter(is_active=True)[:9]
+    # top_categories = Category.objects.filter(is_active=True)[:9]
+    top_categories = Category.objects.filter(parent__isnull=True, is_active=True, is_featured=True)
 
 
     context = {
@@ -111,3 +112,11 @@ def home(request):
 
 
 
+def return_and_refund_policy(request):
+    return render(request, "policies/return_and_refund_policy.html")
+
+def terms_and_conditions(request):
+    return render(request, "policies/terms_and_conditions.html")
+
+def Replacement_Policy(request):
+    return render(request, "policies/Replacement_Policy.html")

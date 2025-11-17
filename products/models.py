@@ -24,7 +24,8 @@ class Category(models.Model):
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='categories/', blank=True)
+    image = models.ImageField(upload_to='categories/image/', blank=True)
+    banner = models.ImageField(upload_to='categories/banner/', blank=True, default=None, null=True)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     
@@ -75,6 +76,8 @@ class Product(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+    
+    
     
     def __str__(self):
         return self.name

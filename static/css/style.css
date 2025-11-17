@@ -15966,7 +15966,7 @@ html:not([dir="rtl"]) .noUi-horizontal .noUi-handle {
   z-index: 9999;
   text-align: center;
   border-bottom: 0 none;
-  background-color: #fcb800;
+  background-color: #420707;
   transition: all 0.4s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 

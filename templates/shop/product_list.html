@@ -2,6 +2,42 @@
 {% load static %}
 {% block title %}GenialTouch - Products{% endblock %}
 {% block content %}
+
+
+
+    {% if subcategory_list %}
+    <div class="ps-top-categories" style="margin-top: 24px;">
+        <div class="ps-container">
+            <h3>Sub-categories under {{ selected_category }}</h3>
+            <div class="row">
+                {% for category in subcategory_list %}
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
+                    <div class="ps-block--category">
+                        <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}"
+                        style="width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                clip-path: polygon(
+                                    25% 6%, 75% 6%,
+                                    100% 50%, 75% 94%,
+                                    25% 94%, 0% 50%
+                                );
+                                transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                        <p>{{ category.name }}</p>
+
+                        
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    
+
+
     <div class="ps-page--shop" style="margin-top: 58px;">
         <div class="ps-container">
             <div class="ps-layout--shop">
@@ -69,9 +105,9 @@
                         </div>
                         <p class="ps-slider__meta">
                             Price: 
-                            <span class="ps-slider__value">$<span id="min-price-value">{% if min_price %}{{ min_price }}{% else %}0{% endif %}</span></span>
+                            <span class="ps-slider__value">{{ currency_symbol }} <span id="min-price-value">{% if min_price %}{{ min_price }}{% else %}0{% endif %}</span></span>
                             - 
-                            <span class="ps-slider__value">$<span id="max-price-value">{% if max_price %}{{ max_price }}{% else %}10000{% endif %}</span></span>
+                            <span class="ps-slider__value">{{ currency_symbol }} <span id="max-price-value">{% if max_price %}{{ max_price }}{% else %}10000{% endif %}</span></span>
                         </p>
                         <form id="price-filter-form" method="get">
                             <input type="hidden" name="min_price" id="min-price-input" value="{{ min_price }}">
@@ -151,6 +187,9 @@
                 
                 <!-- Main Content Area -->
                 <div class="ps-layout__right">
+                    <div class="ps-page--single" id="about-us">
+                        <img src="/static/img/bg/about-us.jpg" alt="">
+                    </div>
                     <div class="ps-shopping ps-tab-root">
                         <div class="ps-shopping__header">
                             <p><strong>{{ products.paginator.count }}</strong> Products found</p>
@@ -227,10 +266,10 @@
                                                         </div>
                                                         <p class="ps-product__price">
                                                             {% if product.discount_price %}
-                                                            <span class="sale">${{ product.discount_price }}</span>
-                                                            <del>${{ product.price }}</del>
+                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
                                                             {% else %}
-                                                            ${{ product.price }}
+                                                            {{ currency_symbol }} {{ product.price }}
                                                             {% endif %}
                                                         </p>
                                                     </div>
@@ -238,10 +277,10 @@
                                                         <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                                                         <p class="ps-product__price">
                                                             {% if product.discount_price %}
-                                                            <span class="sale">${{ product.discount_price }}</span>
-                                                            <del>${{ product.price }}</del>
+                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
                                                             {% else %}
-                                                            ${{ product.price }}
+                                                            {{ currency_symbol }} {{ product.price }}
                                                             {% endif %}
                                                         </p>
                                                     </div>
@@ -308,17 +347,17 @@ $(document).ready(function() {
         tooltips: [true, true],
         format: {
             to: function(value) {
-                return '$' + parseInt(value);
+                return '{{ currency_symbol }}' + parseInt(value);
             },
             from: function(value) {
-                return value.replace('$', '');
+                return value.replace('{{ currency_symbol }}', '');
             }
         }
     });
     
     // Update price inputs when slider changes
     priceSlider.noUiSlider.on('update', function(values, handle) {
-        const value = values[handle].replace('$', '');
+        const value = values[handle].replace('{{ currency_symbol }}', '');
         if (handle) {
             $('#max-price-value').text(value);
         } else {

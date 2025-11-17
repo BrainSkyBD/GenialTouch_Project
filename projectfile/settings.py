@@ -75,6 +75,8 @@ TEMPLATES = [
 
                 'cart.context_processors.cart',
                 'products.context_processors.categories',
+
+                'core.context_processors.currency_context',
             ],
         },
     },
