@@ -1,220 +1,274 @@
 from django.contrib import admin
-from django import forms
-from .models import Country, State, City, Order, OrderItem, OrderTracking, PaymentMethod, TaxConfiguration
 from django.utils.html import format_html
+from .models import (
+    Country, District, Thana, TaxConfiguration, 
+    PaymentMethod, Order, OrderItem, OrderTracking
+)
 
-# Custom Admin Forms
-class CityForm(forms.ModelForm):
-    class Meta:
-        model = City
-        fields = '__all__'
+
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'is_active', 'district_count')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'code')
+    list_per_page = 20
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Make state field optional
-        self.fields['state'].required = False
-        
-        # Filter states based on selected country
-        if 'country' in self.data:
-            try:
-                country_id = int(self.data.get('country'))
-                self.fields['state'].queryset = State.objects.filter(country_id=country_id).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.country:
-            self.fields['state'].queryset = self.instance.country.state_set.order_by('name')
-        else:
-            self.fields['state'].queryset = State.objects.none()
+    def district_count(self, obj):
+        return obj.district_set.count()
+    district_count.short_description = 'Districts'
 
-# Inline Admin Classes
+
+class DistrictAdmin(admin.ModelAdmin):
+    list_display = ('name', 'country', 'shipping_cost', 'thana_count', 'is_active')
+    list_filter = ('country', 'is_active')
+    search_fields = ('name', 'country__name')
+    list_select_related = ('country',)
+    list_per_page = 20
+    
+    def thana_count(self, obj):
+        return obj.thana_set.count()
+    thana_count.short_description = 'Thanas'
+
+
+class ThanaAdmin(admin.ModelAdmin):
+    list_display = ('name', 'district', 'country', 'is_active')
+    list_filter = ('district__country', 'district', 'is_active')
+    search_fields = ('name', 'district__name', 'district__country__name')
+    list_select_related = ('district__country',)
+    list_per_page = 20
+    
+    def country(self, obj):
+        return obj.district.country.name
+    country.short_description = 'Country'
+
+
+class TaxConfigurationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'rate', 'is_active', 'applies_to_all', 'country_count', 'created_at')
+    list_filter = ('is_active', 'applies_to_all')
+    search_fields = ('name',)
+    filter_horizontal = ('countries',)
+    list_per_page = 20
+    
+    def country_count(self, obj):
+        if obj.applies_to_all:
+            return "All"
+        return obj.countries.count()
+    country_count.short_description = 'Countries'
+
+
+class PaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_icon', 'is_active', 'order_count')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'description')
+    readonly_fields = ('preview_icon',)
+    list_per_page = 20
+    
+    def display_icon(self, obj):
+        if obj.icon:
+            return format_html('<img src="{}" width="30" height="30" style="border-radius: 5px;" />', obj.icon.url)
+        return "No Icon"
+    display_icon.short_description = 'Icon'
+    
+    def preview_icon(self, obj):
+        if obj.icon:
+            return format_html('<img src="{}" width="100" height="100" style="border-radius: 5px;" />', obj.icon.url)
+        return "No Icon"
+    preview_icon.short_description = 'Icon Preview'
+    
+    def order_count(self, obj):
+        return Order.objects.filter(payment_method=obj).count()
+    order_count.short_description = 'Orders'
+
+
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    readonly_fields = ('product', 'variation', 'quantity', 'price', 'get_total')
+    readonly_fields = ('product', 'variation', 'quantity', 'price', 'get_total', 'created_at')
+    fields = ('product', 'variation', 'quantity', 'price', 'get_total')
     extra = 0
+    can_delete = False
+    max_num = 0  # Prevent adding new items
     
     def get_total(self, obj):
-        return obj.get_total()
+        return f"${obj.get_total()}" if obj.get_total() else "-"
     get_total.short_description = 'Total'
+    
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 class OrderTrackingInline(admin.TabularInline):
     model = OrderTracking
-    extra = 1
-    readonly_fields = ('created_at',)
+    readonly_fields = ('status', 'note', 'created_at')
+    fields = ('status', 'note', 'created_at')
+    extra = 0
+    max_num = 10
+    
+    def has_change_permission(self, request, obj=None):
+        return False
 
-# Main Admin Classes
-@admin.register(Country)
-class CountryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'requires_state', 'is_active', 'city_count')
-    list_filter = ('is_active', 'requires_state')
-    search_fields = ('name', 'code')
-    list_editable = ('is_active', 'requires_state')
-    ordering = ('name',)
-    
-    def city_count(self, obj):
-        return obj.city_set.count()
-    city_count.short_description = 'Cities'
 
-@admin.register(State)
-class StateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'country', 'code', 'is_active', 'city_count')
-    list_filter = ('country', 'is_active')
-    search_fields = ('name', 'country__name', 'code')
-    list_editable = ('is_active',)
-    ordering = ('country__name', 'name')
-    
-    def city_count(self, obj):
-        return obj.city_set.count()
-    city_count.short_description = 'Cities'
-
-@admin.register(City)
-class CityAdmin(admin.ModelAdmin):
-    form = CityForm
-    list_display = ('name', 'country_display', 'state_display', 'shipping_cost', 'is_active')
-    list_filter = ('country', 'state', 'is_active')
-    search_fields = ('name', 'country__name', 'state__name')
-    list_editable = ('shipping_cost', 'is_active')
-    ordering = ('country__name', 'state__name', 'name')
-    
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'country', 'state', 'shipping_cost', 'is_active')
-        }),
-    )
-    
-    def country_display(self, obj):
-        return obj.country.name
-    country_display.short_description = 'Country'
-    country_display.admin_order_field = 'country__name'
-    
-    def state_display(self, obj):
-        return obj.state.name if obj.state else "-"
-    state_display.short_description = 'State'
-    state_display.admin_order_field = 'state__name'
-
-@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        'order_number',
-        'created_at',
-        'user',
-        'get_full_name',
-        'grand_total',
-        'status',
-        'payment_status',
-        'view_order'
+        'order_number', 'get_full_name', 'email', 'phone_number', 
+        'country', 'district', 'status', 'grand_total', 'created_at', 
+        'payment_method'
     )
-    list_filter = ('status', 'created_at', 'country')
-    search_fields = ('order_number', 'user__email', 'first_name', 'last_name')
+    list_filter = ('status', 'country', 'district', 'created_at', 'payment_method')
+    search_fields = (
+        'order_number', 'first_name', 'last_name', 'email', 
+        'phone_number', 'full_address'
+    )
     readonly_fields = (
-        'order_number',
-        'user',
-        'created_at',
-        'updated_at',
-        'ip_address',
-        'get_full_address'
+        'order_number', 'user', 'get_full_name', 'email', 'phone_number', 
+        'full_address', 'country', 'district', 'thana', 'postal_code', 
+        'order_note', 'order_total', 'tax', 'tax_rate', 'tax_amount', 
+        'grand_total', 'ip_address', 'created_at', 'updated_at',
+        'shipping_cost', 'payment_method', 'payment_details',
+        'get_formatted_address'
     )
-    inlines = [OrderItemInline, OrderTrackingInline]
-    date_hierarchy = 'created_at'
-    
     fieldsets = (
         ('Order Information', {
-            'fields': (
-                'order_number',
-                'user',
-                'status',
-                'created_at',
-                'updated_at',
-                'ip_address'
-            )
+            'fields': ('order_number', 'user', 'status', 'is_ordered', 'created_at', 'updated_at')
         }),
         ('Customer Information', {
-            'fields': (
-                'first_name',
-                'last_name',
-                'email',
-                'phone_number'
-            )
+            'fields': ('get_full_name', 'email', 'phone_number')
         }),
         ('Shipping Information', {
             'fields': (
-                'address_line1',
-                'address_line2',
-                'country',
-                'state',
-                'city',
-                'postal_code',
-                'get_full_address'
+                'get_formatted_address', 'full_address', 'country', 
+                'district', 'thana', 'postal_code', 'shipping_cost'
             )
         }),
         ('Order Details', {
             'fields': (
-                'order_note',
-                'order_total',
-                'shipping_cost',
-                'tax',
-                'grand_total'
+                'order_note', 'order_total', 'tax', 'tax_rate', 
+                'tax_amount', 'grand_total'
             )
         }),
+        ('Payment Information', {
+            'fields': ('payment_method', 'payment_details')
+        }),
+        ('Technical Information', {
+            'fields': ('ip_address',)
+        }),
     )
+    inlines = [OrderItemInline, OrderTrackingInline]
+    list_per_page = 20
+    actions = ['mark_as_processing', 'mark_as_shipped', 'mark_as_delivered', 'mark_as_cancelled']
     
     def get_full_name(self, obj):
         return obj.get_full_name()
-    get_full_name.short_description = 'Customer'
+    get_full_name.short_description = 'Customer Name'
     
-    def payment_status(self, obj):
-        return "COD"  # For future payment method integration
-    payment_status.short_description = 'Payment'
+    def get_formatted_address(self, obj):
+        return format_html(
+            '<div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 4px solid #007bff;">'
+            '<strong>Full Address:</strong><br>{}<br><br>'
+            '<strong>Location Details:</strong><br>'
+            '<small>Country: {}<br>'
+            'District: {}<br>'
+            'Thana: {}<br>'
+            'Postal Code: {}</small></div>',
+            obj.full_address,
+            obj.country.name if obj.country else '-',
+            obj.district.name if obj.district else '-',
+            obj.thana.name if obj.thana else '-',
+            obj.postal_code if obj.postal_code else '-'
+        )
+    get_formatted_address.short_description = 'Address Details'
     
-    def view_order(self, obj):
-        return format_html('<a href="/admin/order/order/{}/change/">View</a>', obj.id)
-    view_order.short_description = 'Action'
+    def mark_as_processing(self, request, queryset):
+        queryset.update(status='processing')
+        for order in queryset:
+            OrderTracking.objects.create(order=order, status='processing', note='Status changed by admin')
+        self.message_user(request, f"{queryset.count()} orders marked as processing.")
+    mark_as_processing.short_description = "Mark selected orders as Processing"
+    
+    def mark_as_shipped(self, request, queryset):
+        queryset.update(status='shipped')
+        for order in queryset:
+            OrderTracking.objects.create(order=order, status='shipped', note='Status changed by admin')
+        self.message_user(request, f"{queryset.count()} orders marked as shipped.")
+    mark_as_shipped.short_description = "Mark selected orders as Shipped"
+    
+    def mark_as_delivered(self, request, queryset):
+        queryset.update(status='delivered')
+        for order in queryset:
+            OrderTracking.objects.create(order=order, status='delivered', note='Status changed by admin')
+        self.message_user(request, f"{queryset.count()} orders marked as delivered.")
+    mark_as_delivered.short_description = "Mark selected orders as Delivered"
+    
+    def mark_as_cancelled(self, request, queryset):
+        queryset.update(status='cancelled')
+        for order in queryset:
+            OrderTracking.objects.create(order=order, status='cancelled', note='Status changed by admin')
+        self.message_user(request, f"{queryset.count()} orders marked as cancelled.")
+    mark_as_cancelled.short_description = "Mark selected orders as Cancelled"
+    
+    def get_readonly_fields(self, request, obj=None):
+        # Make all fields readonly if order is already delivered or cancelled
+        if obj and obj.status in ['delivered', 'cancelled', 'refunded']:
+            return [field.name for field in self.model._meta.fields]
+        return self.readonly_fields
+    
+    def has_add_permission(self, request):
+        # Disable adding orders from admin
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        # Allow deletion only for superusers
+        return request.user.is_superuser
 
-@admin.register(OrderItem)
+
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product', 'variation', 'quantity', 'price', 'get_total')
-    list_filter = ('order__status',)
+    list_display = ('order', 'product', 'variation', 'quantity', 'price', 'get_total', 'created_at')
+    list_filter = ('order__status', 'created_at')
     search_fields = ('order__order_number', 'product__name')
+    readonly_fields = ('order', 'product', 'variation', 'quantity', 'price', 'created_at', 'updated_at')
+    list_select_related = ('order', 'product', 'variation')
+    list_per_page = 20
     
     def get_total(self, obj):
-        return obj.get_total()
+        return f"${obj.get_total()}" if obj.get_total() else "-"
     get_total.short_description = 'Total'
+    
+    def has_add_permission(self, request):
+        return False
 
-@admin.register(OrderTracking)
+
 class OrderTrackingAdmin(admin.ModelAdmin):
-    list_display = ('order', 'status', 'created_at', 'note_preview')
+    list_display = ('order', 'status', 'note_preview', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('order__order_number', 'note')
-    readonly_fields = ('created_at',)
+    readonly_fields = ('order', 'status', 'note', 'created_at')
+    list_select_related = ('order',)
+    list_per_page = 20
     
     def note_preview(self, obj):
-        return obj.note[:50] + '...' if obj.note else '-'
-    note_preview.short_description = 'Note Preview'
-
-
-@admin.register(PaymentMethod)
-class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_active')
-    list_editable = ('is_active',)
-    list_filter = ('is_active',)
-    search_fields = ('name', 'description')
+        if obj.note:
+            return obj.note[:50] + ('...' if len(obj.note) > 50 else '')
+        return '-'
+    note_preview.short_description = 'Note'
     
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'description', 'icon', 'is_active')
-        }),
-    )
-
-
-@admin.register(TaxConfiguration)
-class TaxConfigurationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'rate', 'is_active', 'applies_to_all', 'country_list')
-    list_filter = ('is_active', 'applies_to_all')
-    list_editable = ('rate', 'is_active', 'applies_to_all')
-    filter_horizontal = ('countries',)
+    def has_add_permission(self, request):
+        # Only allow adding via inline in Order admin
+        return False
     
-    def country_list(self, obj):
-        if obj.applies_to_all:
-            return "All Countries"
-        return ", ".join([country.name for country in obj.countries.all()])
-    country_list.short_description = 'Applicable Countries'
+    def has_change_permission(self, request, obj=None):
+        # Disable editing of tracking records
+        return False
+
+
+# Register all models
+admin.site.register(Country, CountryAdmin)
+admin.site.register(District, DistrictAdmin)
+admin.site.register(Thana, ThanaAdmin)
+admin.site.register(TaxConfiguration, TaxConfigurationAdmin)
+admin.site.register(PaymentMethod, PaymentMethodAdmin)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(OrderTracking, OrderTrackingAdmin)
+
+# Custom admin site title
+admin.site.site_header = "E-commerce Admin"
+admin.site.site_title = "E-commerce Admin Portal"
+admin.site.index_title = "Welcome to E-commerce Admin"
