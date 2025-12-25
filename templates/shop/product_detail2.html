@@ -1113,70 +1113,56 @@
                         </div>
 
                         <!-- Customer Information -->
-                        <!-- Customer Information -->
-                            <div class="customer-info">
-                                <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
-                                    </div>
+                        <div class="customer-info">
+                            <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <input type="email" class="form-control" placeholder="Email address" name="email">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
-                                </div>
-                                
-                                <!-- Full Address (Textarea) -->
-                                <div class="mb-3">
-                                    <textarea class="form-control" placeholder="Full address*" name="full_address" rows="3" required></textarea>
-                                </div>
-                                
-                                <!-- Location Selectors -->
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Country*</label>
-                                        <select class="form-control" id="buynow_country" name="country" required>
-                                            <option value="">Select Country</option>
-                                            {% for country in countries %}
-                                            <option value="{{ country.id }}">{{ country.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">District*</label>
-                                        <select class="form-control" id="buynow_district" name="district" required>
-                                            <option value="">Select District</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Thana (Optional)</label>
-                                        <select class="form-control" id="buynow_thana" name="thana">
-                                            <option value="">Select Thana</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Postal Code (Optional)</label>
-                                        <input type="text" class="form-control" placeholder="Postal Code" name="postal_code">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
                                 </div>
                             </div>
+                            
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Email address*" name="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Street address*" name="address_line1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Apartment, suite, etc. (optional)" name="address_line2">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="City*" name="city" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="State/Province*" name="state" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="ZIP/Postal code*" name="postal_code" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Country*" name="country" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                            </div>
+                        </div>
                         
                         
 
@@ -1264,68 +1250,68 @@
 
                         <!-- Customer Information -->
                         <div class="customer-info">
-                                <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
-                                    </div>
+                            <h6 class="mb-3 font-weight-bold">Shipping Information</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="First name*" name="first_name" required>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <input type="email" class="form-control" placeholder="Email address" name="email">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
-                                </div>
-                                
-                                <!-- Full Address (Textarea) -->
-                                <div class="mb-3">
-                                    <textarea class="form-control" placeholder="Full address*" name="full_address" rows="3" required></textarea>
-                                </div>
-                                
-                                <!-- Location Selectors -->
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Country*</label>
-                                        <select class="form-control" id="buynow_country" name="country" required>
-                                            <option value="">Select Country</option>
-                                            {% for country in countries %}
-                                            <option value="{{ country.id }}">{{ country.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">District*</label>
-                                        <select class="form-control" id="buynow_district" name="district" required>
-                                            <option value="">Select District</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Thana (Optional)</label>
-                                        <select class="form-control" id="buynow_thana" name="thana">
-                                            <option value="">Select Thana</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Postal Code (Optional)</label>
-                                        <input type="text" class="form-control" placeholder="Postal Code" name="postal_code">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
                                 </div>
                             </div>
+                            
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Email address*" name="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="tel" class="form-control" placeholder="Phone number*" name="phone_number" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Street address*" name="address_line1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Apartment, suite, etc. (optional)" name="address_line2">
+                            </div>
+                            
+                            <!-- REPLACE STATIC FIELDS WITH DYNAMIC DROPDOWNS -->
+                            <div class="mb-3">
+                                <label class="form-label">Country*</label>
+                                <select class="form-control" id="buynow_country" name="country" required>
+                                    <option value="">Select Country</option>
+                                    {% for country in countries %}
+                                    <option value="{{ country.id }}" data-requires-state="{{ country.requires_state|yesno:'true,false' }}">
+                                        {{ country.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="buynow_state_container" style="display: none;">
+                                <label class="form-label">State/Province*</label>
+                                <select class="form-control" id="buynow_state" name="state">
+                                    <option value="">Select State/Province</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">City/Town*</label>
+                                <select class="form-control" id="buynow_city" name="city" required>
+                                    <option value="">Select City/Town</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="ZIP/Postal code*" name="postal_code" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <textarea class="form-control" placeholder="Order notes (optional)" name="order_note" rows="2"></textarea>
+                            </div>
+                        </div>
 
                         <!-- Payment Section -->
                         <div class="payment-section mt-4 pt-3 border-top">
@@ -1374,7 +1360,73 @@
 
 
 {% block extra_js %}
-
+<script>
+$(document).ready(function() {
+    // Buy Now Form - Country change handler
+    $('#buynow_country').change(function() {
+        const countryId = $(this).val();
+        const requiresState = $(this).find('option:selected').data('requires-state') === 'true';
+        
+        // Reset state and city
+        $('#buynow_state').html('<option value="">Select State/Province</option>');
+        $('#buynow_city').html('<option value="">Select City/Town</option>');
+        
+        // Show/hide state field based on country
+        if (requiresState) {
+            $('#buynow_state_container').show();
+            
+            // Load states for selected country
+            if (countryId) {
+                $.get('/orders/get_states/', {country_id: countryId}, function(data) {
+                    $.each(data, function(i, state) {
+                        $('#buynow_state').append($('<option>', {
+                            value: state.id,
+                            text: state.name
+                        }));
+                    });
+                });
+            }
+        } else {
+            $('#buynow_state_container').hide();
+            
+            // If country doesn't require state, load cities directly
+            if (countryId) {
+                $.get('/orders/get_cities/', {country_id: countryId}, function(data) {
+                    $.each(data, function(i, city) {
+                        $('#buynow_city').append($('<option>', {
+                            value: city.id,
+                            text: city.name
+                        }));
+                    });
+                });
+            }
+        }
+    });
+    
+    // Buy Now Form - State change handler
+    $('#buynow_state').change(function() {
+        const stateId = $(this).val();
+        $('#buynow_city').html('<option value="">Select City/Town</option>');
+        
+        if (stateId) {
+            $.get('/orders/get_cities/', {state_id: stateId}, function(data) {
+                $.each(data, function(i, city) {
+                    $('#buynow_city').append($('<option>', {
+                        value: city.id,
+                        text: city.name
+                    }));
+                });
+            });
+        }
+    });
+    
+    // Form submission handler for buy now form
+    $('#buyNowForm').submit(function() {
+        // You can add any validation or loading state here
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Placing Order...');
+    });
+});
+</script>
 
 <script>
 
@@ -1635,53 +1687,5 @@ $(document).ready(function() {
     });
 });
 
-</script>
-
-
-<script>
-    $(document).ready(function() {
-    // Buy Now Form - Country change handler
-    $('#buynow_country').change(function() {
-        const countryId = $(this).val();
-        
-        // Reset district and thana
-        $('#buynow_district').html('<option value="">Select District</option>');
-        $('#buynow_thana').html('<option value="">Select Thana</option>');
-        
-        // Load districts for selected country
-        if (countryId) {
-            $.get('/orders/get_districts/', {country_id: countryId}, function(data) {
-                $.each(data, function(i, district) {
-                    $('#buynow_district').append($('<option>', {
-                        value: district.id,
-                        text: district.name
-                    }));
-                });
-            });
-        }
-    });
-    
-    // Buy Now Form - District change handler
-    $('#buynow_district').change(function() {
-        const districtId = $(this).val();
-        $('#buynow_thana').html('<option value="">Select Thana</option>');
-        
-        if (districtId) {
-            $.get('/orders/get_thanas/', {district_id: districtId}, function(data) {
-                $.each(data, function(i, thana) {
-                    $('#buynow_thana').append($('<option>', {
-                        value: thana.id,
-                        text: thana.name
-                    }));
-                });
-            });
-        }
-    });
-    
-    // Form submission handler for buy now form
-    $('#buyNowForm').submit(function() {
-        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Placing Order...');
-    });
-});
 </script>
 {% endblock %}

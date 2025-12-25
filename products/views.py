@@ -19,7 +19,7 @@ from django.core.paginator import Paginator
 from .models import Product, Category, Brand, AttributeValue, Attribute
 from django.db.models import Q
 from django.http import JsonResponse
-from orders.models import PaymentMethod, Order, OrderItem, Country, State, City, TaxConfiguration
+from orders.models import PaymentMethod, Order, OrderItem, Country, District, TaxConfiguration
 
 
 
@@ -290,6 +290,57 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
 
 
 
+# def product_detail(request, slug):
+#     product = get_object_or_404(
+#         Product.objects.select_related('brand')
+#                       .prefetch_related('images', 'categories', 'variations__attributes__attribute'),
+#         slug=slug,
+#         is_active=True
+#     )
+    
+#     # Get available variations
+#     variations = {}
+#     for variation in product.variations.filter(is_active=True, stock__gt=0):
+#         for attr in variation.attributes.all():
+#             if attr.attribute.name not in variations:
+#                 variations[attr.attribute.name] = []
+#             if attr.value not in variations[attr.attribute.name]:
+#                 variations[attr.attribute.name].append(attr.value)
+    
+#     # Get related products (same categories)
+#     related_products = Product.objects.filter(
+#         categories__in=product.categories.all(),
+#         is_active=True
+#     ).exclude(id=product.id).distinct()[:8]
+    
+#     # Get frequently bought together (through order items)
+#     from orders.models import OrderItem  # Import your OrderItem model
+#     frequently_bought = Product.objects.filter(
+#         orderitem__order__items__product=product
+#     ).exclude(id=product.id).distinct().annotate(
+#         freq_count=Count('id')
+#     ).order_by('-freq_count')[:4]
+
+#     if product.brand:
+#         same_brand_products = product.brand.product_set.exclude(id=product.id)[:2]
+#     else:
+#         same_brand_products = None
+
+#     payment_methods = PaymentMethod.objects.filter(is_active=True)
+
+#     countries = Country.objects.filter(is_active=True)
+
+#     context = {
+#         'product': product,
+#         'variations': variations,
+#         'related_products': related_products,
+#         'frequently_bought_together': frequently_bought,
+#         'same_brand_products': same_brand_products,
+#         'payment_methods': payment_methods,
+#         'countries': countries,
+#     }
+#     return render(request, 'shop/product_detail.html', context)
+
 def product_detail(request, slug):
     product = get_object_or_404(
         Product.objects.select_related('brand')
@@ -327,7 +378,6 @@ def product_detail(request, slug):
         same_brand_products = None
 
     payment_methods = PaymentMethod.objects.filter(is_active=True)
-
     countries = Country.objects.filter(is_active=True)
 
     context = {
@@ -343,6 +393,8 @@ def product_detail(request, slug):
 
 
 
+
+    
 def get_product_variation_price(request):
     print("get_product_variation_price")
     if request.method == 'POST':

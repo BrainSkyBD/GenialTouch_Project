@@ -1,0 +1,494 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Checkout - GenialTouch{% endblock %}
+{% block extra_css %}
+<style>
+    /* Base Styles */
+    .ps-checkout {
+        padding: 40px 0;
+    }
+    
+    .ps-form--checkout {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        padding: 30px;
+    }
+    
+    .ps-form__heading {
+        font-size: 20px;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #fcb800;
+        box-shadow: 0 0 0 3px rgba(252, 184, 0, 0.2);
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    /* Order Summary */
+    .ps-block--checkout-order {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+        position: sticky;
+        top: 20px;
+    }
+    
+    .ps-block--checkout-order figure {
+        margin: 0;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .ps-block--checkout-order figure figcaption {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+    }
+    
+    .ps-block--checkout-order figure.ps-block__items a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        color: #2c3e50;
+        text-decoration: none;
+    }
+    
+    .ps-block--checkout-order figure.ps-block__items a:last-child {
+        margin-bottom: 0;
+    }
+    
+    .ps-block--checkout-order figure.ps-block__items a small {
+        color: #fcb800;
+        font-weight: 700;
+    }
+    
+    /* Payment Methods */
+    .payment-method {
+        margin: 25px 0;
+    }
+    
+    .payment-method h3 {
+        margin-bottom: 15px;
+    }
+    
+    .payment-option {
+        display: flex;
+        align-items: flex-start;
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .payment-option:hover {
+        border-color: #fcb800;
+    }
+    
+    .payment-option input[type="radio"] {
+        margin-right: 15px;
+        margin-top: 3px;
+    }
+    
+    .payment-content {
+        flex-grow: 1;
+    }
+    
+    .payment-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .payment-description {
+        font-size: 14px;
+        color: #7f8c8d;
+        line-height: 1.5;
+    }
+    
+    .payment-icon {
+        width: 30px;
+        margin-right: 10px;
+    }
+    
+    /* Tax Display */
+    .tax-display {
+        display: none;
+    }
+    
+    .tax-display.active {
+        display: block;
+    }
+    
+    /* Submit Button */
+    .ps-btn--checkout {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        background: linear-gradient(90deg, #fcb800, #ff6b6b);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    
+    .ps-btn--checkout:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(252, 184, 0, 0.3);
+    }
+    
+    /* Responsive */
+    @media (max-width: 767px) {
+        .ps-form--checkout {
+            padding: 20px;
+        }
+        
+        .ps-form__heading {
+            font-size: 18px;
+        }
+        
+        .ps-block--checkout-order {
+            position: static;
+            margin-top: 30px;
+        }
+        
+        .payment-option {
+            flex-direction: column;
+        }
+        
+        .payment-option input[type="radio"] {
+            margin-bottom: 10px;
+        }
+    }
+
+
+    .location-select {
+        margin-bottom: 15px;
+    }
+    
+    .location-select select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        background-color: white;
+    }
+    
+    .location-select label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="ps-page--my-account">
+    <div class="ps-breadcrumb">
+        <div class="container">
+            <ul class="breadcrumb">
+                <li><a href="/">Home</a></li>
+                <li>Checkout</li>
+            </ul>
+        </div>
+    </div>
+    <section class="ps-section--account ps-checkout">
+        <div class="container">
+            <div class="ps-section__header">
+                <h3>Checkout Information</h3>
+            </div>
+            <div class="ps-section__content">
+                <form class="ps-form--checkout" id="checkout-form" method="post">
+                    {% csrf_token %}
+                    <div class="ps-form__content">
+                        <div class="row">
+                            <div class="col-xl-8 col-lg-8 col-md-12 col-sm-12 col-12">
+                                <div class="ps-form__billing-info">
+                                    <h3 class="ps-form__heading">Contact Information</h3>
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input class="form-control" type="email" name="email" value="{{ initial_data.email|default:'' }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phone Number</label>
+                                        <input class="form-control" type="tel" name="phone_number" required>
+                                    </div>
+                                    
+                                    <h3 class="ps-form__heading">Shipping Address</h3>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>First Name</label>
+                                                <input class="form-control" type="text" name="first_name" value="{{ initial_data.first_name|default:'' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Last Name</label>
+                                                <input class="form-control" type="text" name="last_name" value="{{ initial_data.last_name|default:'' }}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Address Line 1</label>
+                                        <input class="form-control" type="text" name="address_line1" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Address Line 2 (Optional)</label>
+                                        <input class="form-control" type="text" name="address_line2">
+                                    </div>
+                                    
+                                    <div class="location-select">
+                                        <label for="country">Country</label>
+                                        <select id="country" name="country" required>
+                                            <option value="">Select Country</option>
+                                            {% for country in countries %}
+                                            <option value="{{ country.id }}" data-requires-state="{{ country.requires_state|yesno:'true,false' }}">
+                                                {{ country.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="location-select" id="state-container" style="display: none;">
+                                        <label for="state">State/Province</label>
+                                        <select id="state" name="state">
+                                            <option value="">Select State/Province</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="location-select">
+                                        <label for="city">City/Town</label>
+                                        <select id="city" name="city" required>
+                                            <option value="">Select City/Town</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Postal Code</label>
+                                        <input class="form-control" type="text" name="postal_code" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Order Notes (Optional)</label>
+                                        <textarea class="form-control" name="order_note" rows="4" placeholder="Any special instructions for delivery"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 col-12">
+                                <div class="ps-block--checkout-order">
+                                    <div class="ps-block__content">
+                                        <figure>
+                                            <figcaption><strong>Product</strong><strong>Total</strong></figcaption>
+                                        </figure>
+                                        <figure class="ps-block__items">
+                                            {% for item in cart_items %}
+                                            <a href="{{ item.product.get_absolute_url }}">
+                                                <strong>{{ item.product.name }}</strong>
+                                                <span>x{{ item.quantity }}</span>
+                                                <small>৳{{ item.total }}</small>
+                                            </a>
+                                            {% endfor %}
+                                        </figure>
+                                        <figure>
+                                            <figcaption><strong>Subtotal</strong><strong>৳{{ cart_total }}</strong></figcaption>
+                                        </figure>
+
+                                        <figure class="tax-display" id="tax-display">
+                                            <figcaption>
+                                                <span id="tax-name">Tax</span>
+                                                <strong id="tax-amount">৳0.00</strong>
+                                            </figcaption>
+                                        </figure>
+                                        
+                                        <figure class="ps-block__shipping">
+                                            <h3>Shipping</h3>
+                                            <p id="shipping-display">Select city to calculate shipping</p>
+                                        </figure>
+                                        
+                                        <figure>
+                                            <figcaption><strong>Total</strong><strong id="grand-total">৳{{ cart_total }}</strong></figcaption>
+                                        </figure>
+                                        
+                                        <div class="payment-method">
+                                            <h3>Payment Method</h3>
+                                            
+                                            {% for method in payment_methods %}
+                                            <div class="payment-option">
+                                                <input type="radio" id="payment-{{ method.id }}" name="payment_method" 
+                                                       value="{{ method.id }}" {% if forloop.first %}checked{% endif %} required>
+                                                <div class="payment-content">
+                                                    <div class="payment-title">
+                                                        {% if method.icon %}
+                                                        <img src="{{ method.icon.url }}" alt="{{ method.name }}" class="payment-icon">
+                                                        {% endif %}
+                                                        {{ method.name }}
+                                                    </div>
+                                                    <div class="payment-description">{{ method.description }}</div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        <button type="submit" class="ps-btn--checkout" id="submit-order">
+                                            Place Order
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Country change handler
+        $('#country').change(function() {
+            const countryId = $(this).val();
+            const requiresState = $(this).find('option:selected').data('requires-state') === 'true';
+            
+            // Reset state and city
+            $('#state').html('<option value="">Select State/Province</option>');
+            $('#city').html('<option value="">Select City/Town</option>');
+            
+            // Show/hide state field based on country
+            if (requiresState) {
+                $('#state-container').show();
+                
+                // Load states for selected country
+                if (countryId) {
+                    $.get('/orders/get_states/', {country_id: countryId}, function(data) {
+                        $.each(data, function(i, state) {
+                            $('#state').append($('<option>', {
+                                value: state.id,
+                                text: state.name
+                            }));
+                        });
+                    });
+                }
+            } else {
+                $('#state-container').hide();
+                
+                // If country doesn't require state, load cities directly
+                if (countryId) {
+                    $.get('/orders/get_cities/', {country_id: countryId}, function(data) {
+                        $.each(data, function(i, city) {
+                            $('#city').append($('<option>', {
+                                value: city.id,
+                                text: city.name,
+                                'data-shipping-cost': city.shipping_cost
+                            }));
+                        });
+                    });
+                }
+            }
+            
+            // Reset shipping and tax display
+            $('#shipping-display').text('Select city to calculate shipping');
+            $('#tax-display').hide();
+            $('#grand-total').text('৳{{ cart_total }}');
+        });
+        
+        // State change handler
+        $('#state').change(function() {
+            const stateId = $(this).val();
+            $('#city').html('<option value="">Select City/Town</option>');
+            
+            if (stateId) {
+                $.get('/orders/get_cities/', {state_id: stateId}, function(data) {
+                    $.each(data, function(i, city) {
+                        $('#city').append($('<option>', {
+                            value: city.id,
+                            text: city.name,
+                            'data-shipping-cost': city.shipping_cost
+                        }));
+                    });
+                });
+            }
+            
+            // Reset shipping and tax display
+            $('#shipping-display').text('Select city to calculate shipping');
+            $('#tax-display').hide();
+            $('#grand-total').text('৳{{ cart_total }}');
+        });
+        
+        // City change handler
+        $('#city').change(function() {
+            const cityId = $(this).val();
+            const shippingCost = $(this).find('option:selected').data('shipping-cost') || 0;
+            const cartTotal = parseFloat('{{ cart_total }}');
+            const countryId = $('#country').val();
+            
+            if (cityId && countryId) {
+                $('#shipping-display').text('৳' + shippingCost);
+                
+                // Calculate tax
+                $.get('/orders/calculate_tax/', {
+                    country_id: countryId,
+                    subtotal: cartTotal,
+                    shipping: shippingCost
+                }, function(data) {
+                    if (data.status === 'success') {
+                        if (parseFloat(data.tax_rate) > 0) {
+                            $('#tax-name').text(data.tax_name + ' (' + data.tax_rate + '%)');
+                            $('#tax-amount').text('৳' + data.tax_amount);
+                            $('#tax-display').show();
+                        } else {
+                            $('#tax-display').hide();
+                        }
+                        $('#grand-total').text('৳' + data.grand_total);
+                    }
+                });
+            } else {
+                $('#shipping-display').text('Select city to calculate shipping');
+                $('#tax-display').hide();
+                $('#grand-total').text('৳' + cartTotal.toFixed(2));
+            }
+        });
+        
+        // Form submission handler
+        $('#checkout-form').submit(function() {
+            $('#submit-order').prop('disabled', true).text('Placing Order...');
+        });
+    });
+</script>
+{% endblock %}

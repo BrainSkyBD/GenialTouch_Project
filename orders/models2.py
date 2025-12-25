@@ -9,29 +9,34 @@ import uuid
 class Country(models.Model):
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=3, unique=True)
+    requires_state = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
 
-class District(models.Model):
+class State(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    code = models.CharField(max_length=10, blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name}, {self.country.name}"
 
 
-class Thana(models.Model):
-    district = models.ForeignKey(District, on_delete=models.CASCADE)
+class City(models.Model):
+    state = models.ForeignKey(State, on_delete=models.CASCADE, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.name}, {self.district.name}"
+        if self.state:
+            return f"{self.name}, {self.state.name}, {self.country.name}"
+        return f"{self.name}, {self.country.name}"
 
 
 class TaxConfiguration(models.Model):
@@ -57,6 +62,7 @@ class PaymentMethod(models.Model):
         return self.name
 
 
+
 class Order(models.Model):
     ORDER_STATUS = (
         ('pending', 'Pending'),
@@ -73,14 +79,15 @@ class Order(models.Model):
     last_name = models.CharField(max_length=50)
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
-    full_address = models.TextField()  # Changed from address_line1, address_line2
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
 
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True)
-    district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True)
-    thana = models.ForeignKey(Thana, on_delete=models.SET_NULL, null=True, blank=True)
+    state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    postal_code = models.CharField(max_length=20, blank=True)  # Made optional
+
+    postal_code = models.CharField(max_length=20)
     order_note = models.TextField(blank=True)
     order_total = models.DecimalField(max_digits=10, decimal_places=2)
     tax = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -104,18 +111,7 @@ class Order(models.Model):
         return f"{self.first_name} {self.last_name}"
     
     def get_full_address(self):
-        address_parts = []
-        if self.full_address:
-            address_parts.append(self.full_address)
-        if self.thana:
-            address_parts.append(self.thana.name)
-        if self.district:
-            address_parts.append(self.district.name)
-        if self.country:
-            address_parts.append(self.country.name)
-        if self.postal_code:
-            address_parts.append(f"Postal Code: {self.postal_code}")
-        return ", ".join(address_parts)
+        return f"{self.address_line1}, {self.address_line2}, {self.city}, {self.state}, {self.postal_code}, {self.country}"
 
 
 class OrderItem(models.Model):
