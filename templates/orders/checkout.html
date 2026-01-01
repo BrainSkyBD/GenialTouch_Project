@@ -3,6 +3,32 @@
 {% block title %} Checkout - GenialTouch{% endblock %}
 {% block extra_css %}
 <style>
+
+    /* Add new styles for birth date fields */
+    .birthday-section {
+        margin: 20px 0;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border-left: 4px solid #fcb800;
+    }
+    
+    .birthday-label {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .birthday-note {
+        font-size: 13px;
+        color: #7f8c8d;
+        font-style: italic;
+        margin-top: 5px;
+    }
+    
+
+
     /* Base Styles */
     .ps-checkout {
         padding: 40px 0;
@@ -303,6 +329,43 @@
                                             </div>
                                         </div>
                                     </div>
+
+
+                                    <!-- Add Birthday Section -->
+                                    <div class="birthday-section">
+                                        <span class="birthday-label">Birthday Information (Optional)</span>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Birth Date</label>
+                                                    <input class="form-control" type="date" name="birth_date" 
+                                                           max="{{ today }}" id="birth_date">
+                                                    <small class="birthday-note">We might send you birthday surprises!</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Birth Month</label>
+                                                    <select class="form-control" name="birth_month" id="birth_month">
+                                                        <option value="">Select Month</option>
+                                                        <option value="January">January</option>
+                                                        <option value="February">February</option>
+                                                        <option value="March">March</option>
+                                                        <option value="April">April</option>
+                                                        <option value="May">May</option>
+                                                        <option value="June">June</option>
+                                                        <option value="July">July</option>
+                                                        <option value="August">August</option>
+                                                        <option value="September">September</option>
+                                                        <option value="October">October</option>
+                                                        <option value="November">November</option>
+                                                        <option value="December">December</option>
+                                                    </select>
+                                                    <small class="birthday-note">Select your birth month</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     
                                     <div class="form-group">
                                         <label>Email (Optional)</label>
@@ -464,6 +527,45 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+
+
+        // Set max date for birth date field
+        var today = new Date().toISOString().split('T')[0];
+        $('#birth_date').attr('max', today);
+        
+        // Auto-fill month when date is selected
+        $('#birth_date').change(function() {
+            if ($(this).val()) {
+                var selectedDate = new Date($(this).val());
+                var monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var monthName = monthNames[selectedDate.getMonth()];
+                $('#birth_month').val(monthName);
+            }
+        });
+        
+        // Auto-fill date when month is selected (set to 1st of month)
+        $('#birth_month').change(function() {
+            if ($(this).val() && !$('#birth_date').val()) {
+                var monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var monthIndex = monthNames.indexOf($(this).val());
+                if (monthIndex !== -1) {
+                    var currentYear = new Date().getFullYear();
+                    var date = new Date(currentYear, monthIndex, 1);
+                    var dateString = date.getFullYear() + '-' + 
+                                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                                    String(date.getDate()).padStart(2, '0');
+                    $('#birth_date').val(dateString);
+                }
+            }
+        });
+
+
         // Country change handler
         $('#country').change(function() {
             const countryId = $(this).val();

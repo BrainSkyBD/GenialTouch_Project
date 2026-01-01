@@ -35,7 +35,7 @@ from decimal import Decimal
 from .models import Country, District, Thana, PaymentMethod, Order, OrderItem, TaxConfiguration
 from products.models import Product, ProductVariation
 
-
+from datetime import datetime
 
 import uuid
 
@@ -45,7 +45,7 @@ from .models import Country, District, Thana
 def get_districts(request):
     country_id = request.GET.get('country_id')
     if country_id:
-        districts = District.objects.filter(country_id=country_id, is_active=True)
+        districts = District.objects.filter(country_id=country_id, is_active=True).order_by('name')
         data = [{'id': d.id, 'name': d.name, 'shipping_cost': str(d.shipping_cost)} for d in districts]
         return JsonResponse(data, safe=False)
     return JsonResponse([], safe=False)
@@ -54,7 +54,7 @@ def get_districts(request):
 def get_thanas(request):
     district_id = request.GET.get('district_id')
     if district_id:
-        thanas = Thana.objects.filter(district_id=district_id, is_active=True)
+        thanas = Thana.objects.filter(district_id=district_id, is_active=True).order_by('name')
         data = [{'id': t.id, 'name': t.name} for t in thanas]
         return JsonResponse(data, safe=False)
     return JsonResponse([], safe=False)
@@ -141,13 +141,154 @@ def calculate_tax(request):
         })
 
 
+# @login_required
+# def checkout(request):
+#     if request.method == 'POST':
+#         # Get form data
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+#         email = request.POST.get('email')  # Optional
+#         phone_number = request.POST.get('phone_number')
+#         full_address = request.POST.get('full_address')
+#         country_id = request.POST.get('country')
+#         district_id = request.POST.get('district')
+#         thana_id = request.POST.get('thana')
+#         postal_code = request.POST.get('postal_code', '')
+#         order_note = request.POST.get('order_note', '')
+#         payment_method_id = request.POST.get('payment_method')
+        
+#         # Validate required fields
+#         required_fields = {
+#             'First Name': first_name,
+#             'Last Name': last_name,
+#             'Phone Number': phone_number,
+#             'Full Address': full_address,
+#             'Country': country_id,
+#             'District': district_id,
+#             'Payment Method': payment_method_id
+#         }
+        
+#         for field, value in required_fields.items():
+#             if not value:
+#                 messages.error(request, f"{field} is required")
+#                 return redirect('checkout')
+        
+#         try:
+#             country = Country.objects.get(id=country_id)
+#             district = District.objects.get(id=district_id)
+#             thana = None
+#             if thana_id:
+#                 thana = Thana.objects.get(id=thana_id, district=district)
+#             payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
+#         except (Country.DoesNotExist, District.DoesNotExist, 
+#                 Thana.DoesNotExist, PaymentMethod.DoesNotExist) as e:
+#             messages.error(request, "Invalid selection")
+#             return redirect('checkout')
+        
+#         # Get cart data
+#         cart = request.session.get('cart', {})
+#         if not cart:
+#             messages.error(request, "Your cart is empty")
+#             return redirect('cart_detail')
+        
+#         # Calculate totals
+#         cart_context = get_cart_context(request)
+#         cart_total = cart_context['cart_total']
+#         shipping_cost = district.shipping_cost
+        
+#         # Calculate tax
+#         tax_config = TaxConfiguration.objects.filter(
+#             is_active=True,
+#         ).filter(
+#             Q(applies_to_all=True) | 
+#             Q(countries=country)
+#         ).first()
+        
+#         tax_rate = tax_config.rate if tax_config else Decimal('0')
+#         tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
+#         grand_total = cart_total + shipping_cost + tax_amount
+        
+#         # Create the order
+#         order = Order.objects.create(
+#             user=request.user,
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email if email else request.user.email,  # Use user email if not provided
+#             phone_number=phone_number,
+#             full_address=full_address,
+#             country=country,
+#             district=district,
+#             thana=thana,
+#             postal_code=postal_code,
+#             order_note=order_note,
+#             order_total=cart_total,
+#             shipping_cost=shipping_cost,
+#             tax_rate=tax_rate,
+#             tax_amount=tax_amount,
+#             grand_total=grand_total,
+#             payment_method=payment_method,
+#             status='pending',
+#             ip_address=request.META.get('REMOTE_ADDR')
+#         )
+        
+#         # Create order items
+#         for cart_key, item_data in cart.items():
+#             product_id = int(cart_key.split('-')[0])
+#             product = Product.objects.get(id=product_id)
+#             variation = None
+#             if 'variation_id' in item_data:
+#                 variation = ProductVariation.objects.get(id=item_data['variation_id'])
+            
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product=product,
+#                 variation=variation,
+#                 quantity=item_data['quantity'],
+#                 price=item_data['price']
+#             )
+        
+#         # Clear the cart
+#         request.session['cart'] = {}
+#         request.session.modified = True
+        
+#         messages.success(request, f"Order #{order.order_number} placed successfully!")
+#         return redirect('order_confirmation', order_number=order.order_number)
+    
+#     # GET request - show checkout form
+#     cart_context = get_cart_context(request)
+#     if not cart_context['cart_items']:
+#         messages.warning(request, "Your cart is empty")
+#         return redirect('cart_detail')
+    
+#     # Pre-fill form with user data if available
+#     initial_data = {}
+#     if request.user.is_authenticated:
+#         initial_data = {
+#             'first_name': request.user.first_name or '',
+#             'last_name': request.user.last_name or '',
+#             'email': request.user.email,
+#             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
+#         }
+    
+#     context = {
+#         'countries': Country.objects.filter(is_active=True),
+#         'payment_methods': PaymentMethod.objects.filter(is_active=True),
+#         'cart_items': cart_context['cart_items'],
+#         'cart_total': cart_context['cart_total'],
+#         'cart_item_count': cart_context['cart_item_count'],
+#         'initial_data': initial_data
+#     }
+#     return render(request, 'orders/checkout.html', context)
+
+from datetime import datetime  
+
 @login_required
 def checkout(request):
     if request.method == 'POST':
         # Get form data
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        email = request.POST.get('email')  # Optional
+        email = request.POST.get('email')
         phone_number = request.POST.get('phone_number')
         full_address = request.POST.get('full_address')
         country_id = request.POST.get('country')
@@ -156,6 +297,18 @@ def checkout(request):
         postal_code = request.POST.get('postal_code', '')
         order_note = request.POST.get('order_note', '')
         payment_method_id = request.POST.get('payment_method')
+        
+        # Get birth date and month (optional)
+        birth_date_str = request.POST.get('birth_date', '')
+        birth_month = request.POST.get('birth_month', '')
+        
+        # Parse birth date if provided
+        birth_date = None
+        if birth_date_str:
+            try:
+                birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                birth_date = None
         
         # Validate required fields
         required_fields = {
@@ -208,14 +361,16 @@ def checkout(request):
         tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
         grand_total = cart_total + shipping_cost + tax_amount
         
-        # Create the order
+        # Create the order with birth date and month
         order = Order.objects.create(
             user=request.user,
             first_name=first_name,
             last_name=last_name,
-            email=email if email else request.user.email,  # Use user email if not provided
+            email=email if email else request.user.email,
             phone_number=phone_number,
             full_address=full_address,
+            birth_date=birth_date,  # Add birth date
+            birth_month=birth_month,  # Add birth month
             country=country,
             district=district,
             thana=thana,
@@ -270,17 +425,19 @@ def checkout(request):
             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
         }
     
+    # Get today's date for max date in birth date field
+    today = datetime.now().strftime('%Y-%m-%d')
+    
     context = {
-        'countries': Country.objects.filter(is_active=True),
+        'countries': Country.objects.filter(is_active=True).order_by('name'),
         'payment_methods': PaymentMethod.objects.filter(is_active=True),
         'cart_items': cart_context['cart_items'],
         'cart_total': cart_context['cart_total'],
         'cart_item_count': cart_context['cart_item_count'],
-        'initial_data': initial_data
+        'initial_data': initial_data,
+        'today': today,  # Add today's date for date picker
     }
     return render(request, 'orders/checkout.html', context)
-
-
 
 # # @login_required
 # def checkout(request):
@@ -829,6 +986,19 @@ def process_buy_now(request):
         full_address = request.POST.get('full_address')
         postal_code = request.POST.get('postal_code', '')
         order_note = request.POST.get('order_note', '')
+
+        # Get birth date and month (optional)
+        birth_date_str = request.POST.get('birth_date', '')
+        birth_month = request.POST.get('birth_month', '')
+        
+        # Parse birth date if provided
+        birth_date = None
+        if birth_date_str:
+            try:
+                birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                birth_date = None
+        
         
         # Validate required fields
         required_fields = {
@@ -874,6 +1044,8 @@ def process_buy_now(request):
             email=email,
             phone_number=phone_number,
             full_address=full_address,
+            birth_date=birth_date,
+            birth_month=birth_month,
             country=get_country_row,
             district=get_district_row,
             thana=get_thana_row,
