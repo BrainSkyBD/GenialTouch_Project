@@ -75,6 +75,14 @@ class Order(models.Model):
     phone_number = models.CharField(max_length=20)
     full_address = models.TextField()  # Changed from address_line1, address_line2
 
+    birth_date = models.DateField(null=True, blank=True, help_text="Customer's birth date (optional)")
+    birth_month = models.CharField(
+        max_length=20, 
+        null=True, 
+        blank=True,
+        help_text="Birth month name (e.g., January, February)"
+    )
+
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True)
     thana = models.ForeignKey(Thana, on_delete=models.SET_NULL, null=True, blank=True)
@@ -96,6 +104,8 @@ class Order(models.Model):
 
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.SET_NULL, null=True, blank=True)
     payment_details = models.JSONField(blank=True, null=True)  # For storing payment-specific data
+
+
     
     def __str__(self):
         return self.order_number

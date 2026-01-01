@@ -1274,6 +1274,8 @@
                                         <input type="text" class="form-control" placeholder="Last name*" name="last_name" required>
                                     </div>
                                 </div>
+
+                                
                                 
                                 <div class="mb-3">
                                     <input type="email" class="form-control" placeholder="Email address" name="email">
@@ -1286,6 +1288,32 @@
                                 <!-- Full Address (Textarea) -->
                                 <div class="mb-3">
                                     <textarea class="form-control" placeholder="Full address*" name="full_address" rows="3" required></textarea>
+                                </div>
+
+                                <!-- Add Birth Date and Month Fields -->
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Birth Date (Optional)</label>
+                                        <input type="date" class="form-control" name="birth_date" max="{{ today|date:'Y-m-d' }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Birth Month (Optional)</label>
+                                        <select class="form-control" name="birth_month">
+                                            <option value="">Select Month</option>
+                                            <option value="January">January</option>
+                                            <option value="February">February</option>
+                                            <option value="March">March</option>
+                                            <option value="April">April</option>
+                                            <option value="May">May</option>
+                                            <option value="June">June</option>
+                                            <option value="July">July</option>
+                                            <option value="August">August</option>
+                                            <option value="September">September</option>
+                                            <option value="October">October</option>
+                                            <option value="November">November</option>
+                                            <option value="December">December</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 
                                 <!-- Location Selectors -->

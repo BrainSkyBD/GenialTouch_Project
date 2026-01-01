@@ -112,7 +112,7 @@ class OrderAdmin(admin.ModelAdmin):
         'country', 'district', 'status', 'grand_total', 'created_at', 
         'payment_method'
     )
-    list_filter = ('status', 'country', 'district', 'created_at', 'payment_method')
+    list_filter = ('status', 'country', 'district', 'created_at', 'payment_method', 'birth_month')
     search_fields = (
         'order_number', 'first_name', 'last_name', 'email', 
         'phone_number', 'full_address'
@@ -125,30 +125,49 @@ class OrderAdmin(admin.ModelAdmin):
         'shipping_cost', 'payment_method', 'payment_details',
         'get_formatted_address'
     )
+    # fieldsets = (
+    #     ('Order Information', {
+    #         'fields': ('order_number', 'user', 'status', 'is_ordered', 'created_at', 'updated_at')
+    #     }),
+    #     ('Customer Information', {
+    #         'fields': ('get_full_name', 'email', 'phone_number')
+    #     }),
+    #     ('Shipping Information', {
+    #         'fields': (
+    #             'get_formatted_address', 'full_address', 'country', 
+    #             'district', 'thana', 'postal_code', 'shipping_cost'
+    #         )
+    #     }),
+    #     ('Order Details', {
+    #         'fields': (
+    #             'order_note', 'order_total', 'tax', 'tax_rate', 
+    #             'tax_amount', 'grand_total'
+    #         )
+    #     }),
+    #     ('Payment Information', {
+    #         'fields': ('payment_method', 'payment_details')
+    #     }),
+    #     ('Technical Information', {
+    #         'fields': ('ip_address',)
+    #     }),
+    # )
     fieldsets = (
         ('Order Information', {
-            'fields': ('order_number', 'user', 'status', 'is_ordered', 'created_at', 'updated_at')
+            'fields': ('order_number', 'status', 'user', 'created_at')
         }),
         ('Customer Information', {
-            'fields': ('get_full_name', 'email', 'phone_number')
+            'fields': ('first_name', 'last_name', 'email', 'phone_number', 
+                      'birth_date', 'birth_month')
         }),
         ('Shipping Information', {
-            'fields': (
-                'get_formatted_address', 'full_address', 'country', 
-                'district', 'thana', 'postal_code', 'shipping_cost'
-            )
-        }),
-        ('Order Details', {
-            'fields': (
-                'order_note', 'order_total', 'tax', 'tax_rate', 
-                'tax_amount', 'grand_total'
-            )
+            'fields': ('full_address', 'country', 'district', 'thana', 'postal_code')
         }),
         ('Payment Information', {
-            'fields': ('payment_method', 'payment_details')
+            'fields': ('payment_method', 'order_total', 'shipping_cost', 
+                      'tax_rate', 'tax_amount', 'grand_total')
         }),
-        ('Technical Information', {
-            'fields': ('ip_address',)
+        ('Additional Information', {
+            'fields': ('order_note', 'ip_address', 'is_ordered')
         }),
     )
     inlines = [OrderItemInline, OrderTrackingInline]
