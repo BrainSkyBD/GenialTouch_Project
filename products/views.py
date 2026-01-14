@@ -163,10 +163,17 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
     subcategory_list = None
     category = None
     if category_slug:
+        # category = get_object_or_404(Category, slug=category_slug, is_active=True)
+        # products = products.filter(categories=category)
+        # if category:
+        #     subcategory_list = Category.objects.filter(parent=category)
+
+        
         category = get_object_or_404(Category, slug=category_slug, is_active=True)
-        products = products.filter(categories=category)
-        if category:
-            subcategory_list = Category.objects.filter(parent=category)
+        # Get all descendant category IDs
+        descendant_ids = category.get_descendant_ids()
+        products = products.filter(categories__id__in=descendant_ids)
+        subcategory_list = Category.objects.filter(parent=category, is_active=True)
     
     if brand_slug:
         brand = get_object_or_404(Brand, slug=brand_slug)
@@ -181,8 +188,14 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
         )
     
     if category_slug_get:
+        # category = get_object_or_404(Category, slug=category_slug_get, is_active=True)
+        # products = products.filter(categories=category)
+
         category = get_object_or_404(Category, slug=category_slug_get, is_active=True)
-        products = products.filter(categories=category)
+        # Get all descendant category IDs
+        descendant_ids = category.get_descendant_ids()
+        products = products.filter(categories__id__in=descendant_ids)
+        subcategory_list = Category.objects.filter(parent=category, is_active=True)
     
     if brand_slugs:
         products = products.filter(brand__slug__in=brand_slugs)
@@ -380,6 +393,9 @@ def product_detail(request, slug):
     payment_methods = PaymentMethod.objects.filter(is_active=True)
     countries = Country.objects.filter(is_active=True)
 
+    # Days range for birth date dropdown
+    days_range = range(1, 32)  # 1 to 31
+
     context = {
         'product': product,
         'variations': variations,
@@ -388,6 +404,7 @@ def product_detail(request, slug):
         'same_brand_products': same_brand_products,
         'payment_methods': payment_methods,
         'countries': countries,
+        'days_range':days_range
     }
     return render(request, 'shop/product_detail.html', context)
 

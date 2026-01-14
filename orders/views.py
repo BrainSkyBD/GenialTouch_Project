@@ -15,7 +15,7 @@ import uuid
 from decimal import Decimal
 from django.urls import reverse
 from cart.views import get_cart_context
-
+from django.core.validators import ValidationError
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -282,6 +282,7 @@ def calculate_tax(request):
 
 from datetime import datetime  
 
+
 @login_required
 def checkout(request):
     if request.method == 'POST':
@@ -298,17 +299,28 @@ def checkout(request):
         order_note = request.POST.get('order_note', '')
         payment_method_id = request.POST.get('payment_method')
         
-        # Get birth date and month (optional)
-        birth_date_str = request.POST.get('birth_date', '')
+        # Get birth date and month (optional) - NEW FORMAT
+        birth_date = request.POST.get('birth_date', '')  # Now 1-31
         birth_month = request.POST.get('birth_month', '')
         
-        # Parse birth date if provided
-        birth_date = None
-        if birth_date_str:
+        # Validate birth date if provided
+        if birth_date:
             try:
-                birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+                # Convert to integer and validate
+                birth_date_int = int(birth_date)
+                if not (1 <= birth_date_int <= 31):
+                    messages.error(request, "Birth date must be between 1 and 31")
+                    return redirect('checkout')
             except (ValueError, TypeError):
-                birth_date = None
+                birth_date = None  # Reset to None if invalid
+        
+        # Validate birth month if provided
+        if birth_month and birth_month not in [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ]:
+            messages.error(request, "Invalid birth month selected")
+            return redirect('checkout')
         
         # Validate required fields
         required_fields = {
@@ -361,7 +373,7 @@ def checkout(request):
         tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
         grand_total = cart_total + shipping_cost + tax_amount
         
-        # Create the order with birth date and month
+        # Create the order with birth date and month - UPDATED FORMAT
         order = Order.objects.create(
             user=request.user,
             first_name=first_name,
@@ -369,8 +381,8 @@ def checkout(request):
             email=email if email else request.user.email,
             phone_number=phone_number,
             full_address=full_address,
-            birth_date=birth_date,  # Add birth date
-            birth_month=birth_month,  # Add birth month
+            birth_date=birth_date if birth_date else None,  # Now stores day number
+            birth_month=birth_month if birth_month else None,
             country=country,
             district=district,
             thana=thana,
@@ -425,8 +437,8 @@ def checkout(request):
             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
         }
     
-    # Get today's date for max date in birth date field
-    today = datetime.now().strftime('%Y-%m-%d')
+    # Generate days range for birth date dropdown
+    days_range = range(1, 32)  # 1 to 31
     
     context = {
         'countries': Country.objects.filter(is_active=True).order_by('name'),
@@ -435,9 +447,166 @@ def checkout(request):
         'cart_total': cart_context['cart_total'],
         'cart_item_count': cart_context['cart_item_count'],
         'initial_data': initial_data,
-        'today': today,  # Add today's date for date picker
+        'days_range': days_range,  # Add days range for dropdown
     }
     return render(request, 'orders/checkout.html', context)
+
+# @login_required
+# def checkout(request):
+#     if request.method == 'POST':
+#         # Get form data
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+#         email = request.POST.get('email')
+#         phone_number = request.POST.get('phone_number')
+#         full_address = request.POST.get('full_address')
+#         country_id = request.POST.get('country')
+#         district_id = request.POST.get('district')
+#         thana_id = request.POST.get('thana')
+#         postal_code = request.POST.get('postal_code', '')
+#         order_note = request.POST.get('order_note', '')
+#         payment_method_id = request.POST.get('payment_method')
+        
+#         # Get birth date and month (optional)
+#         birth_date_str = request.POST.get('birth_date', '')
+#         birth_month = request.POST.get('birth_month', '')
+        
+#         # Parse birth date if provided
+#         birth_date = None
+#         if birth_date_str:
+#             try:
+#                 birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+#             except (ValueError, TypeError):
+#                 birth_date = None
+        
+#         # Validate required fields
+#         required_fields = {
+#             'First Name': first_name,
+#             'Last Name': last_name,
+#             'Phone Number': phone_number,
+#             'Full Address': full_address,
+#             'Country': country_id,
+#             'District': district_id,
+#             'Payment Method': payment_method_id
+#         }
+        
+#         for field, value in required_fields.items():
+#             if not value:
+#                 messages.error(request, f"{field} is required")
+#                 return redirect('checkout')
+        
+#         try:
+#             country = Country.objects.get(id=country_id)
+#             district = District.objects.get(id=district_id)
+#             thana = None
+#             if thana_id:
+#                 thana = Thana.objects.get(id=thana_id, district=district)
+#             payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
+#         except (Country.DoesNotExist, District.DoesNotExist, 
+#                 Thana.DoesNotExist, PaymentMethod.DoesNotExist) as e:
+#             messages.error(request, "Invalid selection")
+#             return redirect('checkout')
+        
+#         # Get cart data
+#         cart = request.session.get('cart', {})
+#         if not cart:
+#             messages.error(request, "Your cart is empty")
+#             return redirect('cart_detail')
+        
+#         # Calculate totals
+#         cart_context = get_cart_context(request)
+#         cart_total = cart_context['cart_total']
+#         shipping_cost = district.shipping_cost
+        
+#         # Calculate tax
+#         tax_config = TaxConfiguration.objects.filter(
+#             is_active=True,
+#         ).filter(
+#             Q(applies_to_all=True) | 
+#             Q(countries=country)
+#         ).first()
+        
+#         tax_rate = tax_config.rate if tax_config else Decimal('0')
+#         tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
+#         grand_total = cart_total + shipping_cost + tax_amount
+        
+#         # Create the order with birth date and month
+#         order = Order.objects.create(
+#             user=request.user,
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email if email else request.user.email,
+#             phone_number=phone_number,
+#             full_address=full_address,
+#             birth_date=birth_date,  # Add birth date
+#             birth_month=birth_month,  # Add birth month
+#             country=country,
+#             district=district,
+#             thana=thana,
+#             postal_code=postal_code,
+#             order_note=order_note,
+#             order_total=cart_total,
+#             shipping_cost=shipping_cost,
+#             tax_rate=tax_rate,
+#             tax_amount=tax_amount,
+#             grand_total=grand_total,
+#             payment_method=payment_method,
+#             status='pending',
+#             ip_address=request.META.get('REMOTE_ADDR')
+#         )
+        
+#         # Create order items
+#         for cart_key, item_data in cart.items():
+#             product_id = int(cart_key.split('-')[0])
+#             product = Product.objects.get(id=product_id)
+#             variation = None
+#             if 'variation_id' in item_data:
+#                 variation = ProductVariation.objects.get(id=item_data['variation_id'])
+            
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product=product,
+#                 variation=variation,
+#                 quantity=item_data['quantity'],
+#                 price=item_data['price']
+#             )
+        
+#         # Clear the cart
+#         request.session['cart'] = {}
+#         request.session.modified = True
+        
+#         messages.success(request, f"Order #{order.order_number} placed successfully!")
+#         return redirect('order_confirmation', order_number=order.order_number)
+    
+#     # GET request - show checkout form
+#     cart_context = get_cart_context(request)
+#     if not cart_context['cart_items']:
+#         messages.warning(request, "Your cart is empty")
+#         return redirect('cart_detail')
+    
+#     # Pre-fill form with user data if available
+#     initial_data = {}
+#     if request.user.is_authenticated:
+#         initial_data = {
+#             'first_name': request.user.first_name or '',
+#             'last_name': request.user.last_name or '',
+#             'email': request.user.email,
+#             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
+#         }
+    
+#     # Get today's date for max date in birth date field
+#     today = datetime.now().strftime('%Y-%m-%d')
+    
+#     context = {
+#         'countries': Country.objects.filter(is_active=True).order_by('name'),
+#         'payment_methods': PaymentMethod.objects.filter(is_active=True),
+#         'cart_items': cart_context['cart_items'],
+#         'cart_total': cart_context['cart_total'],
+#         'cart_item_count': cart_context['cart_item_count'],
+#         'initial_data': initial_data,
+#         'today': today,  # Add today's date for date picker
+#     }
+#     return render(request, 'orders/checkout.html', context)
 
 # # @login_required
 # def checkout(request):
@@ -988,18 +1157,48 @@ def process_buy_now(request):
         order_note = request.POST.get('order_note', '')
 
         # Get birth date and month (optional)
-        birth_date_str = request.POST.get('birth_date', '')
+        # birth_date_str = request.POST.get('birth_date', '')
+        # birth_month = request.POST.get('birth_month', '')
+
+        # Get birth date and month (optional)
+        birth_date = request.POST.get('birth_date', '')
         birth_month = request.POST.get('birth_month', '')
         
         # Parse birth date if provided
-        birth_date = None
-        if birth_date_str:
+        # birth_date = None
+        # if birth_date_str:
+        #     try:
+        #         birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        #     except (ValueError, TypeError):
+        #         birth_date = None
+        
+        # Validate birth date if provided
+        if birth_date:
             try:
-                birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+                # Convert to integer and validate
+                birth_date_int = int(birth_date)
+                if not (1 <= birth_date_int <= 31):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Birth date must be between 1 and 31'
+                    }, status=400)
             except (ValueError, TypeError):
-                birth_date = None
-        
-        
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid birth date'
+                }, status=400)
+        # Validate birth month if provided
+        if birth_month and birth_month not in [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ]:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid birth month'
+            }, status=400)
+
+
+
         # Validate required fields
         required_fields = {
             'First Name': first_name,
@@ -1044,8 +1243,10 @@ def process_buy_now(request):
             email=email,
             phone_number=phone_number,
             full_address=full_address,
-            birth_date=birth_date,
-            birth_month=birth_month,
+
+            birth_date=birth_date if birth_date else None,
+            birth_month=birth_month if birth_month else None,
+
             country=get_country_row,
             district=get_district_row,
             thana=get_thana_row,

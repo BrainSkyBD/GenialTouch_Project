@@ -43,6 +43,17 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('products_by_category', args=[self.slug])
 
+    def get_descendants(self):
+        """Get all descendant categories including self"""
+        descendants = [self]
+        for child in self.children.all():
+            descendants.extend(child.get_descendants())
+        return descendants
+    
+    def get_descendant_ids(self):
+        """Get all descendant category IDs including self"""
+        return [cat.id for cat in self.get_descendants()]
+
 class Attribute(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
