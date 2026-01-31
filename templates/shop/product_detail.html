@@ -1742,4 +1742,100 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<script>
+window.dataLayer = window.dataLayer || [];
+dataLayer.push({
+  event: "view_item",
+  ecommerce: {
+    currency: "BDT",
+    value: {{ product.discount_price|default:product.price }},
+    items: [{
+      item_id: "{{ product.id }}",
+      item_name: "{{ product.name|escapejs }}",
+      price: {{ product.discount_price|default:product.price }},
+      item_brand: "{{ product.brand.name|default:'Unknown' }}",
+      item_category: "{% if product.categories.first %}{{ product.categories.first.name }}{% else %}Uncategorized{% endif %}",
+      item_variant: "{% for attribute_name, values in variations.items %}{{ attribute_name }}{% if not forloop.last %}, {% endif %}{% endfor %}",
+      quantity: 1
+    }]
+  }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const cartForm = document.querySelector(".ps-product__variations");
+
+  if (!cartForm) return;
+
+  cartForm.addEventListener("submit", function (e) {
+
+    // Detect Buy Now button
+    const isBuyNow = document.activeElement &&
+                     document.activeElement.name === "buy_now";
+
+    if (isBuyNow) return; // Buy Now handled separately
+
+    const quantityInput = cartForm.querySelector("input[name='quantity']");
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+    // Collect selected variants
+    let variantText = [];
+    cartForm.querySelectorAll("input[type='radio']:checked").forEach(el => {
+      variantText.push(el.dataset.attribute + ": " + el.value);
+    });
+
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({
+      event: "add_to_cart",
+      ecommerce: {
+        currency: "BDT",
+        value: {{ product.discount_price|default:product.price }},
+        items: [{
+          item_id: "{{ product.id }}",
+          item_name: "{{ product.name|escapejs }}",
+          price: {{ product.discount_price|default:product.price }},
+          item_brand: "{{ product.brand.name|default:'Unknown' }}",
+          item_category: "{% if product.categories.first %}{{ product.categories.first.name }}{% else %}Uncategorized{% endif %}",
+          item_variant: variantText.join(", "),
+          quantity: quantity
+        }]
+      }
+    });
+  });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const buyNowBtn = document.querySelector(".buy-now-btn");
+  if (!buyNowBtn) return;
+
+  buyNowBtn.addEventListener("click", function () {
+    const quantityInput = document.querySelector("input[name='quantity']");
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+    let variantText = [];
+    document.querySelectorAll(".ps-product__variations input[type='radio']:checked")
+      .forEach(el => {
+        variantText.push(el.dataset.attribute + ": " + el.value);
+      });
+
+    window.dataLayer.push({
+      event: "begin_checkout",
+      ecommerce: {
+        currency: "BDT",
+        value: {{ product.discount_price|default:product.price }},
+        items: [{
+          item_id: "{{ product.id }}",
+          item_name: "{{ product.name|escapejs }}",
+          price: {{ product.discount_price|default:product.price }},
+          item_variant: variantText.join(", "),
+          quantity: quantity
+        }]
+      }
+    });
+  });
+});
+</script>
+
 {% endblock %}
