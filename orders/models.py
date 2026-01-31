@@ -5,6 +5,8 @@ from accounts.models import User
 from products.models import Product, ProductVariation
 import uuid
 
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class Country(models.Model):
     name = models.CharField(max_length=100)
@@ -74,14 +76,41 @@ class Order(models.Model):
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
     full_address = models.TextField()  # Changed from address_line1, address_line2
-
-    birth_date = models.DateField(null=True, blank=True, help_text="Customer's birth date (optional)")
+    
+    birth_date = models.PositiveSmallIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Birth date (1-31)",
+        validators=[MinValueValidator(1), MaxValueValidator(31)]
+    )
     birth_month = models.CharField(
         max_length=20, 
         null=True, 
         blank=True,
-        help_text="Birth month name (e.g., January, February)"
+        choices=[
+            ('January', 'January'),
+            ('February', 'February'),
+            ('March', 'March'),
+            ('April', 'April'),
+            ('May', 'May'),
+            ('June', 'June'),
+            ('July', 'July'),
+            ('August', 'August'),
+            ('September', 'September'),
+            ('October', 'October'),
+            ('November', 'November'),
+            ('December', 'December'),
+        ],
+        help_text="Birth month name"
     )
+
+    # birth_date = models.DateField(null=True, blank=True, help_text="Customer's birth date (optional)")
+    # birth_month = models.CharField(
+    #     max_length=20, 
+    #     null=True, 
+    #     blank=True,
+    #     help_text="Birth month name (e.g., January, February)"
+    # )
 
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True)
@@ -126,6 +155,16 @@ class Order(models.Model):
         if self.postal_code:
             address_parts.append(f"Postal Code: {self.postal_code}")
         return ", ".join(address_parts)
+
+    @property
+    def birth_info(self):
+        if self.birth_date and self.birth_month:
+            return f"{self.birth_date} {self.birth_month}"
+        elif self.birth_month:
+            return self.birth_month
+        elif self.birth_date:
+            return str(self.birth_date)
+        return ""
 
 
 class OrderItem(models.Model):
