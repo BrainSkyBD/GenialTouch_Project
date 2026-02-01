@@ -193,7 +193,7 @@
                 {% endcomment %}
                 <ul class="navigation__extra">
                     <li><a href="{% url 'product_list' %}">Browse Products</a></li>
-                    <li><a href="">Track your order</a></li>
+                    <li><a href="{% url 'track_order' %}">Track your order</a></li>
                     {% comment %}
                     <li>
                         <div class="ps-dropdown">
@@ -227,8 +227,8 @@
         </div>
         <div class="header__right">
             <ul class="navigation__extra">
-                <li><a href="">Sell on GenialTouch</a></li>
-                <li><a href="">Track your order</a></li>
+                
+                <li><a href="{% url 'track_order' %}">Track your order</a></li>
                 <li>
                     <div class="ps-dropdown"><a href="#">US Dollar</a>
                         <ul class="ps-dropdown-menu">

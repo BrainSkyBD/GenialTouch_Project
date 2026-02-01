@@ -135,7 +135,7 @@ class OrderItem(models.Model):
         return price_x_qty
 
 
-class OrderTracking(models.Model):
+class OrderTrackingTableNew(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking')
     status = models.CharField(max_length=20, choices=Order.ORDER_STATUS)
     note = models.TextField(blank=True)
@@ -153,4 +153,4 @@ def generate_order_number(sender, instance, **kwargs):
 @receiver(post_save, sender=Order)
 def create_initial_tracking(sender, instance, created, **kwargs):
     if created:
-        OrderTracking.objects.create(order=instance, status=instance.status)
+        OrderTrackingTableNew.objects.create(order=instance, status=instance.status)

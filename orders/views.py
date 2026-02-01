@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Order, OrderItem, OrderTracking
+from .models import Order, OrderItem, OrderTrackingTableNew
 from products.models import Product, ProductVariation
 from accounts.models import CustomerProfile
 import json
@@ -41,6 +41,31 @@ import uuid
 
 from django.http import JsonResponse
 from .models import Country, District, Thana
+
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+from datetime import datetime
+import requests
+from io import BytesIO
+import base64
+
+# In views.py - add these views
+from django.contrib import messages
+from django.utils import timezone
+from datetime import datetime, timedelta
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.contrib.auth.decorators import user_passes_test
+import base64
+import requests
+from weasyprint import HTML
+import tempfile
+import os
+
 
 def get_districts(request):
     country_id = request.GET.get('country_id')
@@ -796,7 +821,7 @@ def cancel_order(request, order_id):
     if order.status not in ['delivered', 'cancelled', 'refunded']:
         order.status = 'cancelled'
         order.save()
-        OrderTracking.objects.create(order=order, status='cancelled', note='Order cancelled by customer')
+        OrderTrackingTableNew.objects.create(order=order, status='cancelled', note='Order cancelled by customer')
         messages.success(request, 'Your order has been cancelled')
     else:
         messages.error(request, 'This order cannot be cancelled')
@@ -1076,8 +1101,245 @@ def cancel_order(request, order_id):
 
 
 
+# @require_POST
+# def process_buy_now(request):
+#     try:
+#         # Get product and quantity
+#         product_id = request.POST.get('product_id')
+#         quantity = int(request.POST.get('quantity', 1))
+#         product = Product.objects.get(id=product_id)
+        
+#         # Get selected variations
+#         variation_attributes = {}
+#         for key, value in request.POST.items():
+#             if key.startswith('attribute_'):
+#                 attr_name = key.replace('attribute_', '')
+#                 variation_attributes[attr_name] = value
+        
+#         # Find the matching variation
+#         variation = None
+#         if variation_attributes:
+#             variations = product.variations.all()
+#             for v in variations:
+#                 if all(attr.value == variation_attributes.get(attr.attribute.name.lower().replace(' ', '_')) 
+#                        for attr in v.attributes.all()):
+#                     variation = v
+#                     break
+        
+#         # Calculate price
+#         price = variation.get_price() if variation else product.get_price()
+#         total_price = price * quantity
+
+#         # Get payment method
+#         get_payment_method_value = request.POST.get('payment_method')
+#         get_payment_method_row = None
+#         if get_payment_method_value:
+#             get_payment_method_row = PaymentMethod.objects.get(id=get_payment_method_value, is_active=True)
+#         else:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'Payment method is required'
+#             }, status=400)
+
+#         # Get country
+#         get_country_value = request.POST.get('country')
+#         get_country_row = None
+#         if get_country_value:
+#             get_country_row = Country.objects.get(id=get_country_value)
+#         else:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'Country is required'
+#             }, status=400)
+
+#         # Get district
+#         get_district_value = request.POST.get('district')
+#         get_district_row = None
+#         if get_district_value:
+#             get_district_row = District.objects.get(id=get_district_value)
+#         else:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'District is required'
+#             }, status=400)
+
+#         # Get thana (optional)
+#         get_thana_value = request.POST.get('thana')
+#         get_thana_row = None
+#         if get_thana_value:
+#             try:
+#                 get_thana_row = Thana.objects.get(id=get_thana_value, district=get_district_row)
+#             except Thana.DoesNotExist:
+#                 get_thana_row = None
+
+#         # Get required form data
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+#         email = request.POST.get('email')
+#         phone_number = request.POST.get('phone_number')
+#         full_address = request.POST.get('full_address')
+#         postal_code = request.POST.get('postal_code', '')
+#         order_note = request.POST.get('order_note', '')
+
+#         # Get birth date and month (optional)
+#         # birth_date_str = request.POST.get('birth_date', '')
+#         # birth_month = request.POST.get('birth_month', '')
+
+#         # Get birth date and month (optional)
+#         birth_date = request.POST.get('birth_date', '')
+#         birth_month = request.POST.get('birth_month', '')
+        
+#         # Parse birth date if provided
+#         # birth_date = None
+#         # if birth_date_str:
+#         #     try:
+#         #         birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+#         #     except (ValueError, TypeError):
+#         #         birth_date = None
+        
+#         # Validate birth date if provided
+#         if birth_date:
+#             try:
+#                 # Convert to integer and validate
+#                 birth_date_int = int(birth_date)
+#                 if not (1 <= birth_date_int <= 31):
+#                     return JsonResponse({
+#                         'status': 'error',
+#                         'message': 'Birth date must be between 1 and 31'
+#                     }, status=400)
+#             except (ValueError, TypeError):
+#                 return JsonResponse({
+#                     'status': 'error',
+#                     'message': 'Invalid birth date'
+#                 }, status=400)
+#         # Validate birth month if provided
+#         if birth_month and birth_month not in [
+#             'January', 'February', 'March', 'April', 'May', 'June',
+#             'July', 'August', 'September', 'October', 'November', 'December'
+#         ]:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'Invalid birth month'
+#             }, status=400)
+
+
+
+#         # Validate required fields
+#         required_fields = {
+#             'First Name': first_name,
+#             'Last Name': last_name,
+#             'Phone Number': phone_number,
+#             'Full Address': full_address,
+#         }
+        
+#         for field, value in required_fields.items():
+#             if not value:
+#                 return JsonResponse({
+#                     'status': 'error',
+#                     'message': f'{field} is required'
+#                 }, status=400)
+
+#         # If email is not provided and user is authenticated, use user's email
+#         if not email and request.user.is_authenticated:
+#             email = request.user.email
+#         elif not email:
+#             email = f"buynow-{uuid.uuid4().hex[:8]}@example.com"  # Generate a temporary email
+
+#         # Calculate shipping cost
+#         shipping_cost = get_district_row.shipping_cost
+        
+#         # Calculate tax
+#         tax_config = TaxConfiguration.objects.filter(
+#             is_active=True,
+#         ).filter(
+#             Q(applies_to_all=True) | 
+#             Q(countries=get_country_row)
+#         ).first()
+        
+#         tax_rate = tax_config.rate if tax_config else Decimal('0')
+#         tax_amount = (total_price + shipping_cost) * (tax_rate / 100)
+#         grand_total = total_price + shipping_cost + tax_amount
+
+#         # Create order
+#         order = Order(
+#             order_number=uuid.uuid4().hex[:10].upper(),
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email,
+#             phone_number=phone_number,
+#             full_address=full_address,
+
+#             birth_date=birth_date if birth_date else None,
+#             birth_month=birth_month if birth_month else None,
+
+#             country=get_country_row,
+#             district=get_district_row,
+#             thana=get_thana_row,
+#             postal_code=postal_code,
+#             order_note=order_note,
+#             order_total=total_price,
+#             shipping_cost=shipping_cost,
+#             tax_rate=tax_rate,
+#             tax_amount=tax_amount,
+#             grand_total=grand_total,
+#             status='pending',
+#             ip_address=request.META.get('REMOTE_ADDR'),
+#             is_ordered=True,
+#             payment_method=get_payment_method_row,
+#         )
+        
+#         if request.user.is_authenticated:
+#             order.user = request.user
+        
+#         order.save()
+        
+#         # Create order item
+#         OrderItem.objects.create(
+#             order=order,
+#             product=product,
+#             variation=variation,
+#             quantity=quantity,
+#             price=price
+#         )
+        
+#         return JsonResponse({
+#             'status': 'success',
+#             'redirect_url': reverse('order_confirmation', args=[order.order_number])
+#         })
+        
+#     except Product.DoesNotExist:
+#         return JsonResponse({
+#             'status': 'error',
+#             'message': 'Product not found'
+#         }, status=404)
+#     except PaymentMethod.DoesNotExist:
+#         return JsonResponse({
+#             'status': 'error',
+#             'message': 'Invalid payment method'
+#         }, status=400)
+#     except Country.DoesNotExist:
+#         return JsonResponse({
+#             'status': 'error',
+#             'message': 'Invalid country'
+#         }, status=400)
+#     except District.DoesNotExist:
+#         return JsonResponse({
+#             'status': 'error',
+#             'message': 'Invalid district'
+#         }, status=400)
+#     except Exception as e:
+#         import traceback
+#         print(f"Error in process_buy_now: {str(e)}")
+#         print(traceback.format_exc())
+#         return JsonResponse({
+#             'status': 'error',
+#             'message': f'An error occurred: {str(e)}'
+#         }, status=500)
+
+
 @require_POST
 def process_buy_now(request):
+    print('check buy now function...')
     try:
         # Get product and quantity
         product_id = request.POST.get('product_id')
@@ -1116,93 +1378,15 @@ def process_buy_now(request):
                 'message': 'Payment method is required'
             }, status=400)
 
-        # Get country
-        get_country_value = request.POST.get('country')
-        get_country_row = None
-        if get_country_value:
-            get_country_row = Country.objects.get(id=get_country_value)
-        else:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Country is required'
-            }, status=400)
-
-        # Get district
-        get_district_value = request.POST.get('district')
-        get_district_row = None
-        if get_district_value:
-            get_district_row = District.objects.get(id=get_district_value)
-        else:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'District is required'
-            }, status=400)
-
-        # Get thana (optional)
-        get_thana_value = request.POST.get('thana')
-        get_thana_row = None
-        if get_thana_value:
-            try:
-                get_thana_row = Thana.objects.get(id=get_thana_value, district=get_district_row)
-            except Thana.DoesNotExist:
-                get_thana_row = None
-
-        # Get required form data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
+        # Get simplified form data
+        full_name = request.POST.get('full_name')
         phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
         full_address = request.POST.get('full_address')
-        postal_code = request.POST.get('postal_code', '')
-        order_note = request.POST.get('order_note', '')
-
-        # Get birth date and month (optional)
-        # birth_date_str = request.POST.get('birth_date', '')
-        # birth_month = request.POST.get('birth_month', '')
-
-        # Get birth date and month (optional)
-        birth_date = request.POST.get('birth_date', '')
-        birth_month = request.POST.get('birth_month', '')
-        
-        # Parse birth date if provided
-        # birth_date = None
-        # if birth_date_str:
-        #     try:
-        #         birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
-        #     except (ValueError, TypeError):
-        #         birth_date = None
-        
-        # Validate birth date if provided
-        if birth_date:
-            try:
-                # Convert to integer and validate
-                birth_date_int = int(birth_date)
-                if not (1 <= birth_date_int <= 31):
-                    return JsonResponse({
-                        'status': 'error',
-                        'message': 'Birth date must be between 1 and 31'
-                    }, status=400)
-            except (ValueError, TypeError):
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid birth date'
-                }, status=400)
-        # Validate birth month if provided
-        if birth_month and birth_month not in [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ]:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid birth month'
-            }, status=400)
-
-
 
         # Validate required fields
         required_fields = {
-            'First Name': first_name,
-            'Last Name': last_name,
+            'Full Name': full_name,
             'Phone Number': phone_number,
             'Full Address': full_address,
         }
@@ -1214,28 +1398,40 @@ def process_buy_now(request):
                     'message': f'{field} is required'
                 }, status=400)
 
-        # If email is not provided and user is authenticated, use user's email
-        if not email and request.user.is_authenticated:
-            email = request.user.email
-        elif not email:
-            email = f"buynow-{uuid.uuid4().hex[:8]}@example.com"  # Generate a temporary email
+        # If email is not provided, set to None
+        if not email:
+            email = None
 
-        # Calculate shipping cost
-        shipping_cost = get_district_row.shipping_cost
+        # Split full name into first and last name (optional)
+        first_name = full_name
+        last_name = ""
+        name_parts = full_name.strip().split(' ', 1)
+        if len(name_parts) > 1:
+            first_name = name_parts[0]
+            last_name = name_parts[1]
+
+        # Set default values for removed fields
+        default_country = Country.objects.filter(name='Bangladesh').first()
+        default_district = None
+        if default_country:
+            default_district = District.objects.filter(country=default_country).first()
+
+        # Calculate shipping cost (use default district's shipping cost or 0)
+        shipping_cost = default_district.shipping_cost if default_district else Decimal('0')
         
-        # Calculate tax
-        tax_config = TaxConfiguration.objects.filter(
-            is_active=True,
-        ).filter(
-            Q(applies_to_all=True) | 
-            Q(countries=get_country_row)
-        ).first()
+        # Calculate tax (simplified - you might want to adjust this)
+        tax_rate = Decimal('0')  # Default 0% tax
+        tax_amount = Decimal('0')
         
-        tax_rate = tax_config.rate if tax_config else Decimal('0')
-        tax_amount = (total_price + shipping_cost) * (tax_rate / 100)
+        # If you have a default tax configuration
+        tax_config = TaxConfiguration.objects.filter(is_active=True).first()
+        if tax_config:
+            tax_rate = tax_config.rate
+            tax_amount = (total_price + shipping_cost) * (tax_rate / 100)
+        
         grand_total = total_price + shipping_cost + tax_amount
 
-        # Create order
+        # Create order with simplified data
         order = Order(
             order_number=uuid.uuid4().hex[:10].upper(),
             first_name=first_name,
@@ -1243,15 +1439,16 @@ def process_buy_now(request):
             email=email,
             phone_number=phone_number,
             full_address=full_address,
-
-            birth_date=birth_date if birth_date else None,
-            birth_month=birth_month if birth_month else None,
-
-            country=get_country_row,
-            district=get_district_row,
-            thana=get_thana_row,
-            postal_code=postal_code,
-            order_note=order_note,
+            
+            # Set removed fields to None
+            birth_date=None,
+            birth_month=None,
+            country=default_country,
+            district=default_district,
+            thana=None,
+            postal_code="",
+            order_note="",
+            
             order_total=total_price,
             shipping_cost=shipping_cost,
             tax_rate=tax_rate,
@@ -1292,16 +1489,6 @@ def process_buy_now(request):
             'status': 'error',
             'message': 'Invalid payment method'
         }, status=400)
-    except Country.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Invalid country'
-        }, status=400)
-    except District.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Invalid district'
-        }, status=400)
     except Exception as e:
         import traceback
         print(f"Error in process_buy_now: {str(e)}")
@@ -1310,7 +1497,6 @@ def process_buy_now(request):
             'status': 'error',
             'message': f'An error occurred: {str(e)}'
         }, status=500)
-
 
 def order_confirmation(request, order_number):
     try:
@@ -1321,3 +1507,257 @@ def order_confirmation(request, order_number):
         return render(request, 'orders/order_confirmation.html', context)
     except Order.DoesNotExist:
         raise Http404("Order not found")
+
+
+
+
+
+# def download_simple_invoice(request, order_number):
+#     try:
+#         order = Order.objects.get(order_number=order_number)
+        
+#         # Download logo and convert to base64
+#         logo_url = "https://www.genialtouch.com/static/png%20transparent-01.png"
+#         logo_base64 = ""
+        
+#         try:
+#             response = requests.get(logo_url)
+#             if response.status_code == 200:
+#                 logo_base64 = base64.b64encode(response.content).decode('utf-8')
+#         except:
+#             # If logo can't be loaded, use URL directly
+#             pass
+        
+#         context = {
+#             'order': order,
+#             'current_date': datetime.now(),
+#             'logo_base64': logo_base64,
+#             'logo_url': logo_url,
+#         }
+        
+#         # Render HTML template
+#         html_string = render_to_string('orders/invoice_simple.html', context)
+        
+#         # Create PDF
+#         response = HttpResponse(content_type='application/pdf')
+#         response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_number}.pdf"'
+        
+#         # Generate PDF
+#         pisa_status = pisa.CreatePDF(
+#             html_string, 
+#             dest=response,
+#             encoding='UTF-8'
+#         )
+        
+#         if pisa_status.err:
+#             # Return simple text as fallback
+#             return HttpResponse(f"""
+#                 Invoice #{order.order_number}
+#                 Date: {order.created_at.strftime('%B %d, %Y')}
+#                 Customer: {order.get_full_name()}
+#                 Total: ${order.grand_total}
+#                 Status: {order.get_status_display()}
+#             """)
+        
+#         return response
+        
+#     except Order.DoesNotExist:
+#         raise Http404("Order not found")
+
+
+def download_simple_invoice(request, order_number):
+    """Customer-facing invoice download"""
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    # Optional: Check if user owns this order (if logged in)
+    if request.user.is_authenticated and order.user != request.user:
+        raise Http404("Order not found")
+    
+    pdf_data = generate_pdf_invoice(order, is_admin=False)
+    
+    if pdf_data:
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_number}.pdf"'
+        return response
+    else:
+        return HttpResponse(
+            f"""
+            Invoice #{order.order_number}
+            Date: {order.created_at.strftime('%B %d, %Y')}
+            Customer: {order.get_full_name()}
+            Total: ${order.grand_total}
+            Status: {order.get_status_display()}
+            """,
+            content_type='text/plain'
+        )
+
+
+def track_order(request):
+    """Track order page"""
+    order = None
+    tracking_data = None
+    order_number = request.GET.get('order_number', '').strip()
+    
+    if order_number:
+        try:
+            order = Order.objects.get(order_number=order_number)
+            tracking_data = order.tracking_history.all().order_by('created_at')
+            
+            # Calculate estimated delivery if not set
+            if not order.estimated_delivery_date and order.shipped_at:
+                order.estimated_delivery_date = order.shipped_at + timedelta(days=3)
+                order.save()
+                
+        except Order.DoesNotExist:
+            messages.error(request, f"No order found with number: {order_number}")
+    
+    context = {
+        'order': order,
+        'tracking_data': tracking_data,
+        'order_number': order_number,
+    }
+    return render(request, 'orders/track_order.html', context)
+
+
+def track_order_by_number(request, order_number):
+    """Direct tracking by order number in URL"""
+    try:
+        order = Order.objects.get(order_number=order_number)
+        tracking_data = order.tracking_history.all().order_by('created_at')
+        
+        context = {
+            'order': order,
+            'tracking_data': tracking_data,
+            'order_number': order_number,
+        }
+        return render(request, 'orders/track_order.html', context)
+        
+    except Order.DoesNotExist:
+        messages.error(request, f"No order found with number: {order_number}")
+        return redirect('track_order')
+
+
+def order_tracking_api(request, order_number):
+    """API endpoint for AJAX tracking"""
+    try:
+        order = Order.objects.get(order_number=order_number)
+        tracking_data = order.tracking_history.all().order_by('created_at')
+        
+        # Serialize data
+        data = {
+            'success': True,
+            'order': {
+                'order_number': order.order_number,
+                'status': order.get_status_display(),
+                'status_code': order.status,
+                'created_at': order.created_at.strftime('%B %d, %Y'),
+                'estimated_delivery': order.estimated_delivery_date.strftime('%B %d, %Y') if order.estimated_delivery_date else None,
+                'carrier': order.carrier,
+                'customer_name': order.get_full_name(),
+            },
+            'tracking_history': [
+                {
+                    'status': track.get_status_display(),
+                    'status_code': track.status,
+                    'note': track.note,
+                    'location': track.location,
+                    'updated_by': track.updated_by,
+                    'date': track.created_at.strftime('%B %d, %Y'),
+                    'time': track.created_at.strftime('%I:%M %p'),
+                    'datetime': track.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'is_current': track.status == order.status,
+                }
+                for track in tracking_data
+            ],
+            'status_timeline': {
+                'pending': order.pending_at.strftime('%B %d, %Y %I:%M %p') if order.pending_at else None,
+                'processing': order.processing_at.strftime('%B %d, %Y %I:%M %p') if order.processing_at else None,
+                'confirmed': order.confirmed_at.strftime('%B %d, %Y %I:%M %p') if order.confirmed_at else None,
+                'packed': order.packed_at.strftime('%B %d, %Y %I:%M %p') if order.packed_at else None,
+                'shipped': order.shipped_at.strftime('%B %d, %Y %I:%M %p') if order.shipped_at else None,
+                'out_for_delivery': order.out_for_delivery_at.strftime('%B %d, %Y %I:%M %p') if order.out_for_delivery_at else None,
+                'delivered': order.delivered_at.strftime('%B %d, %Y %I:%M %p') if order.delivered_at else None,
+            }
+        }
+        return JsonResponse(data)
+        
+    except Order.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': f"No order found with number: {order_number}"
+        }, status=404)
+
+
+
+
+
+
+def generate_pdf_invoice(order, is_admin=False):
+    """Generate PDF invoice for an order"""
+    try:
+        # Download logo and convert to base64
+        logo_url = "https://www.genialtouch.com/static/png%20transparent-01.png"
+        logo_base64 = ""
+        
+        try:
+            response = requests.get(logo_url)
+            if response.status_code == 200:
+                logo_base64 = base64.b64encode(response.content).decode('utf-8')
+        except:
+            pass
+        
+        context = {
+            'order': order,
+            'current_date': timezone.now(),
+            'logo_base64': logo_base64,
+            'logo_url': logo_url,
+            'is_admin': is_admin,  # Add admin flag for template customization
+        }
+        
+        # Render HTML template
+        html_string = render_to_string('orders/invoice_simple.html', context)
+        
+        # Generate PDF using WeasyPrint (recommended for better PDF generation)
+        pdf_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+        
+        HTML(string=html_string).write_pdf(pdf_file.name)
+        
+        pdf_file.close()
+        
+        with open(pdf_file.name, 'rb') as f:
+            pdf_data = f.read()
+        
+        os.unlink(pdf_file.name)
+        
+        return pdf_data
+        
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+        return None
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_download_invoice(request, order_number):
+    """View for admin to download invoice"""
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    pdf_data = generate_pdf_invoice(order, is_admin=True)
+    
+    if pdf_data:
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_number}.pdf"'
+        return response
+    else:
+        # Fallback to simple text
+        return HttpResponse(
+            f"""
+            Invoice #{order.order_number}
+            Customer: {order.get_full_name()}
+            Email: {order.email}
+            Phone: {order.phone_number}
+            Address: {order.get_full_address()}
+            Status: {order.get_status_display()}
+            Total: ${order.grand_total}
+            Date: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+            """,
+            content_type='text/plain'
+        )
