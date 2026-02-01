@@ -1,0 +1,418 @@
+<!-- templates/orders/track_order.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>
+
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3" style="color: #420707;">
+                    <i class="fas fa-shipping-fast mr-2"></i>Track Your Order
+                </h1>
+                <p class="lead text-muted">Enter your order number to track its current status and delivery progress</p>
+            </div>
+
+            <!-- Search Form -->
+            <div class="card shadow-sm border-0 mb-5">
+                <div class="card-body p-4 p-md-5">
+                    <form method="GET" action="{% url 'track_order' %}" id="trackOrderForm">
+                        <div class="form-group mb-4">
+                            <label for="order_number" class="form-label h5">
+                                <i class="fas fa-search mr-2"></i>Order Number
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="order_number" 
+                                       name="order_number" 
+                                       value="{{ order_number }}"
+                                       placeholder="Enter your order number (e.g., {{ example_order_number }})"
+                                       required>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary btn-lg px-4" type="submit" style="background-color: #420707; border-color: #420707;">
+                                        <i class="fas fa-search mr-2"></i>Track Order
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                You can find your order number in your confirmation email or in your account orders page.
+                            </small>
+                        </div>
+                    </form>
+
+                    {% if order %}
+                    <!-- Quick Info -->
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Order Date</div>
+                                <div class="font-weight-bold">{{ order.created_at|date:"F d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Customer</div>
+                                <div class="font-weight-bold">{{ order.get_full_name }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Email</div>
+                                <div class="font-weight-bold">{{ order.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if order %}
+                <!-- Current Status Card -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <i class="fas fa-info-circle mr-2" style="color: #420707;"></i>
+                            Current Order Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="status-indicator-large status-{{ order.status }} mr-3"></div>
+                                    <div>
+                                        <h3 class="mb-0">{{ order.get_status_display }}</h3>
+                                        <p class="text-muted mb-0">
+                                            Last updated: {{ order.status_updated_at|date:"F d, Y g:i A"|default:order.created_at|date:"F d, Y g:i A" }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="tracking-info mt-3">
+                                    
+                                    {% if order.carrier %}
+                                    <div class="d-flex align-items-center mt-2">
+                                        <i class="fas fa-truck mr-2 text-muted"></i>
+                                        <div>
+                                            <strong>Carrier:</strong> {{ order.carrier }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-center">
+                                {% if order.estimated_delivery_date %}
+                                <div class="delivery-estimate p-3 rounded" style="background-color: #f8f9fa; border-left: 4px solid #420707;">
+                                    <div class="text-muted small">Estimated Delivery</div>
+                                    <div class="h4 mb-0" style="color: #420707;">
+                                        {{ order.estimated_delivery_date|date:"F d, Y" }}
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        {% if order.estimated_delivery_date > current_date %}
+                                            {{ order.estimated_delivery_date|timeuntil }} remaining
+                                        {% else %}
+                                            Delivery overdue
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <i class="fas fa-history mr-2" style="color: #420707;"></i>
+                            Order Tracking Timeline
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if tracking_data %}
+                            <div class="timeline">
+                                {% for track in tracking_data %}
+                                <div class="timeline-item {% if forloop.first %}first{% endif %} {% if forloop.last %}last{% endif %}">
+                                    <div class="timeline-marker status-{{ track.status }}"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <h6 class="mb-0">{{ track.get_status_display }}</h6>
+                                            <small class="text-muted">{{ track.created_at|date:"F d, Y g:i A" }}</small>
+                                        </div>
+                                        {% if track.note %}
+                                        <p class="mb-1">{{ track.note }}</p>
+                                        {% endif %}
+                                        {% if track.location %}
+                                        <p class="mb-0 small text-muted">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>{{ track.location }}
+                                        </p>
+                                        {% endif %}
+                                        {% if track.updated_by %}
+                                        <small class="text-muted">Updated by: {{ track.updated_by }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No tracking history available yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Order Details Card -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <i class="fas fa-receipt mr-2" style="color: #420707;"></i>
+                            Order Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Shipping Information</h6>
+                                <p class="mb-2">
+                                    <strong>{{ order.get_full_name }}</strong><br>
+                                    {{ order.full_address }}<br>
+                                    {% if order.thana %}{{ order.thana.name }}<br>{% endif %}
+                                    {% if order.district %}{{ order.district.name }}<br>{% endif %}
+                                    {% if order.country %}{{ order.country.name }}<br>{% endif %}
+                                    {% if order.postal_code %}Postal Code: {{ order.postal_code }}<br>{% endif %}
+                                    Phone: {{ order.phone_number }}<br>
+                                    Email: {{ order.email }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Order Summary</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Order Number:</span>
+                                    <strong>{{ order.order_number }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Order Date:</span>
+                                    <span>{{ order.created_at|date:"F d, Y" }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Payment Method:</span>
+                                    <span>{{ order.payment_method.name|default:"Cash on Delivery" }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Items:</span>
+                                    <span>{{ order.items.count }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Order Total:</span>
+                                    <strong>${{ order.grand_total }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <a href="{% url 'download_invoice' order.order_number %}" 
+                           class="btn btn-primary mx-2 mb-2"
+                           style="background-color: #420707; border-color: #420707;">
+                            <i class="fas fa-file-download mr-2"></i>Download Invoice
+                        </a>
+                        <a href="{% url 'order_confirmation' order.order_number %}" 
+                           class="btn btn-outline-primary mx-2 mb-2"
+                           style="border-color: #420707; color: #420707;">
+                            <i class="fas fa-receipt mr-2"></i>View Order Details
+                        </a>
+                        <a href="{% url 'contact' %}" 
+                           class="btn btn-outline-secondary mx-2 mb-2">
+                            <i class="fas fa-headset mr-2"></i>Need Help?
+                        </a>
+                    </div>
+                </div>
+
+            {% elif order_number and not order %}
+                <!-- No Order Found -->
+                <div class="card shadow-sm border-0 text-center py-5">
+                    <div class="card-body">
+                        <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                        <h3 class="mb-3">Order Not Found</h3>
+                        <p class="text-muted mb-4">
+                            We couldn't find an order with number: <strong>{{ order_number }}</strong>
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            <a href="{% url 'track_order' %}" class="btn btn-primary mx-2 mb-2"
+                               style="background-color: #420707; border-color: #420707;">
+                                <i class="fas fa-search mr-2"></i>Try Again
+                            </a>
+                            <a href="{% url 'contact' %}" class="btn btn-outline-primary mx-2 mb-2">
+                                <i class="fas fa-headset mr-2"></i>Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Timeline Styles */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -33px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #dee2e6;
+        z-index: 2;
+    }
+    
+    .timeline-content {
+        padding: 10px 15px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .timeline-item.current .timeline-content {
+        border-left: 3px solid #420707;
+        background-color: #f8f9fa;
+    }
+    
+    /* Status Indicators */
+    .status-indicator-large {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+    }
+    
+    /* Status Colors */
+    .status-pending { background-color: #ffc107; }
+    .status-processing { background-color: #17a2b8; }
+    .status-confirmed { background-color: #28a745; }
+    .status-packed { background-color: #20c997; }
+    .status-shipped { background-color: #007bff; }
+    .status-out_for_delivery { background-color: #6f42c1; }
+    .status-delivered { background-color: #28a745; }
+    .status-cancelled { background-color: #dc3545; }
+    .status-refunded { background-color: #6c757d; }
+    
+    .timeline-marker.status-pending { background-color: #ffc107; }
+    .timeline-marker.status-processing { background-color: #17a2b8; }
+    .timeline-marker.status-confirmed { background-color: #28a745; }
+    .timeline-marker.status-packed { background-color: #20c997; }
+    .timeline-marker.status-shipped { background-color: #007bff; }
+    .timeline-marker.status-out_for_delivery { background-color: #6f42c1; }
+    .timeline-marker.status-delivered { background-color: #28a745; }
+    .timeline-marker.status-cancelled { background-color: #dc3545; }
+    .timeline-marker.status-refunded { background-color: #6c757d; }
+    
+    /* Delivery Estimate Card */
+    .delivery-estimate {
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-estimate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .timeline {
+            padding-left: 20px;
+        }
+        
+        .timeline:before {
+            left: 10px;
+        }
+        
+        .timeline-marker {
+            left: -23px;
+            width: 12px;
+            height: 12px;
+        }
+        
+        .timeline-content {
+            padding: 8px 12px;
+        }
+        
+        .input-group-lg > .form-control {
+            font-size: 1rem;
+        }
+    }
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .timeline-item {
+        animation: fadeIn 0.5s ease forwards;
+    }
+    
+    .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+    .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+    .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+    .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+    .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+</style>
+
+<script>
+// Auto-focus on input
+document.addEventListener('DOMContentLoaded', function() {
+    const orderNumberInput = document.getElementById('order_number');
+    if (orderNumberInput) {
+        orderNumberInput.focus();
+    }
+    
+    // Add example order number placeholder
+    if (!orderNumberInput.value) {
+        orderNumberInput.placeholder = "Enter your order number (e.g., ORD" + new Date().getFullYear() + "001)";
+    }
+    
+    // Auto-refresh tracking every 30 seconds if order is in progress
+    {% if order and order.status not in 'delivered,cancelled,refunded' %}
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+    {% endif %}
+});
+</script>
+{% endblock %}

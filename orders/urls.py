@@ -9,6 +9,7 @@ urlpatterns = [
 
     path('buy-now/',  views.process_buy_now, name='process_buy_now'),
     path('order-confirmation/<str:order_number>/',  views.order_confirmation, name='order_confirmation'),
+    path('order/invoice/<str:order_number>/download/', views.download_simple_invoice, name='download_invoice'),
 
     # path('get_states/', views.get_states, name='get_states'),
     # path('get_cities/', views.get_cities, name='get_cities'),
@@ -20,6 +21,10 @@ urlpatterns = [
 
 
     path('calculate_tax/', views.calculate_tax, name='calculate_tax'),
+
+    path('track-order/', views.track_order, name='track_order'),
+    path('track-order/<str:order_number>/', views.track_order_by_number, name='track_order_by_number'),
+    path('api/track-order/<str:order_number>/', views.order_tracking_api, name='order_tracking_api'),
 
 
 ]

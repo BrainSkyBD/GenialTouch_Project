@@ -257,6 +257,9 @@
                     <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5 mb-3 mb-md-0 mr-md-3">
                         <i class="fas fa-shopping-bag mr-2"></i>Continue Shopping
                     </a>
+                    <button onclick="downloadInvoice()" class="btn btn-outline-primary btn-lg px-5 mb-3 mb-md-0 mr-md-3">
+                        <i class="fas fa-file-download mr-2"></i>Download Invoice
+                    </button>
                 </div>
                 <p class="text-muted mt-3">
                     <small>Need help? <a href="{% url 'contact' %}" class="text-primary">Contact our support team</a></small>
@@ -372,6 +375,25 @@
     }
 </style>
 
+
+<script>
+function downloadInvoice() {
+    // Show loading indicator
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating PDF...';
+    button.disabled = true;
+    
+    // Download invoice
+    window.location.href = "{% url 'download_invoice' order.order_number %}";
+    
+    // Reset button after 3 seconds
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 3000);
+}
+</script>
 
 
 {% endblock %}

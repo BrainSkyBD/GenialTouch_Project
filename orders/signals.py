@@ -3,9 +3,9 @@ from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-from .models import Order, OrderTracking
+from .models import Order, OrderTrackingTableNew
 
-@receiver(post_save, sender=OrderTracking)
+@receiver(post_save, sender=OrderTrackingTableNew)
 def send_order_status_email(sender, instance, created, **kwargs):
     if created:
         subject = f"Order {instance.order.order_number} status update"

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ order.order_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #420707;
+        }
+        
+        .logo {
+            width: 200px;
+        }
+        
+        .invoice-info {
+            text-align: right;
+        }
+        
+        .invoice-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #420707;
+            margin: 0 0 5px 0;
+        }
+        
+        .invoice-date {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        
+        /* Two Columns */
+        .row {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 0 10px;
+        }
+        
+        /* Labels */
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #420707;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .info-box {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #420707;
+        }
+        
+        .customer-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .address-line {
+            margin: 3px 0;
+        }
+        
+        /* Table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        
+        .table th {
+            background: #420707;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* Totals */
+        .totals {
+            float: right;
+            width: 300px;
+            margin-top: 20px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .total-row:last-child {
+            border-bottom: 2px solid #420707;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 12px 0;
+            color: #420707;
+        }
+        
+        /* Footer */
+        .footer {
+            clear: both;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+        
+        /* Simple Elements */
+        .divider {
+            height: 1px;
+            background: #ddd;
+            margin: 20px 0;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #420707;
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                font-size: 11px;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <img src="https://www.genialtouch.com/static/png%20transparent-01.png" 
+                     alt="Company Logo" 
+                     style="max-width: 200px; height: auto;">
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-number">INVOICE #{{ order.order_number }}</div>
+                <div class="invoice-date">{{ order.created_at|date:"F d, Y" }}</div>
+                <div class="status">{{ order.get_status_display }}</div>
+            </div>
+        </div>
+        
+        <!-- Customer Information -->
+        <div class="row">
+            <div class="col">
+                <div class="label">Bill To</div>
+                <div class="info-box">
+                    <div class="customer-name">{{ order.get_full_name }}</div>
+                    <div class="address-line">{{ order.full_address }}</div>
+                    {% if order.thana %}<div class="address-line">{{ order.thana.name }}</div>{% endif %}
+                    {% if order.district %}<div class="address-line">{{ order.district.name }}</div>{% endif %}
+                    {% if order.country %}<div class="address-line">{{ order.country.name }}</div>{% endif %}
+                    {% if order.postal_code %}<div class="address-line">Postal Code: {{ order.postal_code }}</div>{% endif %}
+                    <div class="address-line">Phone: {{ order.phone_number }}</div>
+                    <div class="address-line">Email: {{ order.email }}</div>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="label">Company</div>
+                <div class="info-box">
+                    <div class="customer-name">Genial Touch</div>
+                    <div class="address-line">123 Business Street</div>
+                    <div class="address-line">Commerce City, CC 10001</div>
+                    <div class="address-line">Phone: (123) 456-7890</div>
+                    <div class="address-line">Email: info@genialtouch.com</div>
+                    <div class="address-line">www.genialtouch.com</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Order Items -->
+        <div class="label">Order Items</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-right">Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>
+                        {{ item.product.name }}
+                        {% if item.variation %}
+                        <br><small>{{ item.variation.get_display_text }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">${{ item.price }}</td>
+                    <td class="text-right">${{ item.get_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ order.order_total }}</span>
+            </div>
+            
+            {% if order.tax_amount and order.tax_amount > 0 %}
+            <div class="total-row">
+                <span>Tax ({{ order.tax_rate }}%):</span>
+                <span>${{ order.tax_amount }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="total-row">
+                <span>Shipping:</span>
+                <span>
+                    {% if order.shipping_cost and order.shipping_cost > 0 %}
+                        ${{ order.shipping_cost }}
+                    {% else %}
+                        Free
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="total-row">
+                <span><strong>GRAND TOTAL:</strong></span>
+                <span><strong>${{ order.grand_total }}</strong></span>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        <div class="row" style="margin-top: 100px;">
+            <div class="col">
+                <div class="label">Payment Method</div>
+                <div class="info-box">
+                    <strong>{{ order.payment_method.name|default:"Cash on Delivery" }}</strong>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="label">Order Notes</div>
+                <div class="info-box">
+                    {% if order.order_note %}
+                        {{ order.order_note }}
+                    {% else %}
+                        No additional notes
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div>Thank you for your business!</div>
+            <div style="margin-top: 5px;">
+                Invoice #{{ order.order_number }} | Generated on {{ current_date|date:"F d, Y H:i" }} | Page <pdf:pagenumber> of <pdf:pagecount>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
