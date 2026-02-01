@@ -1554,6 +1554,14 @@ $(document).ready(function() {
         e.preventDefault();
         var form = $(this);
         var $product = $(this).closest('.ps-product--detail');
+
+        // Get selected variants
+        var selectedVariants = {};
+        $('.variant-value input[type="radio"]:checked').each(function() {
+            var attr = $(this).data('attribute');
+            var val = $(this).val();
+            selectedVariants[attr] = val;
+        });
         
         $.ajax({
             url: form.attr('action'),
@@ -1567,6 +1575,27 @@ $(document).ready(function() {
                 if(response.status === 'success') {
                     // Update cart info in navbar
                     updateCartInfo(response);
+
+                    // Track add_to_cart event in GA4
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        'event': 'add_to_cart',
+                        'ecommerce': {
+                            'currency': '{{ currency_code|default:"BDT" }}',
+                            'value': response.product_price,
+                            'items': [{
+                                'item_id': '{{ product.id }}',
+                                'item_name': '{{ product.name|escapejs }}',
+                                'item_brand': '{{ product.brand.name|default:"Unknown"|escapejs }}',
+                                'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                                'price': response.product_price,
+                                'quantity': $('.quantity-input').val(),
+                                'item_variant': JSON.stringify(selectedVariants)
+                            }]
+                        }
+                    });
+                    
+                    console.log('GA4 add_to_cart tracked');
                     
                     // Show success popup
                     $('#popupProductName').text(response.product_name);
@@ -1743,98 +1772,131 @@ $(document).ready(function() {
 });
 </script>
 
+
+
+
+<!-- GA4 E-commerce Tracking -->
 <script>
-window.dataLayer = window.dataLayer || [];
-dataLayer.push({
-  event: "view_item",
-  ecommerce: {
-    currency: "BDT",
-    value: {{ product.discount_price|default:product.price }},
-    items: [{
-      item_id: "{{ product.id }}",
-      item_name: "{{ product.name|escapejs }}",
-      price: {{ product.discount_price|default:product.price }},
-      item_brand: "{{ product.brand.name|default:'Unknown' }}",
-      item_category: "{% if product.categories.first %}{{ product.categories.first.name }}{% else %}Uncategorized{% endif %}",
-      item_variant: "{% for attribute_name, values in variations.items %}{{ attribute_name }}{% if not forloop.last %}, {% endif %}{% endfor %}",
-      quantity: 1
-    }]
-  }
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const cartForm = document.querySelector(".ps-product__variations");
-
-  if (!cartForm) return;
-
-  cartForm.addEventListener("submit", function (e) {
-
-    // Detect Buy Now button
-    const isBuyNow = document.activeElement &&
-                     document.activeElement.name === "buy_now";
-
-    if (isBuyNow) return; // Buy Now handled separately
-
-    const quantityInput = cartForm.querySelector("input[name='quantity']");
-    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
-
-    // Collect selected variants
-    let variantText = [];
-    cartForm.querySelectorAll("input[type='radio']:checked").forEach(el => {
-      variantText.push(el.dataset.attribute + ": " + el.value);
+    // Track product view on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prepare product data for GA4
+        var productData = {
+            'ecommerce': {
+                'currency': '{{ currency_code|default:"BDT" }}',
+                'value': '{{ product.get_price|default:product.price }}',
+                'items': [{
+                    'item_id': '{{ product.id }}',
+                    'item_name': '{{ product.name|escapejs }}',
+                    'item_brand': '{{ product.brand.name|default:"Unknown"|escapejs }}',
+                    'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                    'price': '{{ product.get_price|default:product.price }}',
+                    'quantity': 1
+                }]
+            }
+        };
+        
+        // Push view_item event to dataLayer
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'view_item',
+            'ecommerce': productData.ecommerce
+        });
+        
+        console.log('GA4 view_item tracked:', productData);
     });
+</script>
 
+
+
+<script>
+    // Handle form submission
+$('#buyNowForm').submit(function(e) {
+    e.preventDefault();
+    var form = $(this);
+    
+    // Get selected variants
+    var selectedVariants = {};
+    $('.variant-value input[type="radio"]:checked').each(function() {
+        var attr = $(this).data('attribute');
+        var val = $(this).val();
+        selectedVariants[attr] = val;
+    });
+    
+    // Get quantity
+    var quantity = $('.quantity-input').val();
+    
+    // Track begin_checkout event
     window.dataLayer = window.dataLayer || [];
-    dataLayer.push({
-      event: "add_to_cart",
-      ecommerce: {
-        currency: "BDT",
-        value: {{ product.discount_price|default:product.price }},
-        items: [{
-          item_id: "{{ product.id }}",
-          item_name: "{{ product.name|escapejs }}",
-          price: {{ product.discount_price|default:product.price }},
-          item_brand: "{{ product.brand.name|default:'Unknown' }}",
-          item_category: "{% if product.categories.first %}{{ product.categories.first.name }}{% else %}Uncategorized{% endif %}",
-          item_variant: variantText.join(", "),
-          quantity: quantity
-        }]
-      }
-    });
-  });
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const buyNowBtn = document.querySelector(".buy-now-btn");
-  if (!buyNowBtn) return;
-
-  buyNowBtn.addEventListener("click", function () {
-    const quantityInput = document.querySelector("input[name='quantity']");
-    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
-
-    let variantText = [];
-    document.querySelectorAll(".ps-product__variations input[type='radio']:checked")
-      .forEach(el => {
-        variantText.push(el.dataset.attribute + ": " + el.value);
-      });
-
     window.dataLayer.push({
-      event: "begin_checkout",
-      ecommerce: {
-        currency: "BDT",
-        value: {{ product.discount_price|default:product.price }},
-        items: [{
-          item_id: "{{ product.id }}",
-          item_name: "{{ product.name|escapejs }}",
-          price: {{ product.discount_price|default:product.price }},
-          item_variant: variantText.join(", "),
-          quantity: quantity
-        }]
-      }
+        'event': 'begin_checkout',
+        'ecommerce': {
+            'currency': '{{ currency_code|default:"BDT" }}',
+            'value': parseFloat('{{ product.get_price|default:product.price }}') * parseInt(quantity),
+            'items': [{
+                'item_id': '{{ product.id }}',
+                'item_name': '{{ product.name|escapejs }}',
+                'item_brand': '{{ product.brand.name|default:"Unknown"|escapejs }}',
+                'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                'price': '{{ product.get_price|default:product.price }}',
+                'quantity': quantity,
+                'item_variant': JSON.stringify(selectedVariants)
+            }]
+        }
     });
-  });
+    
+    console.log('GA4 begin_checkout tracked');
+    
+    $.ajax({
+        url: form.attr('action'),
+        method: 'POST',
+        data: form.serialize(),
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if(response.status === 'success') {
+                // Track purchase event after successful order
+                var transactionId = response.order_id || 'ORD-' + Date.now();
+                var transactionTotal = parseFloat('{{ product.get_price|default:product.price }}') * parseInt(quantity);
+                
+                window.dataLayer.push({
+                    'event': 'purchase',
+                    'ecommerce': {
+                        'transaction_id': transactionId,
+                        'value': transactionTotal,
+                        'tax': 0,
+                        'shipping': 0,
+                        'currency': '{{ currency_code|default:"BDT" }}',
+                        'items': [{
+                            'item_id': '{{ product.id }}',
+                            'item_name': '{{ product.name|escapejs }}',
+                            'item_brand': '{{ product.brand.name|default:"Unknown"|escapejs }}',
+                            'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                            'price': '{{ product.get_price|default:product.price }}',
+                            'quantity': quantity,
+                            'item_variant': JSON.stringify(selectedVariants)
+                        }]
+                    }
+                });
+                
+                console.log('GA4 purchase tracked with transaction ID:', transactionId);
+                
+                // Redirect to order confirmation page
+                window.location.href = response.redirect_url;
+            } else {
+                // Show error message
+                alert(response.message || 'Error processing your order');
+            }
+        },
+        error: function(xhr) {
+            if(xhr.responseJSON && xhr.responseJSON.message) {
+                alert(xhr.responseJSON.message);
+            } else {
+                alert('Error processing your order');
+            }
+        }
+    });
 });
 </script>
 

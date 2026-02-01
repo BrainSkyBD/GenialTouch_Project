@@ -751,4 +751,45 @@
         });
     });
 </script>
+
+
+<!-- GA4 Checkout Tracking -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prepare cart items data for GA4
+        var cartItems = [
+            {% for item in cart_items %}
+            {
+                'item_id': '{{ item.product.id }}',
+                'item_name': '{{ item.product.name|escapejs }}',
+                'item_brand': '{{ item.product.brand.name|default:"Unknown"|escapejs }}',
+                'item_category': '{{ item.product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                'price': {{ item.product.get_price|default:item.product.price }},
+                'quantity': {{ item.quantity }},
+                {% if item.variation %}
+                'item_variant': '{{ item.variation.get_variation_name|escapejs }}',
+                {% endif %}
+                'currency': 'BDT'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Calculate cart total
+        var cartValue = {{ cart_total|default:0 }};
+        
+        // Push begin_checkout event to dataLayer
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'begin_checkout',
+            'ecommerce': {
+                'currency': 'BDT',
+                'value': cartValue,
+                'coupon': '', // Add if you have coupon codes
+                'items': cartItems
+            }
+        });
+        
+        console.log('GA4 begin_checkout tracked:', cartItems.length, 'items');
+    });
+</script>
 {% endblock %}
