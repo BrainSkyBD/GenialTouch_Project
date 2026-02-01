@@ -44,7 +44,7 @@ from .models import Country, District, Thana
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from xhtml2pdf import pisa
+
 from datetime import datetime
 import requests
 from io import BytesIO
@@ -1510,59 +1510,6 @@ def order_confirmation(request, order_number):
 
 
 
-
-
-# def download_simple_invoice(request, order_number):
-#     try:
-#         order = Order.objects.get(order_number=order_number)
-        
-#         # Download logo and convert to base64
-#         logo_url = "https://www.genialtouch.com/static/png%20transparent-01.png"
-#         logo_base64 = ""
-        
-#         try:
-#             response = requests.get(logo_url)
-#             if response.status_code == 200:
-#                 logo_base64 = base64.b64encode(response.content).decode('utf-8')
-#         except:
-#             # If logo can't be loaded, use URL directly
-#             pass
-        
-#         context = {
-#             'order': order,
-#             'current_date': datetime.now(),
-#             'logo_base64': logo_base64,
-#             'logo_url': logo_url,
-#         }
-        
-#         # Render HTML template
-#         html_string = render_to_string('orders/invoice_simple.html', context)
-        
-#         # Create PDF
-#         response = HttpResponse(content_type='application/pdf')
-#         response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_number}.pdf"'
-        
-#         # Generate PDF
-#         pisa_status = pisa.CreatePDF(
-#             html_string, 
-#             dest=response,
-#             encoding='UTF-8'
-#         )
-        
-#         if pisa_status.err:
-#             # Return simple text as fallback
-#             return HttpResponse(f"""
-#                 Invoice #{order.order_number}
-#                 Date: {order.created_at.strftime('%B %d, %Y')}
-#                 Customer: {order.get_full_name()}
-#                 Total: ${order.grand_total}
-#                 Status: {order.get_status_display()}
-#             """)
-        
-#         return response
-        
-#     except Order.DoesNotExist:
-#         raise Http404("Order not found")
 
 
 def download_simple_invoice(request, order_number):
