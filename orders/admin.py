@@ -352,10 +352,13 @@ class OrderAdmin(admin.ModelAdmin):
     )
     
     def download_invoice_button(self, obj):
-        return format_html(
-            '<a class="button" href="{}" target="_blank">Download Invoice</a>',
-            reverse('admin_download_invoice', args=[obj.order_number])
-        )
+        try:
+            return format_html(
+                '<a class="button" href="{}" target="_blank">Download Invoice</a>',
+                reverse('admin_download_invoice', args=[obj.order_number])
+            )
+        except:
+            return None
     download_invoice_button.short_description = 'Invoice'
     download_invoice_button.allow_tags = True
     
