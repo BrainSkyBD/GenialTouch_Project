@@ -5,6 +5,8 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from .models import Order, OrderTrackingTableNew
 
+
+
 @receiver(post_save, sender=OrderTrackingTableNew)
 def send_order_status_email(sender, instance, created, **kwargs):
     if created:

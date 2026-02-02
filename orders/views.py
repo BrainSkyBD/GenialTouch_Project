@@ -66,6 +66,15 @@ from weasyprint import HTML
 import tempfile
 import os
 
+import random
+import string
+from django.utils import timezone
+
+def generate_order_number():
+    """Generate a unique order number"""
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    random_str = ''.join(random.choices(string.digits, k=6))
+    return f'ORD-{timestamp}-{random_str}'
 
 def get_districts(request):
     country_id = request.GET.get('country_id')
@@ -399,14 +408,40 @@ def checkout(request):
         grand_total = cart_total + shipping_cost + tax_amount
         
         # Create the order with birth date and month - UPDATED FORMAT
+        # order = Order.objects.create(
+        #     user=request.user,
+        #     first_name=first_name,
+        #     last_name=last_name,
+        #     email=email if email else request.user.email,
+        #     phone_number=phone_number,
+        #     full_address=full_address,
+        #     birth_date=birth_date if birth_date else None,  # Now stores day number
+        #     birth_month=birth_month if birth_month else None,
+        #     country=country,
+        #     district=district,
+        #     thana=thana,
+        #     postal_code=postal_code,
+        #     order_note=order_note,
+        #     order_total=cart_total,
+        #     shipping_cost=shipping_cost,
+        #     tax_rate=tax_rate,
+        #     tax_amount=tax_amount,
+        #     grand_total=grand_total,
+        #     payment_method=payment_method,
+        #     status='pending',
+        #     ip_address=request.META.get('REMOTE_ADDR')
+        # )
+
+        # Create the order with birth date and month - UPDATED FORMAT
         order = Order.objects.create(
             user=request.user,
+            order_number=generate_order_number(),  # Add this line
             first_name=first_name,
             last_name=last_name,
             email=email if email else request.user.email,
             phone_number=phone_number,
             full_address=full_address,
-            birth_date=birth_date if birth_date else None,  # Now stores day number
+            birth_date=birth_date if birth_date else None,
             birth_month=birth_month if birth_month else None,
             country=country,
             district=district,
@@ -444,6 +479,7 @@ def checkout(request):
         request.session.modified = True
         
         messages.success(request, f"Order #{order.order_number} placed successfully!")
+        print(f"Order #{order.order_number} placed successfully!")
         return redirect('order_confirmation', order_number=order.order_number)
     
     # GET request - show checkout form

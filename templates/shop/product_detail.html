@@ -723,9 +723,12 @@
                                     </h4>
                                     <div class="stock-status">
                                         <i class="fa fa-check-circle"></i>
-                                        <span class="in-stock">In Stock</span>
                                         {% if product.is_in_stock %}
+                                        <span class="in-stock">In Stock</span>
+                                        
                                             <span class="stock-quantity">({{ product.get_total_stock }} available)</span>
+                                        {% else %}
+                                        <span class="" style="color: red;">Out of Stock</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -771,6 +774,7 @@
                                     
                                     <!-- Quantity and buttons remain the same -->
                                     <div class="ps-product__shopping">
+                                        {% if product.is_in_stock %}
                                         <div class="quantity-selector">
                                             <span>Quantity</span>
                                             <div class="quantity-controls">
@@ -779,6 +783,8 @@
                                                 <button type="button" class="quantity-up"><i class="fa fa-plus"></i></button>
                                             </div>
                                         </div>
+
+                                        
                                         
                                         <div class="action-buttons">
                                             <button type="submit" class="add-to-cart-btn">
@@ -788,6 +794,13 @@
                                                 <i class="fa fa-bolt"></i> Buy Now
                                             </button>
                                         </div>
+                                        {% else %}
+                                        <div class="action-buttons">
+                                            <button type="button" disabled >
+                                                <i class="fa fa-shopping-cart"></i> Out of Stock
+                                            </button>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </form>
                                 
