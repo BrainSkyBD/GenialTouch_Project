@@ -19,7 +19,8 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-
+    
+    
 class CustomerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     wishlist = models.ManyToManyField('products.Product', blank=True)

@@ -318,18 +318,18 @@
                                             <a href="{{ item.product.get_absolute_url }}">
                                                 <strong>{{ item.product.name }}</strong>
                                                 <span>x{{ item.quantity }}</span>
-                                                <small>৳{{ item.total }}</small>
+                                                <small>{{ currency_symbol }}{{ item.total }}</small>
                                             </a>
                                             {% endfor %}
                                         </figure>
                                         <figure>
-                                            <figcaption><strong>Subtotal</strong><strong>৳{{ cart_total }}</strong></figcaption>
+                                            <figcaption><strong>Subtotal</strong><strong>{{ currency_symbol }}{{ cart_total }}</strong></figcaption>
                                         </figure>
 
                                         <figure class="tax-display" id="tax-display">
                                             <figcaption>
                                                 <span id="tax-name">Tax</span>
-                                                <strong id="tax-amount">৳0.00</strong>
+                                                <strong id="tax-amount">{{ currency_symbol }}0.00</strong>
                                             </figcaption>
                                         </figure>
                                         
@@ -339,7 +339,7 @@
                                         </figure>
                                         
                                         <figure>
-                                            <figcaption><strong>Total</strong><strong id="grand-total">৳{{ cart_total }}</strong></figcaption>
+                                            <figcaption><strong>Total</strong><strong id="grand-total">{{ currency_symbol }}{{ cart_total }}</strong></figcaption>
                                         </figure>
                                         
                                         <div class="payment-method">
@@ -425,7 +425,7 @@
             // Reset shipping and tax display
             $('#shipping-display').text('Select city to calculate shipping');
             $('#tax-display').hide();
-            $('#grand-total').text('৳{{ cart_total }}');
+            $('#grand-total').text('{{ currency_symbol }}{{ cart_total }}');
         });
         
         // State change handler
@@ -448,7 +448,7 @@
             // Reset shipping and tax display
             $('#shipping-display').text('Select city to calculate shipping');
             $('#tax-display').hide();
-            $('#grand-total').text('৳{{ cart_total }}');
+            $('#grand-total').text('{{ currency_symbol }}{{ cart_total }}');
         });
         
         // City change handler
@@ -459,7 +459,7 @@
             const countryId = $('#country').val();
             
             if (cityId && countryId) {
-                $('#shipping-display').text('৳' + shippingCost);
+                $('#shipping-display').text('{{ currency_symbol }}' + shippingCost);
                 
                 // Calculate tax
                 $.get('/orders/calculate_tax/', {
@@ -470,18 +470,18 @@
                     if (data.status === 'success') {
                         if (parseFloat(data.tax_rate) > 0) {
                             $('#tax-name').text(data.tax_name + ' (' + data.tax_rate + '%)');
-                            $('#tax-amount').text('৳' + data.tax_amount);
+                            $('#tax-amount').text('{{ currency_symbol }}' + data.tax_amount);
                             $('#tax-display').show();
                         } else {
                             $('#tax-display').hide();
                         }
-                        $('#grand-total').text('৳' + data.grand_total);
+                        $('#grand-total').text('{{ currency_symbol }}' + data.grand_total);
                     }
                 });
             } else {
                 $('#shipping-display').text('Select city to calculate shipping');
                 $('#tax-display').hide();
-                $('#grand-total').text('৳' + cartTotal.toFixed(2));
+                $('#grand-total').text('{{ currency_symbol }}' + cartTotal.toFixed(2));
             }
         });
         

@@ -494,7 +494,7 @@
                                                     </div>
                                                     <div class="text-right">
                                                         <div>x{{ item.quantity }}</div>
-                                                        <small>৳{{ item.total|floatformat:2 }}</small>
+                                                        <small>{{ currency_symbol }}{{ item.total|floatformat:2 }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -503,7 +503,7 @@
                                         <figure>
                                             <figcaption>
                                                 <strong>Subtotal</strong>
-                                                <strong>৳{{ cart_total|floatformat:2 }}</strong>
+                                                <strong>{{ currency_symbol }}{{ cart_total|floatformat:2 }}</strong>
                                             </figcaption>
                                         </figure>
 
@@ -517,14 +517,14 @@
                                         <figure class="tax-display" id="tax-display">
                                             <figcaption>
                                                 <span id="tax-name">Tax</span>
-                                                <strong id="tax-amount">৳0.00</strong>
+                                                <strong id="tax-amount">{{ currency_symbol }}0.00</strong>
                                             </figcaption>
                                         </figure>
                                         
                                         <figure>
                                             <figcaption>
                                                 <strong>Total</strong>
-                                                <strong id="grand-total">৳{{ cart_total|floatformat:2 }}</strong>
+                                                <strong id="grand-total">{{ currency_symbol }}{{ cart_total|floatformat:2 }}</strong>
                                             </figcaption>
                                         </figure>
                                         
@@ -679,13 +679,13 @@
             const cartTotal = parseFloat('{{ cart_total }}');
             $('#shipping-cost').text(' (Select district to calculate shipping)');
             $('#tax-display').hide();
-            $('#grand-total').text('৳' + cartTotal.toFixed(2));
+            $('#grand-total').text('{{ currency_symbol }}' + cartTotal.toFixed(2));
         }
         
         // Function to update shipping display
         function updateShippingDisplay(districtId, shippingCost) {
             if (districtId) {
-                $('#shipping-cost').text('৳' + parseFloat(shippingCost).toFixed(2));
+                $('#shipping-cost').text('{{ currency_symbol }}' + parseFloat(shippingCost).toFixed(2));
             } else {
                 $('#shipping-cost').text(' (Select district to calculate shipping)');
             }
@@ -706,19 +706,19 @@
                     console.log(data);
 
                     // Update shipping cost (in case it's different from the district's default)
-                    $('#shipping-cost').text('৳' + data.shipping_cost);
+                    $('#shipping-cost').text('{{ currency_symbol }}' + data.shipping_cost);
                     
                     // Update tax display
                     if (parseFloat(data.tax_rate) > 0) {
                         $('#tax-name').text(data.tax_name + ' (' + data.tax_rate + '%)');
-                        $('#tax-amount').text('৳' + data.tax_amount);
+                        $('#tax-amount').text('{{ currency_symbol }}' + data.tax_amount);
                         $('#tax-display').show();
                     } else {
                         $('#tax-display').hide();
                     }
                     
                     // Update grand total
-                    $('#grand-total').text('৳' + data.grand_total);
+                    $('#grand-total').text('{{ currency_symbol }}' + data.grand_total);
                 }
             }).fail(function() {
                 alert('Error calculating tax. Please try again.');

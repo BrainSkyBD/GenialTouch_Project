@@ -840,15 +840,25 @@ def checkout(request):
 
 
 
+# @login_required
+# def order_detail(request, order_id):
+#     order = get_object_or_404(Order, order_number=order_id, user=request.user)
+#     return render(request, 'orders/order_detail.html', {'order': order})
+
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, order_number=order_id, user=request.user)
-    return render(request, 'orders/order_detail.html', {'order': order})
+    
+    context = {
+        'order': order,
+    }
+    return render(request, 'orders/order_detail.html', context)
 
-@login_required
-def order_history(request):
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'orders/order_history.html', {'orders': orders})
+
+# @login_required
+# def order_history(request):
+#     orders = Order.objects.filter(user=request.user).order_by('-created_at')
+#     return render(request, 'orders/order_history.html', {'orders': orders})
 
 @login_required
 def cancel_order(request, order_id):
