@@ -7,32 +7,7 @@
     .ps-block--category img:hover {
         transform: scale(1.05);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    /* Lazy loading styles - will not affect original UI */
-    .lazy-loading-placeholder {
-        background: linear-gradient(90deg, #f5f5f5 25%, #e8e8e8 50%, #f5f5f5 75%);
-        background-size: 400% 100%;
-        animation: loading-shimmer 1.5s infinite;
-    }
-    
-    @keyframes loading-shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-    
-    .lazy-loaded {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .lazy-loaded.loaded {
-        opacity: 1;
-    }
-    
-    .lazy-bg-loaded {
-        background-color: #f5f5f5;
-    }
+        }
 </style>
 
 <div id="homepage-1">
@@ -82,16 +57,16 @@
                         <div class="ps-block--category">
                             <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
                             {% if category.image %}
-                            <img 
-                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                data-src="{{ category.image.url }}" 
-                                alt="{{ category.name }}"
-                                class="lazy-loading-placeholder lazy-loaded"
-                                loading="lazy"
-                                width="150"
-                                height="150"
-                                style="width: 100%; height: 100%; object-fit: cover; clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%); transition: transform 0.3s ease, box-shadow 0.3s ease;"
-                                onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
+                            <img src="{{ category.image.url }}" alt="{{ category.name }}"
+                            style="width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    clip-path: polygon(
+                                        25% 6%, 75% 6%,
+                                        100% 50%, 75% 94%,
+                                        25% 94%, 0% 50%
+                                    );
+                                    transition: transform 0.3s ease, box-shadow 0.3s ease;">
                             {% endif %}
                             <p>{{ category.name }}</p>
                         </div>
@@ -110,9 +85,7 @@
             <div class="ps-section__left">
                 <div class="ps-carousel--nav-inside owl-slider" data-owl-auto="true" data-owl-loop="true" data-owl-speed="5000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="1" data-owl-item-xs="1" data-owl-item-sm="1" data-owl-item-md="1" data-owl-item-lg="1" data-owl-duration="1000" data-owl-mousedrag="on" data-owl-animate-in="fadeIn" data-owl-animate-out="fadeOut">
                     {% for banner in banners %}
-                    <div class="ps-banner lazy-bg-loaded" 
-                         style="background-color: #f5f5f5; background-size: cover; background-position: center; min-height: 400px;"
-                         data-bg="{{ banner.image.url }}">
+                    <div class="ps-banner bg--cover" data-background="{{ banner.image.url }}">
                         <a class="ps-banner__overlay" href="{{ banner.url }}"></a>
                     </div>
                     {% endfor %}
@@ -121,15 +94,7 @@
             <div class="ps-section__right">
                 {% for promo in promotions|slice:":2" %}
                 <a class="ps-collection" href="{{ promo.url }}">
-                    <img 
-                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                        data-src="{{ promo.image.url }}" 
-                        alt="{{ promo.title }}"
-                        class="lazy-loading-placeholder lazy-loaded"
-                        loading="lazy"
-                        width="300"
-                        height="150"
-                        onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
+                    <img src="{{ promo.image.url }}" alt="{{ promo.title }}">
                 </a>
                 {% endfor %}
             </div>
@@ -207,19 +172,7 @@
                     <div class="ps-product ps-product--inner">
                         <div class="ps-product__thumbnail">
                             <a href="{{ product.get_absolute_url }}">
-                                {% with product.images.first as first_image %}
-                                {% if first_image %}
-                                <img 
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                    data-src="{{ first_image.image.url }}" 
-                                    alt="{{ product.name }}"
-                                    class="lazy-loading-placeholder lazy-loaded"
-                                    loading="lazy"
-                                    width="300"
-                                    height="300"
-                                    onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
-                                {% endif %}
-                                {% endwith %}
+                                <img src="{{ product.images.first.image.url }}" alt="">
                             </a>
                             {% if product.discount_price %}
                             <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
@@ -293,15 +246,7 @@
                 {% for ad in home_ads|slice:":3" %}
                 <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 col-12">
                     <a class="ps-collection" href="{{ ad.url }}">
-                        <img 
-                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                            data-src="{{ ad.image.url }}" 
-                            alt="{{ ad.title }}"
-                            class="lazy-loading-placeholder lazy-loaded"
-                            loading="lazy"
-                            width="400"
-                            height="200"
-                            onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
+                        <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
                     </a>
                 </div>
                 {% endfor %}
@@ -332,19 +277,7 @@
                     <div class="ps-product">
                         <div class="ps-product__thumbnail">
                             <a href="{{ product.get_absolute_url }}">
-                                {% with product.images.first as first_image %}
-                                {% if first_image %}
-                                <img 
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                    data-src="{{ first_image.image.url }}" 
-                                    alt="{{ product.name }}"
-                                    class="lazy-loading-placeholder lazy-loaded"
-                                    loading="lazy"
-                                    width="300"
-                                    height="300"
-                                    onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');" />
-                                {% endif %}
-                                {% endwith %}
+                                <img src="{{ product.images.first.image.url }}" alt="" />
                             </a>
                             {% if product.discount_price %}
                             <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
@@ -425,15 +358,7 @@
                 {% for ad in home_ads|slice:"3:5" %}
                 <div class="col-xl-{% if forloop.first %}8{% else %}4{% endif %} col-lg-{% if forloop.first %}8{% else %}4{% endif %} col-md-12 col-sm-12 col-12">
                     <a class="ps-collection" href="{{ ad.url }}">
-                        <img 
-                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                            data-src="{{ ad.image.url }}" 
-                            alt="{{ ad.title }}"
-                            class="lazy-loading-placeholder lazy-loaded"
-                            loading="lazy"
-                            width="{% if forloop.first %}800{% else %}400{% endif %}"
-                            height="200"
-                            onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
+                        <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
                     </a>
                 </div>
                 {% endfor %}
@@ -449,15 +374,7 @@
                     <div class="row">
                         <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
                             <div class="ps-block__thumbnail">
-                                <img 
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                    data-src="{% static 'downloadapp.png' %}" 
-                                    alt="Download App"
-                                    class="lazy-loading-placeholder lazy-loaded"
-                                    loading="lazy"
-                                    width="400"
-                                    height="300"
-                                    onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
+                                <img src="{% static 'downloadapp.png' %}" alt="">
                             </div>
                         </div>
                         <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
@@ -472,28 +389,8 @@
                                     </div>
                                 </form>
                                 <p class="download-link">
-                                    <a href="#">
-                                        <img 
-                                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                            data-src="{% static 'img/google-play.png' %}" 
-                                            alt="Google Play"
-                                            class="lazy-loading-placeholder lazy-loaded"
-                                            loading="lazy"
-                                            width="135"
-                                            height="40"
-                                            onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
-                                    </a>
-                                    <a href="#">
-                                        <img 
-                                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                            data-src="{% static 'img/app-store.png' %}" 
-                                            alt="App Store"
-                                            class="lazy-loading-placeholder lazy-loaded"
-                                            loading="lazy"
-                                            width="135"
-                                            height="40"
-                                            onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');">
-                                    </a>
+                                    <a href="#"><img src="{% static 'img/google-play.png' %}" alt=""></a>
+                                    <a href="#"><img src="{% static 'img/app-store.png' %}" alt=""></a>
                                 </p>
                             </div>
                         </div>
@@ -524,19 +421,7 @@
                         <div class="ps-product--horizontal">
                             <div class="ps-product__thumbnail">
                                 <a href="{{ product.get_absolute_url }}">
-                                    {% with product.images.first as first_image %}
-                                    {% if first_image %}
-                                    <img 
-                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" 
-                                        data-src="{{ first_image.image.url }}" 
-                                        alt="{{ product.name }}"
-                                        class="lazy-loading-placeholder lazy-loaded"
-                                        loading="lazy"
-                                        width="100"
-                                        height="100"
-                                        onload="this.classList.remove('lazy-loading-placeholder'); this.classList.add('loaded');" />
-                                    {% endif %}
-                                    {% endwith %}
+                                    <img src="{{ product.images.first.image.url }}" alt="" />
                                 </a>
                             </div>
                             <div class="ps-product__content">
@@ -588,182 +473,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Enhanced Lazy Loading with Intersection Observer
-document.addEventListener('DOMContentLoaded', function() {
-    // Elements to lazy load
-    const lazyImages = document.querySelectorAll('img.lazy-loaded');
-    const lazyBackgrounds = document.querySelectorAll('.lazy-bg-loaded[data-bg]');
-    const carousels = document.querySelectorAll('.owl-slider');
-    
-    // Function to load image
-    function loadImage(img) {
-        if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.classList.remove('lazy-loading-placeholder');
-            img.classList.add('loaded');
-            
-            // Also remove inline loading animation if it exists
-            img.style.background = 'none';
-        }
-    }
-    
-    // Function to load background
-    function loadBackground(bg) {
-        if (bg.dataset.bg) {
-            bg.style.backgroundImage = `url('${bg.dataset.bg}')`;
-            bg.classList.remove('lazy-bg-loaded');
-        }
-    }
-    
-    // Check if element is in viewport
-    function isInViewport(element, offset = 0) {
-        const rect = element.getBoundingClientRect();
-        return (
-            rect.top <= (window.innerHeight || document.documentElement.clientHeight) + offset &&
-            rect.bottom >= 0 - offset &&
-            rect.left <= (window.innerWidth || document.documentElement.clientWidth) + offset &&
-            rect.right >= 0 - offset
-        );
-    }
-    
-    // Load visible elements
-    function loadVisibleElements() {
-        // Load visible images
-        lazyImages.forEach(img => {
-            if (!img.classList.contains('loaded') && isInViewport(img, 300)) {
-                loadImage(img);
-            }
-        });
-        
-        // Load visible backgrounds
-        lazyBackgrounds.forEach(bg => {
-            if (isInViewport(bg, 500)) {
-                loadBackground(bg);
-            }
-        });
-    }
-    
-    // Initialize lazy loading
-    if ('IntersectionObserver' in window) {
-        // Image observer
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    loadImage(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            rootMargin: '200px',
-            threshold: 0.01
-        });
-        
-        lazyImages.forEach(img => imageObserver.observe(img));
-        
-        // Background observer
-        const bgObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    loadBackground(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            rootMargin: '300px',
-            threshold: 0.01
-        });
-        
-        lazyBackgrounds.forEach(bg => bgObserver.observe(bg));
-        
-        // Carousel lazy initialization observer
-        const carouselObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const carousel = entry.target;
-                    if (window.$ && $.fn.owlCarousel && !$(carousel).hasClass('owl-loaded')) {
-                        // Initialize carousel with optimized settings
-                        setTimeout(() => {
-                            if ($(carousel).length && !$(carousel).hasClass('owl-loaded')) {
-                                $(carousel).owlCarousel({
-                                    items: carousel.dataset.owlItem || 4,
-                                    loop: carousel.dataset.owlLoop === 'true',
-                                    margin: parseInt(carousel.dataset.owlGap) || 30,
-                                    nav: carousel.dataset.owlNav === 'true',
-                                    dots: carousel.dataset.owlDots === 'true',
-                                    lazyLoad: true,
-                                    autoplay: carousel.dataset.owlAuto === 'true',
-                                    autoplayTimeout: parseInt(carousel.dataset.owlSpeed) || 5000,
-                                    responsive: {
-                                        0: { items: carousel.dataset.owlItemXs || 1 },
-                                        576: { items: carousel.dataset.owlItemSm || 2 },
-                                        768: { items: carousel.dataset.owlItemMd || 3 },
-                                        992: { items: carousel.dataset.owlItemLg || 4 },
-                                        1200: { items: carousel.dataset.owlItemXl || 6 }
-                                    }
-                                });
-                            }
-                        }, 100);
-                    }
-                    carouselObserver.unobserve(carousel);
-                }
-            });
-        }, {
-            rootMargin: '400px',
-            threshold: 0.01
-        });
-        
-        carousels.forEach(carousel => carouselObserver.observe(carousel));
-        
-    } else {
-        // Fallback for older browsers - load all on scroll
-        window.addEventListener('scroll', function() {
-            loadVisibleElements();
-        });
-        
-        // Initial load
-        loadVisibleElements();
-    }
-    
-    // Load all images after 3 seconds (fallback for any missed)
-    setTimeout(function() {
-        lazyImages.forEach(img => {
-            if (!img.classList.contains('loaded')) {
-                loadImage(img);
-            }
-        });
-        
-        lazyBackgrounds.forEach(bg => {
-            loadBackground(bg);
-        });
-    }, 3000);
-    
-    // Ensure carousels initialize even if Intersection Observer misses them
-    setTimeout(function() {
-        if (window.$ && $.fn.owlCarousel) {
-            $('.owl-slider').each(function() {
-                if (!$(this).hasClass('owl-loaded')) {
-                    $(this).owlCarousel({
-                        items: $(this).data('owl-item') || 4,
-                        loop: $(this).data('owl-loop') || false,
-                        margin: parseInt($(this).data('owl-gap')) || 30,
-                        nav: $(this).data('owl-nav') !== false,
-                        dots: $(this).data('owl-dots') !== false,
-                        lazyLoad: true,
-                        autoplay: $(this).data('owl-auto') || false,
-                        autoplayTimeout: parseInt($(this).data('owl-speed')) || 5000,
-                        responsive: {
-                            0: { items: $(this).data('owl-item-xs') || 1 },
-                            576: { items: $(this).data('owl-item-sm') || 2 },
-                            768: { items: $(this).data('owl-item-md') || 3 },
-                            992: { items: $(this).data('owl-item-lg') || 4 },
-                            1200: { items: $(this).data('owl-item-xl') || 6 }
-                        }
-                    });
-                }
-            });
-        }
-    }, 2000);
-});
-</script>
+
 {% endblock %}

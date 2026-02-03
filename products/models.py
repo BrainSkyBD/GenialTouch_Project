@@ -122,6 +122,22 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Image of {self.product.name}"
 
+    def get_optimized_url(self, width=300, height=300):
+        """
+        Returns optimized image URL. 
+        In production, you can use a CDN or image processing service.
+        For now, returns the original URL.
+        """
+        return self.image.url
+    
+    def get_thumbnail_url(self):
+        """Returns thumbnail URL"""
+        return self.get_optimized_url(300, 300)
+    
+    def get_medium_url(self):
+        """Returns medium-sized URL"""
+        return self.get_optimized_url(600, 600)
+
 class ProductAttribute(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     attribute_value = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
