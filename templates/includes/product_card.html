@@ -1,0 +1,51 @@
+{% comment %} Remove {% load imagekit %} line {% endcomment %}
+{% load static %}
+
+
+<div class="ps-product ps-product--inner">
+    <div class="ps-product__thumbnail">
+        <a href="{{ product.get_absolute_url }}">
+            <!-- Simple lazy loaded image -->
+            {% with product.images.first as first_image %}
+            {% if first_image %}
+            <img 
+                src="{% static 'img/placeholder.svg' %}"
+                data-src="{{ first_image.image.url }}"
+                alt="{{ product.name }}"
+                class="lazy-image"
+                loading="lazy"
+                width="300"
+                height="300"
+                onload="this.classList.add('loaded')">
+            {% else %}
+            <img 
+                src="{% static 'img/placeholder.svg' %}"
+                alt="{{ product.name }}"
+                width="300"
+                height="300">
+            {% endif %}
+            {% endwith %}
+        </a>
+        {% if product.discount_price %}
+        <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+        {% endif %}
+    </div>
+    
+    <div class="ps-product__container">
+        {% if product.discount_price %}
+        <p class="ps-product__price sale">
+            {{ currency_symbol }} {{ product.discount_price }} 
+            <del>{{ currency_symbol }} {{ product.price }}</del>
+            <br>
+            <small>{{ product.get_discount_percentage }}% off</small>
+        </p>
+        {% else %}
+        <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+        {% endif %}
+        <div class="ps-product__content">
+            <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                {{ product.name }}
+            </a>
+        </div>
+    </div>
+</div>

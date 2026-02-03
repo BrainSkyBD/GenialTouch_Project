@@ -1,0 +1,29 @@
+{% load static %}
+<div class="ps-product--horizontal">
+    <div class="ps-product__thumbnail">
+        <a href="{{ product.get_absolute_url }}">
+            <img 
+                src="{{ product.ordered_images.0.placeholder.url|default:product.ordered_images.0.thumbnail.url }}"
+                data-src="{{ product.ordered_images.0.medium.url }}"
+                alt="{{ product.name }}"
+                class="lazy-image"
+                loading="lazy"
+                width="100"
+                height="100"
+                onload="this.classList.add('loaded')">
+        </a>
+    </div>
+    <div class="ps-product__content">
+        <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+            {{ product.name|truncatechars:40 }}
+        </a>
+        <p class="ps-product__price">
+            {% if product.discount_price %}
+            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+            <del>{{ currency_symbol }} {{ product.price }}</del>
+            {% else %}
+            {{ currency_symbol }} {{ product.price }}
+            {% endif %}
+        </p>
+    </div>
+</div>
