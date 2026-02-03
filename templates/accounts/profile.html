@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}GenialTouch - My Profile{% endblock %}
+
+{% block content %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>
+
+<div class="container py-5">
+    <!-- Messages Display -->
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+            {% elif message.tags == 'info' %}
+                <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Rest of the profile.html code remains the same... -->
+    <!-- Profile Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0">My Profile</h1>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </a>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <!-- Profile Picture -->
+                        <div class="me-4 position-relative">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle shadow-sm"
+                                     style="width: 120px; height: 120px; object-fit: cover;">
+                                <button type="button" 
+                                        class="btn btn-danger btn-sm position-absolute rounded-circle"
+                                        style="bottom: 5px; right: 5px; width: 30px; height: 30px;"
+                                        data-bs-toggle="tooltip" 
+                                        title="Remove photo"
+                                        onclick="removeProfilePicture()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm"
+                                     style="width: 120px; height: 120px;">
+                                    <i class="fas fa-user fa-3x text-secondary"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- User Info -->
+                        <div class="flex-grow-1">
+                            <h3 class="mb-2">{{ user.get_full_name|default:user.username }}</h3>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-envelope me-2"></i> {{ user.email }}
+                            </p>
+                            {% if user.phone_number %}
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-phone me-2"></i> {{ user.phone_number }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column - Personal Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i> Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <!-- Profile Picture Upload -->
+                            <div class="col-12 mb-4">
+                                <label for="profile_picture" class="form-label fw-medium">Profile Picture</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="profile_picture" 
+                                           name="profile_picture" 
+                                           accept="image/*">
+                                    <input type="hidden" id="remove_picture" name="remove_picture" value="false">
+                                    {% if user.profile_picture %}
+                                    <button type="button" 
+                                            class="btn btn-outline-secondary ms-2" 
+                                            onclick="removeProfilePicture()">
+                                        <i class="fas fa-trash me-1"></i> Remove
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <div class="form-text">Upload JPG, PNG or WEBP image. Max size 5MB. Recommended: 500x500px</div>
+                                <div id="imagePreview" class="mt-2"></div>
+                            </div>
+
+                            <!-- Name Fields -->
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label fw-medium">First Name *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="first_name" 
+                                       name="first_name" 
+                                       value="{{ user.first_name }}"
+                                       required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label fw-medium">Last Name *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="last_name" 
+                                       name="last_name" 
+                                       value="{{ user.last_name }}"
+                                       required>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="col-md-6">
+                                <label for="phone_number" class="form-label fw-medium">Phone Number</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone_number" 
+                                       name="phone_number" 
+                                       value="{{ user.phone_number|default:'' }}"
+                                       pattern="[0-9+\-\s()]{10,}">
+                                <div class="invalid-feedback">Please enter a valid phone number.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date_of_birth" class="form-label fw-medium">Date of Birth</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="date_of_birth" 
+                                       name="date_of_birth" 
+                                       value="{{ user.date_of_birth|date:'Y-m-d' }}">
+                            </div>
+
+                            <!-- Address Line 1 -->
+                            <div class="col-12">
+                                <label for="address_line1" class="form-label fw-medium">Address Line 1</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="address_line1" 
+                                       name="address_line1" 
+                                       value="{{ user.address_line1|default:'' }}">
+                            </div>
+
+                            <!-- Address Line 2 -->
+                            <div class="col-12">
+                                <label for="address_line2" class="form-label fw-medium">Address Line 2</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="address_line2" 
+                                       name="address_line2" 
+                                       value="{{ user.address_line2|default:'' }}">
+                            </div>
+
+                            <!-- City, State, Postal Code -->
+                            <div class="col-md-6">
+                                <label for="city" class="form-label fw-medium">City</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="city" 
+                                       name="city" 
+                                       value="{{ user.city|default:'' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="state" class="form-label fw-medium">State</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="state" 
+                                       name="state" 
+                                       value="{{ user.state|default:'' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="postal_code" class="form-label fw-medium">Postal Code</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="postal_code" 
+                                       name="postal_code" 
+                                       value="{{ user.postal_code|default:'' }}">
+                            </div>
+
+                            <!-- Country -->
+                            <div class="col-12">
+                                <label for="country" class="form-label fw-medium">Country</label>
+                                <select class="form-select" id="country" name="country">
+                                    <option value="">Select Country</option>
+                                    {% for code, name in countries %}
+                                        <option value="{{ code }}" {% if user.country == code %}selected{% endif %}>
+                                            {{ name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary px-4 py-2">
+                                    <i class="fas fa-save me-2"></i> Save Changes
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary ms-2 px-4 py-2" onclick="resetForm()">
+                                    <i class="fas fa-undo me-2"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Account Details & Recent Orders -->
+        <div class="col-lg-4">
+            <!-- Account Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-shield me-2"></i> Account Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Username</small>
+                        <p class="mb-0 fw-medium">{{ user.username }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Email Address</small>
+                        <p class="mb-0 fw-medium">{{ user.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Member Since</small>
+                        <p class="mb-0 fw-medium">{{ user.date_joined|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Last Login</small>
+                        <p class="mb-0 fw-medium">{{ user.last_login|date:"F d, Y H:i" }}</p>
+                    </div>
+                    <hr>
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-key me-1"></i> Change Password
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-bag me-2"></i> Recent Orders
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="list-group list-group-flush">
+                            {% for order in orders %}
+                                <div class="list-group-item border-0 px-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="fw-medium">Order #{% if order.order_number %}{{ order.order_number }}{% else %}{{ order.id }}{% endif %}</span>
+                                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'processing' %}info{% elif order.status == 'pending' %}warning{% elif order.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        {{ order.created_at|date:"M d, Y" }}
+                                    </small>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="fw-bold text-primary">{{ currency_symbol }}{{ order.grand_total }}</span>
+                                        {% if order.order_number %}
+                                        <a href="{% url 'order_detail' order.order_number %}" class="text-decoration-none">
+                                            View Details <i class="fas fa-chevron-right ms-1"></i>
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'order_detail' order.id %}" class="text-decoration-none">
+                                            View Details <i class="fas fa-chevron-right ms-1"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'order_history' %}" class="btn btn-outline-secondary btn-sm">
+                                View All Orders
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-shopping-cart fa-2x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No orders yet</p>
+                            <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm mt-3">
+                                Start Shopping
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-heart fa-2x text-danger mb-3"></i>
+                    <h4 class="mb-1">
+                        {% if user.customerprofile.wishlist.count %}
+                            {{ user.customerprofile.wishlist.count }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-0">Wishlist Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x text-primary mb-3"></i>
+                    <h4 class="mb-1">{{ orders|length }}</h4>
+                    <p class="text-muted mb-0">Recent Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-newspaper fa-2x text-success mb-3"></i>
+                    <h4 class="mb-1">
+                        {% if user.customerprofile.newsletter_subscription %}
+                            Subscribed
+                        {% else %}
+                            Not Subscribed
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-0">Newsletter</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-2x text-warning mb-3"></i>
+                    <h4 class="mb-1">
+                        {% if user.date_joined %}
+                            {{ user.date_joined|date:"Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-0">Member Since</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Profile picture preview
+    document.getElementById('profile_picture').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('imagePreview');
+        
+        if (file) {
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+                preview.innerHTML = '';
+                return;
+            }
+            
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image file (JPG, PNG, or WEBP)');
+                this.value = '';
+                preview.innerHTML = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <strong>Image Preview:</strong>
+                        <img src="${e.target.result}" class="img-thumbnail mt-2" style="max-width: 200px;">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '';
+        }
+    });
+    
+    // Remove profile picture
+    function removeProfilePicture() {
+        document.getElementById('remove_picture').value = 'true';
+        document.getElementById('profile_picture').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+        
+        // Show confirmation
+        showAlert('Profile picture will be removed on save.', 'warning');
+    }
+    
+    // Form validation
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const firstName = document.getElementById('first_name').value.trim();
+        const lastName = document.getElementById('last_name').value.trim();
+        
+        if (!firstName || !lastName) {
+            e.preventDefault();
+            showAlert('Please fill in both first and last name.', 'error');
+            return false;
+        }
+        
+        // Phone number validation
+        const phoneNumber = document.getElementById('phone_number').value;
+        if (phoneNumber && !/^[0-9+\-\s()]{10,}$/.test(phoneNumber)) {
+            e.preventDefault();
+            showAlert('Please enter a valid phone number (at least 10 digits).', 'error');
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Reset form
+    function resetForm() {
+        document.getElementById('remove_picture').value = 'false';
+        document.getElementById('imagePreview').innerHTML = '';
+    }
+    
+    // Auto-format phone number
+    document.getElementById('phone_number').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) {
+            if (value.length <= 3) {
+                value = value;
+            } else if (value.length <= 6) {
+                value = `${value.slice(0, 3)}-${value.slice(3)}`;
+            } else {
+                value = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6, 10)}`;
+            }
+        }
+        e.target.value = value;
+    });
+    
+    // Show alert function
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const messagesDiv = document.querySelector('.messages') || document.querySelector('.container');
+        if (messagesDiv) {
+            messagesDiv.prepend(alertDiv);
+        }
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alertDiv);
+            bsAlert.close();
+        }, 5000);
+    }
+    
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+
+<style>
+    /* Existing styles remain the same, just add this */
+    .alert {
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+    
+    .alert-error, .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-left: 4px solid #17a2b8;
+    }
+    
+    .messages {
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
