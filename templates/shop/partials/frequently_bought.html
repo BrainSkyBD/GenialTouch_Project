@@ -1,0 +1,62 @@
+{% load static %}
+
+{% if products %}
+<div class="row">
+    {% for product in products %}
+    <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 col-6">
+        <div class="ps-product">
+            <div class="ps-product__thumbnail">
+                <a href="{{ product.get_absolute_url }}">
+                    {% with product.images.all|first as image %}
+                        {% if image %}
+                            <img src="{{ image.image.url }}" 
+                                 alt="{{ product.name }}" 
+                                 class="img-fluid"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'img/no-image.jpg' %}" 
+                                 alt="{{ product.name }}" 
+                                 class="img-fluid"
+                                 loading="lazy">
+                        {% endif %}
+                    {% endwith %}
+                </a>
+                {% if product.discount_price %}
+                    <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                {% endif %}
+                <ul class="ps-product__actions">
+                    <li>
+                        <a href="#" 
+                           class="add-to-cart-quick" 
+                           data-product-id="{{ product.id }}"
+                           data-toggle="tooltip" 
+                           data-placement="top" 
+                           title="Add To Cart">
+                            <i class="icon-bag2"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="ps-product__container">
+                <div class="ps-product__content">
+                    <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                        {{ product.name|truncatechars:30 }}
+                    </a>
+                    <p class="ps-product__price{% if product.discount_price %} sale{% endif %}">
+                        {{ currency_symbol }} {{ product.get_price }}
+                        {% if product.discount_price %}
+                            <del>{{ currency_symbol }} {{ product.price }}</del>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-4">
+    <i class="fa fa-shopping-basket fa-3x text-muted mb-3"></i>
+    <p class="text-muted">No frequently bought together items found.</p>
+</div>
+{% endif %}

@@ -195,6 +195,70 @@ class Product(models.Model):
             'short_description': self.description[:100] + '...' if len(self.description) > 100 else self.description,
         }
 
+    
+    def get_main_image_url(self):
+        """Optimized method to get main image URL without extra queries"""
+        # Try to get from prefetched images first
+        if hasattr(self, 'images'):
+            for image in self.images.all():
+                if image.is_featured:
+                    return image.image.url
+            if self.images.first():
+                return self.images.first().image.url
+        return '/static/img/no-image.jpg'
+    
+    def get_price_display(self):
+        """Get price display without extra queries"""
+        if self.discount_price:
+            return self.discount_price
+        return self.price
+    
+    def get_short_description(self):
+        """Get short description without slicing in template"""
+        if len(self.description) > 100:
+            return self.description[:100] + '...'
+        return self.description
+    
+    def get_specifications(self):
+        """Get product specifications with optimized query"""
+        from django.db.models import Prefetch
+        
+        return ProductAttribute.objects.filter(
+            product=self
+        ).select_related(
+            'attribute_value__attribute'
+        )
+    
+    @property
+    def review_list(self):
+        """Get approved reviews for this product"""
+        try:
+            from reviews.models import Review
+            return Review.objects.filter(product=self, is_approved=True)
+        except:
+            return []
+    
+    @property
+    def average_rating(self):
+        """Calculate average rating"""
+        try:
+            from reviews.models import Review
+            reviews = Review.objects.filter(product=self, is_approved=True)
+            if reviews.exists():
+                return reviews.aggregate(models.Avg('rating'))['rating__avg']
+            return 0
+        except:
+            return 0
+    
+    @property
+    def review_count(self):
+        """Count of approved reviews"""
+        try:
+            from reviews.models import Review
+            return Review.objects.filter(product=self, is_approved=True).count()
+        except:
+            return 0
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
@@ -203,10 +267,17 @@ class ProductImage(models.Model):
     is_featured = models.BooleanField(default=False)
     display_order = models.PositiveIntegerField(default=0)
     
+    # class Meta:
+    #     ordering = ['display_order', 'id']
+    #     indexes = [
+    #         models.Index(fields=['product', 'is_featured']),
+    #         models.Index(fields=['product', 'display_order']),
+    #     ]
+    
     class Meta:
         ordering = ['display_order', 'id']
         indexes = [
-            models.Index(fields=['product', 'is_featured']),
+            models.Index(fields=['product', 'is_featured', 'display_order']),
             models.Index(fields=['product', 'display_order']),
         ]
     

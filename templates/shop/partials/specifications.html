@@ -1,0 +1,57 @@
+{% load static %}
+<div class="table-responsive">
+    <table class="table table-bordered ps-table ps-table--specification">
+        <tbody>
+            {% if specifications %}
+                {% for spec in specifications %}
+                <tr>
+                    <td style="width: 30%;"><strong>{{ spec.attribute_value.attribute.name }}</strong></td>
+                    <td>{{ spec.attribute_value.value }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted">
+                        No specifications available for this product.
+                    </td>
+                </tr>
+            {% endif %}
+            
+            <!-- Basic product info -->
+            <tr>
+                <td><strong>SKU</strong></td>
+                <td>{{ product.sku }}</td>
+            </tr>
+            
+            {% if product.brand %}
+            <tr>
+                <td><strong>Brand</strong></td>
+                <td>{{ product.brand.name }}</td>
+            </tr>
+            {% endif %}
+            
+            <tr>
+                <td><strong>Categories</strong></td>
+                <td>
+                    {% for category in product.categories.all %}
+                    <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    Uncategorized
+                    {% endfor %}
+                </td>
+            </tr>
+            
+            <tr>
+                <td><strong>Stock Status</strong></td>
+                <td>
+                    {% if product.is_in_stock %}
+                        <span class="text-success"><i class="fa fa-check-circle"></i> In Stock</span>
+                        ({{ product.get_total_stock }} available)
+                    {% else %}
+                        <span class="text-danger"><i class="fa fa-times-circle"></i> Out of Stock</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
