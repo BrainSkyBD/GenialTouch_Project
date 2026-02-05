@@ -1,354 +1,699 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}GenialTouch - Products{% endblock %}
+{% block title %}{{ page_title|default:"Products" }} | Your Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Infinite Scroll Styles */
+    .infinite-scroll-container {
+        position: relative;
+        min-height: 400px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 40px 0;
+    }
+    
+    .loading-spinner.active {
+        display: block;
+    }
+    
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .load-more-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto;
+        padding: 12px 24px;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    
+    .load-more-btn:hover {
+        background: #ff5252;
+    }
+    
+    .load-more-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+    }
+    
+    .end-message {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+    }
+    
+    /* Lazy loading for product images */
+    .lazy-product-image {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    
+    .lazy-product-image.loaded {
+        opacity: 1;
+    }
+    
+    /* Special banner styles */
+    .special-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .special-banner h1 {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+    
+    .special-banner p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+    
+    .product-count {
+        background: white;
+        color: #333;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 15px;
+    }
+    
+    /* Price slider fixes */
+    .noUi-connect {
+        background: #fcb800;
+    }
+    
+    .noUi-handle {
+        border-color: #fcb800;
+        background: #fcb800;
+    }
+    
+    .noUi-handle:before, .noUi-handle:after {
+        background: white;
+    }
+    
+    /* Disabled filter styles */
+    .filter-disabled {
+        opacity: 0.6;
+    }
+    
+    .filter-disabled label {
+        color: #999 !important;
+        cursor: not-allowed;
+    }
+    
+    input[type="checkbox"]:disabled + label,
+    input[type="radio"]:disabled + label {
+        color: #999 !important;
+        cursor: not-allowed;
+    }
+    
+    .filter-not-available {
+        font-size: 11px;
+        color: #ff6b6b;
+        font-style: italic;
+        margin-left: 5px;
+    }
+    
+    .filter-count {
+        font-size: 12px;
+        color: #666;
+        float: right;
+    }
+    
+    /* Active filters display */
+    .active-filters {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #fcb800;
+    }
+    
+    .active-filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .clear-all-filters {
+        background: none;
+        border: 1px solid #ff6b6b;
+        color: #ff6b6b;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .clear-all-filters:hover {
+        background: #ff6b6b;
+        color: white;
+    }
+    
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .filter-tag {
+        background: #e9ecef;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .filter-tag-remove {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0;
+        margin-left: 5px;
+    }
+    
+    .filter-tag-remove:hover {
+        color: #ff6b6b;
+    }
+    
+    /* Subcategory grid styles */
+    .subcategory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .subcategory-item {
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .subcategory-item:hover {
+        border-color: #fcb800;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .subcategory-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+    
+    .subcategory-name {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
+<!-- Special Banner -->
+{% if is_featured_filter %}
+<div class="ps-container">
+    <div class="special-banner">
+        <h1>🔥 Deals of the Day</h1>
+        <p>Don't miss out on these amazing discounts! Limited time offers.</p>
+        <div class="product-count">{{ total_products }} Amazing Deals</div>
+    </div>
+</div>
+{% elif is_new_arrivals %}
+<div class="ps-container">
+    <div class="special-banner" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <h1>🎉 New Arrivals</h1>
+        <p>Check out our latest products just added to the store!</p>
+        <div class="product-count">{{ total_products }} New Products</div>
+    </div>
+</div>
+{% elif category %}
+<div class="ps-container">
+    <div class="special-banner" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <h1>{{ category.name }}</h1>
+        <p>Browse our amazing collection of {{ category.name|lower }}</p>
+        <div class="product-count">{{ total_products }} Products</div>
+    </div>
+</div>
+{% endif %}
 
-
-    {% if subcategory_list %}
-    <div class="ps-top-categories" style="margin-top: 24px;">
-        <div class="ps-container">
-            <h3>Sub-categories under {{ selected_category }}</h3>
-            <div class="row">
-                {% for category in subcategory_list %}
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
-                    <div class="ps-block--category">
-                        <a class="ps-block__overlay" href="{{ category.get_absolute_url }}"></a>
-                        {% if category.image %}
-                        <img src="{{ category.image.url }}" alt="{{ category.name }}"
-                        style="width: 100%;
-                                height: 100%;
-                                object-fit: cover;
-                                clip-path: polygon(
-                                    25% 6%, 75% 6%,
-                                    100% 50%, 75% 94%,
-                                    25% 94%, 0% 50%
-                                );
-                                transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                        
-                        {% endif %}
-                        <p>{{ category.name }}</p>
-
-                        
-                    </div>
-                </div>
-                {% endfor %}
+<!-- Subcategories Banner -->
+{% if subcategory_list %}
+<div class="ps-container" style="margin-top: 24px;">
+    <h3>Browse {{ category.name }} Subcategories</h3>
+    <div class="subcategory-grid">
+        {% for subcat in subcategory_list %}
+        <a href="?category={{ subcat.slug }}" class="subcategory-item">
+            {% if subcat.image %}
+            <img class="subcategory-image lazy-product-image" 
+                 data-src="{{ subcat.image.url }}" 
+                 src="{% static 'img/placeholder.png' %}"
+                 alt="{{ subcat.name }}">
+            {% else %}
+            <div class="subcategory-image" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                <i class="icon-folder" style="font-size: 24px; color: #ccc;"></i>
             </div>
+            {% endif %}
+            <p class="subcategory-name">{{ subcat.name }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Active Filters Display -->
+{% if active_filter_count > 0 %}
+<div class="ps-container">
+    <div class="active-filters">
+        <div class="active-filters-header">
+            <h4 style="margin: 0;">Active Filters ({{ active_filter_count }})</h4>
+            <button class="clear-all-filters" onclick="clearAllFilters()">Clear All</button>
+        </div>
+        <div class="filter-tags">
+            {% for brand in selected_brands %}
+            <div class="filter-tag">
+                Brand: {{ brand }}
+                <button class="filter-tag-remove" onclick="removeFilter('brand', '{{ brand }}')">&times;</button>
+            </div>
+            {% endfor %}
+            
+            {% for attr_id in selected_attributes %}
+                {% for attr_group in attribute_groups.values %}
+                    {% for attr in attr_group %}
+                        {% if attr.id|stringformat:"s" == attr_id %}
+                            <div class="filter-tag">
+                                {{ attr.value }}
+                                <button class="filter-tag-remove" onclick="removeFilter('attribute', '{{ attr.id }}')">&times;</button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+            
+            {% if min_price or max_price %}
+            <div class="filter-tag">
+                Price: 
+                {% if min_price %}{{ currency_symbol }}{{ min_price }}{% endif %}
+                {% if min_price and max_price %} - {% endif %}
+                {% if max_price %}{{ currency_symbol }}{{ max_price }}{% endif %}
+                <button class="filter-tag-remove" onclick="removePriceFilter()">&times;</button>
+            </div>
+            {% endif %}
+            
+            {% if selected_rating %}
+            <div class="filter-tag">
+                Rating: {{ selected_rating }}+ stars
+                <button class="filter-tag-remove" onclick="removeFilter('rating', '{{ selected_rating }}')">&times;</button>
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
+</div>
+{% endif %}
 
-    
-
-
-    <div class="ps-page--shop" style="margin-top: 58px;">
-        <div class="ps-container">
-            <div class="ps-layout--shop">
-                <!-- Left Sidebar with Filters -->
-                <div class="ps-layout__left">
-                    <aside class="widget widget_shop">
-                        <h4 class="widget-title">Categories</h4>
-
-                        <ul class="ps-list--categories">
-                            <li {% if not selected_category %}style="color:#fcb800;"{% endif %}>
-                                <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_brands %}{% for b in selected_brands %}brand={{ b }}&{% endfor %}{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if selected_rating %}rating={{ selected_rating }}&{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}attribute={{ a }}&{% endfor %}{% endif %}">All Categories</a>
-                            </li>
-
-                            {% for category in categories %}
-                                {% if not category.parent %}
-                                    <li class="menu-item-has-children" {% if selected_category == category.slug %}style="color:#fcb800;"{% endif %}>
-                                        <a href="?{% if query %}q={{ query }}&{% endif %}category={{ category.slug }}{% if selected_brands %}{% for b in selected_brands %}&brand={{ b }}{% endfor %}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}&attribute={{ a }}{% endfor %}{% endif %}">{{ category.name }}</a>
-                                        {% if category.children.all %}
-                                        <span class="sub-toggle"><i class="fa fa-angle-down"></i></span>
-                                        <ul class="sub-menu">
-                                            {% for child in category.children.all %}
-                                            <li {% if selected_category == child.slug %}style="color:#fcb800;"{% endif %}>
-                                                <a href="?{% if query %}q={{ query }}&{% endif %}category={{ child.slug }}{% if selected_brands %}{% for b in selected_brands %}&brand={{ b }}{% endfor %}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}&attribute={{ a }}{% endfor %}{% endif %}">{{ child.name }}</a>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                        {% endif %}
+<div class="ps-page--shop" style="margin-top: 30px;">
+    <div class="ps-container">
+        <div class="ps-layout--shop">
+            <!-- Left Sidebar with Filters -->
+            <div class="ps-layout__left">
+                <aside class="widget widget_shop">
+                    <h4 class="widget-title">Categories</h4>
+                    <ul class="ps-list--categories">
+                        <li {% if not selected_category %}class="active"{% endif %}>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_brands %}{% for b in selected_brands %}brand={{ b }}&{% endfor %}{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if selected_rating %}rating={{ selected_rating }}&{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}attribute={{ a }}&{% endfor %}{% endif %}{% if sort_option %}sort={{ sort_option }}&{% endif %}{% if featured %}featured={{ featured }}&{% endif %}">
+                                All Categories
+                            </a>
+                        </li>
+                        {% for cat in sidebar_categories %}
+                            <li class="{% if cat.children.exists %}menu-item-has-children{% endif %} {% if selected_category == cat.slug %}active{% endif %}">
+                                <a href="?{% if query %}q={{ query }}&{% endif %}category={{ cat.slug }}{% if selected_brands %}{% for b in selected_brands %}&brand={{ b }}{% endfor %}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}&attribute={{ a }}{% endfor %}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}{% if featured %}&featured={{ featured }}{% endif %}">
+                                    {{ cat.name }}
+                                </a>
+                                {% if cat.children.exists %}
+                                <span class="sub-toggle"><i class="fa fa-angle-down"></i></span>
+                                <ul class="sub-menu">
+                                    {% for child in cat.children.all %}
+                                    <li {% if selected_category == child.slug %}class="active"{% endif %}>
+                                        <a href="?{% if query %}q={{ query }}&{% endif %}category={{ child.slug }}{% if selected_brands %}{% for b in selected_brands %}&brand={{ b }}{% endfor %}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_attributes %}{% for a in selected_attributes %}&attribute={{ a }}{% endfor %}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}{% if featured %}&featured={{ featured }}{% endif %}">
+                                            {{ child.name }}
+                                        </a>
                                     </li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-
-                        
-                    </aside>
-                    
-                    <!-- Brand Filter -->
-                    <aside class="widget widget_shop">
-                        <h4 class="widget-title">By Brands</h4>
-                        <form class="ps-form--widget-search" id="brand-search-form">
-                            <input class="form-control" type="text" placeholder="Search brands..." id="brand-search">
-                            <button type="submit"><i class="icon-magnifier"></i></button>
-                        </form>
-                        <figure class="ps-custom-scrollbar" data-height="250" id="brand-filter-container">
-                            {% for brand in top_brands %}
-                            <div class="ps-checkbox">
-                                <input class="form-control" type="checkbox" 
-                                       id="brand-{{ brand.slug }}" 
-                                       name="brand" 
-                                       value="{{ brand.slug }}"
-                                       {% if brand.slug in selected_brands %}checked{% endif %}
-                                       onchange="this.form.submit()">
-                                <label for="brand-{{ brand.slug }}">
-                                    {{ brand.name }} ({{ brand.product_count }})
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </figure>
-                    </aside>
-                    
-                    <!-- Price Filter -->
-                    <aside class="widget widget_shop">
-                        <h4 class="widget-title">By Price</h4>
-                        <div id="price-range-slider" class="noUi-target noUi-ltr noUi-horizontal">
-                            <!-- Price slider will be initialized via JavaScript -->
-                        </div>
-                        <p class="ps-slider__meta">
-                            Price: 
-                            <span class="ps-slider__value">{{ currency_symbol }} <span id="min-price-value">{% if min_price %}{{ min_price }}{% else %}0{% endif %}</span></span>
-                            - 
-                            <span class="ps-slider__value">{{ currency_symbol }} <span id="max-price-value">{% if max_price %}{{ max_price }}{% else %}10000{% endif %}</span></span>
-                        </p>
-                        <form id="price-filter-form" method="get">
-                            <input type="hidden" name="min_price" id="min-price-input" value="{{ min_price }}">
-                            <input type="hidden" name="max_price" id="max-price-input" value="{{ max_price }}">
-                            {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
-                            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-                            {% for brand in selected_brands %}<input type="hidden" name="brand" value="{{ brand }}">{% endfor %}
-                            {% if selected_rating %}<input type="hidden" name="rating" value="{{ selected_rating }}">{% endif %}
-                            {% for attr in selected_attributes %}<input type="hidden" name="attribute" value="{{ attr }}">{% endfor %}
-                        </form>
-                    </aside>
-                    
-                    <!-- Rating Filter -->
-                    <aside class="widget widget_shop">
-                        <h4 class="widget-title">By Rating</h4>
-                        {% for i in "54321" %}
-                        <div class="ps-checkbox">
-                            <input class="form-control" type="radio" 
-                                   id="rating-{{ i }}" 
-                                   name="rating" 
-                                   value="{{ i }}"
-                                   {% if selected_rating == i %}checked{% endif %}
-                                   onchange="this.form.submit()">
-                            <label for="rating-{{ i }}">
-                                <span>
-                                    {% for star in "12345" %}
-                                        {% if forloop.counter <= i|add:"0" %}
-                                            <i class="fa fa-star rate"></i>
-                                        {% else %}
-                                            <i class="fa fa-star"></i>
-                                        {% endif %}
                                     {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </aside>
+                
+                <!-- Brand Filter -->
+                {% if all_context_brands %}
+                <aside class="widget widget_shop">
+                    <h4 class="widget-title">By Brands</h4>
+                    <form class="ps-form--widget-search" id="brand-search-form">
+                        <input class="form-control" type="text" placeholder="Search brands..." id="brand-search">
+                        <button type="button" onclick="searchBrands()"><i class="icon-magnifier"></i></button>
+                    </form>
+                    <figure class="ps-custom-scrollbar" data-height="250" id="brand-filter-container">
+                        {% for brand in all_context_brands %}
+                        <div class="ps-checkbox {% if brand.slug not in available_brand_slugs and brand.slug not in selected_brands %}filter-disabled{% endif %}">
+                            <input class="form-control" 
+                                   type="checkbox" 
+                                   id="brand-{{ brand.slug }}" 
+                                   name="brand" 
+                                   value="{{ brand.slug }}"
+                                   {% if brand.slug in selected_brands %}checked{% endif %}
+                                   {% if brand.slug not in available_brand_slugs and brand.slug not in selected_brands %}disabled{% endif %}
+                                   onchange="updateFilters()">
+                            <label for="brand-{{ brand.slug }}">
+                                {{ brand.name }} 
+                                <span class="filter-count">
+                                    ({{ brand.product_count }})
+                                    {% if brand.slug not in available_brand_slugs and brand.slug not in selected_brands %}
+                                    <span class="filter-not-available">Not available</span>
+                                    {% endif %}
                                 </span>
                             </label>
                         </div>
                         {% endfor %}
-                        <div class="ps-checkbox">
-                            <input class="form-control" type="radio" 
-                                   id="rating-all" 
-                                   name="rating" 
-                                   value=""
-                                   {% if not selected_rating %}checked{% endif %}
-                                   onchange="this.form.submit()">
-                            <label for="rating-all">All Ratings</label>
-                        </div>
-                    </aside>
-                    
-                    <!-- Attributes Filter -->
-                    {% for attr_name, values in attribute_groups.items %}
-                    <aside class="widget widget_shop">
-                        <h4 class="widget-title">By {{ attr_name }}</h4>
-                        {% for value in values %}
-                        <div class="ps-checkbox">
-                            <input class="form-control" type="checkbox" 
-                                   id="attr-{{ value.id }}" 
-                                   name="attribute" 
-                                   value="{{ value.id }}"
-                                   {% if value.id|stringformat:"s" in selected_attributes %}checked{% endif %}
-                                   onchange="this.form.submit()">
-                            <label for="attr-{{ value.id }}">{{ value.value }} ({{ value.product_count }})</label>
-                        </div>
-                        {% endfor %}
-                    </aside>
-                    {% endfor %}
-                    
-                    <!-- Hidden form for all filters -->
-                    <form id="filters-form" method="get">
-                        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
-                        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-                        {% for brand in selected_brands %}<input type="hidden" name="brand" value="{{ brand }}">{% endfor %}
-                        {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
-                        {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
-                        {% if selected_rating %}<input type="hidden" name="rating" value="{{ selected_rating }}">{% endif %}
-                        {% for attr in selected_attributes %}<input type="hidden" name="attribute" value="{{ attr }}">{% endfor %}
-                    </form>
-                </div>
+                    </figure>
+                </aside>
+                {% endif %}
                 
-                <!-- Main Content Area -->
-                <div class="ps-layout__right">
-                    {% if category.banner %}
-                    <div class="ps-page--single" id="about-us">
-                        <img src="{{ category.banner.url }}" alt="">
+                <!-- Price Filter -->
+                {% if price_range.min_price and price_range.max_price %}
+                <aside class="widget widget_shop">
+                    <h4 class="widget-title">By Price</h4>
+                    <div id="price-range-slider" class="noUi-target noUi-ltr noUi-horizontal"></div>
+                    <p class="ps-slider__meta">
+                        Price: 
+                        <span class="ps-slider__value">{{ currency_symbol }} <span id="min-price-value">{{ min_price|default:price_range.min_price|floatformat:0 }}</span></span>
+                        - 
+                        <span class="ps-slider__value">{{ currency_symbol }} <span id="max-price-value">{{ max_price|default:price_range.max_price|floatformat:0 }}</span></span>
+                    </p>
+                    <div class="mt-3">
+                        <button class="ps-btn ps-btn--sm" onclick="applyPriceFilter()">Apply Price Filter</button>
+                        <button class="ps-btn ps-btn--sm ps-btn--outline" onclick="clearPriceFilter()">Clear</button>
                     </div>
-                    {% endif %}
-                    <div class="ps-shopping ps-tab-root">
-                        <div class="ps-shopping__header">
-                            <p><strong>{{ products.paginator.count }}</strong> Products found</p>
-                            <div class="ps-shopping__actions">
-                                <select class="ps-select" data-placeholder="Sort Items" onchange="sortProducts(this.value)">
-                                    <option value="">Sort by</option>
-                                    <option value="price_asc">Price: Low to High</option>
-                                    <option value="price_desc">Price: High to Low</option>
-                                    <option value="rating">Highest Rated</option>
-                                    <option value="newest">Newest Arrivals</option>
-                                    <option value="popular">Most Popular</option>
-                                </select>
-                                <div class="ps-shopping__view">
-                                    <p>View</p>
-                                    <ul class="ps-tab-list">
-                                        <li class="active"><a href="#tab-1"><i class="icon-grid"></i></a></li>
-                                        <li><a href="#tab-2"><i class="icon-list4"></i></a></li>
-                                    </ul>
+                </aside>
+                {% endif %}
+                
+                <!-- Rating Filter -->
+                <aside class="widget widget_shop">
+                    <h4 class="widget-title">By Rating</h4>
+                    {% for i in "54321" %}
+                    <div class="ps-checkbox">
+                        <input class="form-control" type="radio" 
+                               id="rating-{{ i }}" 
+                               name="rating" 
+                               value="{{ i }}"
+                               {% if selected_rating == i %}checked{% endif %}
+                               onchange="updateFilters()">
+                        <label for="rating-{{ i }}">
+                            <span>
+                                {% for star in "12345" %}
+                                    {% if forloop.counter <= i|add:"0" %}
+                                        <i class="fa fa-star rate"></i>
+                                    {% else %}
+                                        <i class="fa fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                & above
+                            </span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                    <div class="ps-checkbox">
+                        <input class="form-control" type="radio" 
+                               id="rating-all" 
+                               name="rating" 
+                               value=""
+                               {% if not selected_rating %}checked{% endif %}
+                               onchange="updateFilters()">
+                        <label for="rating-all">All Ratings</label>
+                    </div>
+                </aside>
+                
+                <!-- Attributes Filter -->
+                {% for attr_name, values in attribute_groups.items %}
+                <aside class="widget widget_shop">
+                    <h4 class="widget-title">By {{ attr_name }}</h4>
+                    {% for attr in values %}
+                    <div class="ps-checkbox {% if not attr.is_available and attr.id|stringformat:'s' not in selected_attributes %}filter-disabled{% endif %}">
+                        <input class="form-control" 
+                               type="checkbox" 
+                               id="attr-{{ attr.id }}" 
+                               name="attribute" 
+                               value="{{ attr.id }}"
+                               {% if attr.id|stringformat:"s" in selected_attributes %}checked{% endif %}
+                               {% if not attr.is_available and attr.id|stringformat:'s' not in selected_attributes %}disabled{% endif %}
+                               onchange="updateFilters()">
+                        <label for="attr-{{ attr.id }}">
+                            {{ attr.value }} 
+                            <span class="filter-count">
+                                ({{ attr.product_count }})
+                                {% if not attr.is_available and attr.id|stringformat:'s' not in selected_attributes %}
+                                <span class="filter-not-available">Not available</span>
+                                {% endif %}
+                            </span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </aside>
+                {% endfor %}
+                
+                <!-- Hidden form for filters -->
+                <form id="filters-form" method="get" style="display: none;">
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                    {% if featured %}<input type="hidden" name="featured" value="{{ featured }}">{% endif %}
+                    {% if sort_option %}<input type="hidden" name="sort" value="{{ sort_option }}">{% endif %}
+                    <!-- Brands and attributes will be added dynamically -->
+                </form>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="ps-layout__right">
+                {% if category and category.banner %}
+                <div class="ps-page--single" id="about-us">
+                    <img src="{{ category.banner.url }}" alt="{{ category.name }} banner" style="width: 100%; border-radius: 8px;">
+                </div>
+                {% endif %}
+                
+                <div class="ps-shopping ps-tab-root">
+                    <div class="ps-shopping__header">
+                        <p><strong>{{ total_products }}</strong> Products found</p>
+                        <div class="ps-shopping__actions">
+                            <select class="ps-select" data-placeholder="Sort Items" onchange="sortProducts(this.value)">
+                                <option value="">Sort by</option>
+                                <option value="price_asc" {% if sort_option == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_desc" {% if sort_option == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="rating" {% if sort_option == 'rating' %}selected{% endif %}>Highest Rated</option>
+                                <option value="newest" {% if sort_option == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                                <option value="popular" {% if sort_option == 'popular' %}selected{% endif %}>Most Popular</option>
+                            </select>
+                            <div class="ps-shopping__view">
+                                <p>View</p>
+                                <ul class="ps-tab-list">
+                                    <li class="active"><a href="#tab-1"><i class="icon-grid"></i></a></li>
+                                    <li><a href="#tab-2"><i class="icon-list4"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ps-tabs">
+                        <div class="ps-tab active" id="tab-1">
+                            <div class="ps-shopping-product infinite-scroll-container">
+                                <div class="row" id="products-grid">
+                                    {% for product in products %}
+                                    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
+                                        <div class="ps-product">
+                                            <div class="ps-product__thumbnail">
+                                                <a href="{{ product.get_absolute_url }}">
+                                                    {% with product.images.all|first as first_image %}
+                                                    {% if first_image %}
+                                                    <img class="lazy-product-image" 
+                                                         data-src="{{ first_image.image.url }}" 
+                                                         src="{% static 'img/placeholder.png' %}"
+                                                         alt="{{ product.name }}">
+                                                    {% else %}
+                                                    <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </a>
+                                                {% if product.discount_price %}
+                                                <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                                                {% endif %}
+                                                <ul class="ps-product__actions">
+                                                    <li>
+                                                        <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
+                                                           data-product-id="{{ product.id }}" class="add-to-cart">
+                                                            <i class="icon-bag2"></i>
+                                                        </a>
+                                                    </li>
+                                                    <li><a href="#" data-placement="top" title="Quick View" data-toggle="modal" data-target="#product-quickview" data-product-id="{{ product.id }}"><i class="icon-eye"></i></a></li>
+                                                    <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Wishlist"><i class="icon-heart"></i></a></li>
+                                                    <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="ps-product__container">
+                                                {% if product.brand %}
+                                                <a class="ps-product__vendor" href="{% url 'products_by_brand' product.brand.slug %}">{{ product.brand.name }}</a>
+                                                {% endif %}
+                                                <div class="ps-product__content">
+                                                    <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                                    <div class="ps-product__rating">
+                                                        {% if product.review_count > 0 %}
+                                                        <div class="br-wrapper br-theme-fontawesome-stars">
+                                                            <select class="ps-rating" data-read-only="true">
+                                                                {% for i in "12345" %}
+                                                                <option value="{{ i }}" {% if i == product.avg_rating|floatformat:"0" %}selected{% endif %}>{{ i }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <span>({{ product.review_count }})</span>
+                                                        {% else %}
+                                                        <span>No reviews yet</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <p class="ps-product__price">
+                                                        {% if product.discount_price %}
+                                                        <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
+                                                        <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                        {% else %}
+                                                        {{ currency_symbol }}{{ product.price }}
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12 text-center py-5">
+                                        <i class="icon-cart-remove" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                                        <h4>No products found</h4>
+                                        <p>Try adjusting your filters or search terms</p>
+                                        <button class="ps-btn" onclick="clearAllFilters()">Clear All Filters</button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Loading Spinner -->
+                                <div class="loading-spinner" id="products-loading">
+                                    <div class="spinner"></div>
+                                    <p>Loading more products...</p>
+                                </div>
+                                
+                                <!-- Load More Button -->
+                                {% if products.has_next %}
+                                <div class="text-center mt-4">
+                                    <button class="load-more-btn" id="load-more-products" data-page="2">
+                                        Load More Products ({{ total_products|add:"-12" }} remaining)
+                                    </button>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- End Message -->
+                                <div class="end-message" id="products-end" style="display: none;">
+                                    <p>You've reached the end of the products list.</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="ps-tabs">
-                            <div class="ps-tab active" id="tab-1">
-                                <div class="ps-shopping-product">
-                                    <div class="row">
-                                        {% for product in products %}
-                                        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
-                                            <div class="ps-product">
-                                                <div class="ps-product__thumbnail">
-                                                    <a href="{{ product.get_absolute_url }}">
-                                                        {% if product.images.first %}
-                                                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
-                                                        {% else %}
-                                                        <img src="{% static 'img/placeholder.png' %}" alt="{{ product.name }}">
-                                                        {% endif %}
-                                                    </a>
-                                                    {% if product.discount_price %}
-                                                    <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
-                                                    {% endif %}
-                                                    <ul class="ps-product__actions">
-                                                        <li>
-                                                            <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
-                                                               data-product-id="{{ product.id }}" class="add-to-cart">
-                                                                <i class="icon-bag2"></i>
-                                                            </a>
-                                                        </li>
-                                                        <li><a href="#" data-placement="top" title="Quick View" data-toggle="modal" data-target="#product-quickview"><i class="icon-eye"></i></a></li>
-                                                        <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Whishlist"><i class="icon-heart"></i></a></li>
-                                                        <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
-                                                    </ul>
-                                                </div>
-                                                <div class="ps-product__container">
-                                                    {% if product.brand %}
-                                                    <a class="ps-product__vendor" href="#">{{ product.brand.name }}</a>
-                                                    {% endif %}
-                                                    <div class="ps-product__content">
-                                                        <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
-                                                        <div class="ps-product__rating">
-                                                            {% with product.reviews.all as reviews %}
-                                                            {% if reviews %}
-                                                            <div class="br-wrapper br-theme-fontawesome-stars">
-                                                                <select class="ps-rating" data-read-only="true">
-                                                                    {% for i in "12345" %}
-                                                                    <option value="{{ i }}" {% if i == reviews.0.rating|stringformat:"i" %}selected{% endif %}>{{ i }}</option>
-                                                                    {% endfor %}
-                                                                </select>
-                                                            </div>
-                                                            <span>{{ reviews.count }}</span>
-                                                            {% else %}
-                                                            <span>No reviews yet</span>
-                                                            {% endif %}
-                                                            {% endwith %}
-                                                        </div>
-                                                        <p class="ps-product__price">
-                                                            {% if product.discount_price %}
-                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
-                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
-                                                            {% else %}
-                                                            {{ currency_symbol }} {{ product.price }}
-                                                            {% endif %}
-                                                        </p>
-                                                    </div>
-                                                    <div class="ps-product__content hover">
-                                                        <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
-                                                        <p class="ps-product__price">
-                                                            {% if product.discount_price %}
-                                                            <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
-                                                            <del>{{ currency_symbol }} {{ product.price }}</del>
-                                                            {% else %}
-                                                            {{ currency_symbol }} {{ product.price }}
-                                                            {% endif %}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% empty %}
-                                        <div class="col-12">
-                                            <p>No products found matching your search criteria.</p>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Pagination -->
-                                {% if products.has_other_pages %}
-                                <div class="ps-pagination">
-                                    <ul class="pagination">
-                                        {% if products.has_previous %}
-                                        <li><a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% for brand in selected_brands %}brand={{ brand }}&{% endfor %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if selected_rating %}rating={{ selected_rating }}&{% endif %}{% for attr in selected_attributes %}attribute={{ attr }}&{% endfor %}page={{ products.previous_page_number }}"><i class="icon-chevron-left"></i></a></li>
-                                        {% endif %}
-                                        
-                                        {% for i in products.paginator.page_range %}
-                                        {% if products.number == i %}
-                                        <li class="active"><a href="#">{{ i }}</a></li>
-                                        {% else %}
-                                        <li><a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% for brand in selected_brands %}brand={{ brand }}&{% endfor %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if selected_rating %}rating={{ selected_rating }}&{% endif %}{% for attr in selected_attributes %}attribute={{ attr }}&{% endfor %}page={{ i }}">{{ i }}</a></li>
-                                        {% endif %}
-                                        {% endfor %}
-                                        
-                                        {% if products.has_next %}
-                                        <li><a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% for brand in selected_brands %}brand={{ brand }}&{% endfor %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}{% if selected_rating %}rating={{ selected_rating }}&{% endif %}{% for attr in selected_attributes %}attribute={{ attr }}&{% endfor %}page={{ products.next_page_number }}"><i class="icon-chevron-right"></i></a></li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- List view tab would go here -->
-                        </div>
+                        <!-- List view tab would go here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// Current filter state
+let isLoading = false;
+let hasMore = {{ products.has_next|yesno:"true,false" }};
+let currentPage = {{ products.number }};
+
+// Initialize when page loads
 $(document).ready(function() {
     // Initialize price range slider
+    initPriceSlider();
+    
+    // Initialize lazy image loader
+    initLazyImages();
+    
+    // Initialize infinite scroll
+    initInfiniteScroll();
+    
+    // Initialize brand search
+    initBrandSearch();
+});
+
+function initPriceSlider() {
     const priceSlider = document.getElementById('price-range-slider');
-    const minPrice = {% if min_price %}{{ min_price }}{% else %}0{% endif %};
-    const maxPrice = {% if max_price %}{{ max_price }}{% else %}10000{% endif %};
+    if (!priceSlider) return;
+    
+    // Get price range from data or use defaults
+    const minPrice = parseFloat('{{ price_range.min_price|default:0 }}') || 0;
+    const maxPrice = parseFloat('{{ price_range.max_price|default:10000 }}') || 10000;
+    const currentMin = parseFloat('{{ min_price|default:price_range.min_price|default:0 }}') || minPrice;
+    const currentMax = parseFloat('{{ max_price|default:price_range.max_price|default:10000 }}') || maxPrice;
     
     noUiSlider.create(priceSlider, {
-        start: [minPrice, maxPrice],
+        start: [currentMin || minPrice, currentMax || maxPrice],
         connect: true,
         range: {
-            'min': 0,
-            'max': 10000
+            'min': minPrice,
+            'max': maxPrice
         },
-        step: 10,
+        step: Math.ceil((maxPrice - minPrice) / 100),
         tooltips: [true, true],
         format: {
             to: function(value) {
@@ -360,24 +705,89 @@ $(document).ready(function() {
         }
     });
     
-    // Update price inputs when slider changes
-    priceSlider.noUiSlider.on('update', function(values, handle) {
-        const value = values[handle].replace('{{ currency_symbol }}', '');
-        if (handle) {
-            $('#max-price-value').text(value);
-        } else {
-            $('#min-price-value').text(value);
+    // Update price display
+    priceSlider.noUiSlider.on('update', function(values) {
+        const minVal = values[0].replace('{{ currency_symbol }}', '');
+        const maxVal = values[1].replace('{{ currency_symbol }}', '');
+        $('#min-price-value').text(parseInt(minVal));
+        $('#max-price-value').text(parseInt(maxVal));
+    });
+}
+
+function initLazyImages() {
+    const lazyImages = document.querySelectorAll('.lazy-product-image');
+    if (!lazyImages.length) return;
+    
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    loadImage(img);
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        
+        lazyImages.forEach(img => imageObserver.observe(img));
+    } else {
+        lazyImages.forEach(img => loadImage(img));
+    }
+}
+
+function loadImage(img) {
+    const src = img.dataset.src;
+    if (!src) return;
+    
+    const tempImg = new Image();
+    tempImg.onload = () => {
+        img.src = src;
+        img.classList.add('loaded');
+    };
+    tempImg.onerror = () => {
+        img.src = '/static/img/no-image.jpg';
+        img.classList.add('loaded');
+    };
+    tempImg.src = src;
+}
+
+function initInfiniteScroll() {
+    const loadMoreBtn = document.getElementById('load-more-products');
+    const loadingSpinner = document.getElementById('products-loading');
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreProducts);
+    }
+    
+    // Auto load on scroll
+    window.addEventListener('scroll', throttle(() => {
+        if (isLoading || !hasMore) return;
+        
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        // Load when 500px from bottom
+        if (scrollTop + windowHeight >= documentHeight - 500) {
+            loadMoreProducts();
         }
-    });
-    
-    // Submit form when slider is released
-    priceSlider.noUiSlider.on('end', function(values) {
-        $('#min-price-input').val(values[0].replace('$', ''));
-        $('#max-price-input').val(values[1].replace('$', ''));
-        $('#price-filter-form').submit();
-    });
-    
-    // Brand search functionality
+    }, 200));
+}
+
+function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    }
+}
+
+function initBrandSearch() {
     $('#brand-search').on('input', function() {
         const searchTerm = $(this).val().toLowerCase();
         $('#brand-filter-container .ps-checkbox').each(function() {
@@ -389,21 +799,302 @@ $(document).ready(function() {
             }
         });
     });
+}
+
+function updateFilters() {
+    // Collect all form data
+    const params = new URLSearchParams(window.location.search);
     
-    // Prevent form submission on brand search
-    $('#brand-search-form').on('submit', function(e) {
-        e.preventDefault();
+    // Update query
+    const query = $('#search-input').val();
+    if (query) {
+        params.set('q', query);
+    } else {
+        params.delete('q');
+    }
+    
+    // Update brands
+    const selectedBrands = [];
+    $('input[name="brand"]:checked:not(:disabled)').each(function() {
+        selectedBrands.push($(this).val());
     });
-});
+    
+    params.delete('brand');
+    selectedBrands.forEach(brand => {
+        params.append('brand', brand);
+    });
+    
+    // Update attributes
+    const selectedAttributes = [];
+    $('input[name="attribute"]:checked:not(:disabled)').each(function() {
+        selectedAttributes.push($(this).val());
+    });
+    
+    params.delete('attribute');
+    selectedAttributes.forEach(attr => {
+        params.append('attribute', attr);
+    });
+    
+    // Update rating
+    const rating = $('input[name="rating"]:checked').val();
+    if (rating) {
+        params.set('rating', rating);
+    } else {
+        params.delete('rating');
+    }
+    
+    // Keep existing price filters if they exist
+    if ('{{ min_price }}') params.set('min_price', '{{ min_price }}');
+    if ('{{ max_price }}') params.set('max_price', '{{ max_price }}');
+    
+    // Keep category if it exists
+    if ('{{ selected_category }}') params.set('category', '{{ selected_category }}');
+    
+    // Keep featured if it exists
+    if ('{{ featured }}') params.set('featured', '{{ featured }}');
+    
+    // Keep sort if it exists
+    if ('{{ sort_option }}') params.set('sort', '{{ sort_option }}');
+    
+    // Navigate to new URL
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+function applyPriceFilter() {
+    const priceSlider = document.getElementById('price-range-slider');
+    if (!priceSlider.noUiSlider) return;
+    
+    const values = priceSlider.noUiSlider.get();
+    const minPrice = values[0].replace('{{ currency_symbol }}', '');
+    const maxPrice = values[1].replace('{{ currency_symbol }}', '');
+    
+    // Update URL with price filters
+    const params = new URLSearchParams(window.location.search);
+    
+    if (minPrice > 0) {
+        params.set('min_price', minPrice);
+    } else {
+        params.delete('min_price');
+    }
+    
+    if (maxPrice < 10000) {
+        params.set('max_price', maxPrice);
+    } else {
+        params.delete('max_price');
+    }
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+function clearPriceFilter() {
+    const params = new URLSearchParams(window.location.search);
+    params.delete('min_price');
+    params.delete('max_price');
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+function removePriceFilter() {
+    clearPriceFilter();
+}
 
 function sortProducts(sortValue) {
-    const form = document.getElementById('filters-form');
-    const sortInput = document.createElement('input');
-    sortInput.type = 'hidden';
-    sortInput.name = 'sort';
-    sortInput.value = sortValue;
-    form.appendChild(sortInput);
-    form.submit();
+    const params = new URLSearchParams(window.location.search);
+    if (sortValue) {
+        params.set('sort', sortValue);
+    } else {
+        params.delete('sort');
+    }
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+function removeFilter(filterType, filterValue) {
+    const params = new URLSearchParams(window.location.search);
+    
+    if (filterType === 'brand') {
+        const brands = params.getAll('brand').filter(b => b !== filterValue);
+        params.delete('brand');
+        brands.forEach(brand => params.append('brand', brand));
+    } else if (filterType === 'attribute') {
+        const attributes = params.getAll('attribute').filter(a => a !== filterValue);
+        params.delete('attribute');
+        attributes.forEach(attr => params.append('attribute', attr));
+    } else if (filterType === 'rating') {
+        params.delete('rating');
+    }
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+function clearAllFilters() {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Keep only category, featured, and search query
+    const category = params.get('category');
+    const featured = params.get('featured');
+    const query = params.get('q');
+    
+    params.delete('brand');
+    params.delete('attribute');
+    params.delete('rating');
+    params.delete('min_price');
+    params.delete('max_price');
+    params.delete('sort');
+    
+    // Re-add kept parameters
+    if (category) params.set('category', category);
+    if (featured) params.set('featured', featured);
+    if (query) params.set('q', query);
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+async function loadMoreProducts() {
+    if (isLoading || !hasMore) return;
+    
+    isLoading = true;
+    currentPage++;
+    
+    const loadMoreBtn = document.getElementById('load-more-products');
+    const loadingSpinner = document.getElementById('products-loading');
+    
+    if (loadMoreBtn) loadMoreBtn.disabled = true;
+    if (loadingSpinner) loadingSpinner.classList.add('active');
+    
+    try {
+        // Get current URL and update page parameter
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('page', currentPage);
+        
+        // Add AJAX header
+        const headers = new Headers({
+            'X-Requested-With': 'XMLHttpRequest'
+        });
+        
+        const response = await fetch(currentUrl, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.products && data.products.length > 0) {
+            // Append new products
+            appendProducts(data.products);
+            
+            // Update state
+            hasMore = data.has_next;
+            
+            if (!hasMore) {
+                if (loadMoreBtn) {
+                    loadMoreBtn.style.display = 'none';
+                }
+                const endMessage = document.getElementById('products-end');
+                if (endMessage) {
+                    endMessage.style.display = 'block';
+                }
+            }
+            
+            // Update load more button text if there are more products
+            if (loadMoreBtn && hasMore) {
+                const remaining = data.total_products - (currentPage * 12);
+                loadMoreBtn.innerHTML = `Load More Products (${remaining > 0 ? remaining : 0} remaining)`;
+            }
+            
+            // Reinitialize lazy images
+            setTimeout(initLazyImages, 100);
+        } else {
+            hasMore = false;
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+            const endMessage = document.getElementById('products-end');
+            if (endMessage) endMessage.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading more products:', error);
+        hasMore = false;
+        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+    } finally {
+        isLoading = false;
+        if (loadMoreBtn) loadMoreBtn.disabled = false;
+        if (loadingSpinner) loadingSpinner.classList.remove('active');
+    }
+}
+
+function appendProducts(products) {
+    const productsGrid = document.getElementById('products-grid');
+    if (!productsGrid) return;
+    
+    const currencySymbol = '{{ currency_symbol }}';
+    
+    products.forEach(product => {
+        const discountBadge = product.discount_percentage > 0 
+            ? `<div class="ps-product__badge">-${product.discount_percentage}%</div>` 
+            : '';
+        
+        const priceHTML = product.discount_price 
+            ? `<p class="ps-product__price">
+                    <span class="sale">${currencySymbol}${product.discount_price}</span>
+                    <del>${currencySymbol}${product.price}</del>
+               </p>`
+            : `<p class="ps-product__price">${currencySymbol}${product.price}</p>`;
+        
+        const ratingHTML = product.avg_rating > 0
+            ? `<div class="ps-product__rating">
+                   <div class="br-wrapper br-theme-fontawesome-stars">
+                       <select class="ps-rating" data-read-only="true">
+                           ${Array.from({length: 5}, (_, i) => 
+                               `<option value="${i+1}" ${Math.round(product.avg_rating) === i+1 ? 'selected' : ''}>${i+1}</option>`
+                           ).join('')}
+                       </select>
+                   </div>
+                   <span>(${product.review_count})</span>
+               </div>`
+            : `<div class="ps-product__rating"><span>No reviews yet</span></div>`;
+        
+        const brandHTML = product.brand_name 
+            ? `<a class="ps-product__vendor" href="/brand/${product.brand_name.toLowerCase()}/">${product.brand_name}</a>`
+            : '';
+        
+        const productHTML = `
+            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
+                <div class="ps-product">
+                    <div class="ps-product__thumbnail">
+                        <a href="${product.url}">
+                            <img class="lazy-product-image" 
+                                 data-src="${product.image_url}" 
+                                 src="{% static 'img/placeholder.png' %}"
+                                 alt="${product.name}">
+                        </a>
+                        ${discountBadge}
+                        <ul class="ps-product__actions">
+                            <li>
+                                <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
+                                   data-product-id="${product.id}" class="add-to-cart">
+                                    <i class="icon-bag2"></i>
+                                </a>
+                            </li>
+                            <li><a href="#" data-placement="top" title="Quick View" data-toggle="modal" data-target="#product-quickview" data-product-id="${product.id}"><i class="icon-eye"></i></a></li>
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Wishlist"><i class="icon-heart"></i></a></li>
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
+                        </ul>
+                    </div>
+                    <div class="ps-product__container">
+                        ${brandHTML}
+                        <div class="ps-product__content">
+                            <a class="ps-product__title" href="${product.url}">${product.name}</a>
+                            ${ratingHTML}
+                            ${priceHTML}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        productsGrid.insertAdjacentHTML('beforeend', productHTML);
+    });
 }
 </script>
 {% endblock %}
