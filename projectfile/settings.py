@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django.contrib.humanize', 
+
     # local apps
     'core',
     'accounts',
@@ -54,6 +56,12 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+
+    'django.middleware.gzip.GZipMiddleware',
+    'core.middleware.PerformanceMiddleware',
+    'core.middleware.CacheControlMiddleware',
+
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +72,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'projectfile.urls'
+
+# Static files optimization
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
 
 TEMPLATES = [
     {
@@ -81,10 +93,91 @@ TEMPLATES = [
 
                 'core.context_processors.currency_context',
             ],
+            
+            'builtins': [
+                'django.contrib.humanize.templatetags.humanize',
+            ],
         },
     },
 ]
 
+
+# Session optimization
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = False
+
+
+# settings.py
+import os
+from pathlib import Path
+
+
+
+# Create logs directory if it doesn't exist
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'django.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'performance_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'performance.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'core.middleware': {
+            'level': 'INFO',
+            'handlers': ['console', 'performance_file'],
+            'propagate': False,
+        },
+        'performance': {
+            'level': 'INFO',
+            'handlers': ['console', 'performance_file'],
+            'propagate': False,
+        },
+    },
+}
 WSGI_APPLICATION = 'projectfile.wsgi.application'
 
 
@@ -327,4 +420,16 @@ JAZZMIN_SETTINGS = {
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
     # Add a language dropdown into the admin
     # "language_chooser": True,
+}
+
+# Cache configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
 }
