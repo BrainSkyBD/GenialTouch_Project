@@ -1,0 +1,226 @@
+/* Lazy Loading Styles */
+.lazy-image {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    background-color: #f8f9fa;
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+}
+
+.lazy-placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.lazy-background {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    transition: background-image 0.3s ease;
+}
+
+.lazy-background.loaded {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0.7; }
+    to { opacity: 1; }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 30px 0;
+    margin: 20px 0;
+}
+
+.loading-spinner.active {
+    display: block;
+}
+
+.spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid #3498db;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* Skeleton Loader */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+    height: 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 200px;
+    border-radius: 4px;
+}
+
+/* Product Card Skeleton */
+.product-skeleton {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Infinite Scroll */
+.infinite-scroll-container {
+    position: relative;
+    min-height: 200px;
+}
+
+.scroll-loader {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+/* Load More Button */
+.load-more-btn {
+    display: block;
+    width: 200px;
+    margin: 30px auto;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.load-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.load-more-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.load-more-btn:active {
+    transform: translateY(0);
+}
+
+/* End Message */
+.end-message {
+    text-align: center;
+    padding: 30px 0;
+    color: #666;
+    font-style: italic;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}
+
+.end-message i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+/* Progress Bar */
+.load-progress {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.load-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Error State */
+.load-error {
+    text-align: center;
+    padding: 20px;
+    background: #ffebee;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #c62828;
+}
+
+.load-error i {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.retry-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #c62828;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .load-more-btn {
+        width: 160px;
+        padding: 10px 20px;
+        font-size: 12px;
+    }
+    
+    .loading-spinner {
+        padding: 20px 0;
+    }
+    
+    .spinner {
+        width: 30px;
+        height: 30px;
+    }
+}

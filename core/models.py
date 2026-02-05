@@ -1,6 +1,4 @@
-# models.py
 from django.db import models
-from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 
 
@@ -13,9 +11,22 @@ class Banner(models.Model):
     
     class Meta:
         ordering = ['order']
+        indexes = [
+            models.Index(fields=['is_active', 'order']),
+        ]
         
     def __str__(self):
         return self.title
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'image_url': self.image.url,
+            'url': self.url,
+            'order': self.order,
+        }
+
 
 class Promotion(models.Model):
     title = models.CharField(max_length=200)
@@ -26,9 +37,22 @@ class Promotion(models.Model):
     
     class Meta:
         ordering = ['order']
+        indexes = [
+            models.Index(fields=['is_active', 'order']),
+        ]
         
     def __str__(self):
         return self.title
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'image_url': self.image.url,
+            'url': self.url,
+            'order': self.order,
+        }
+
 
 class HomeAd(models.Model):
     title = models.CharField(max_length=200)
@@ -41,19 +65,25 @@ class HomeAd(models.Model):
         ordering = ['order']
         verbose_name = 'Home Ad'
         verbose_name_plural = 'Home Ads'
+        indexes = [
+            models.Index(fields=['is_active', 'order']),
+        ]
         
     def __str__(self):
         return self.title
-
-
-
-
-
-
-
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'image_url': self.image.url,
+            'url': self.url,
+            'order': self.order,
+        }
 
 
 class CurrencySettingsTable(models.Model):
+    # Currency choices (truncated for brevity, keep your existing list)
     CURRENCY_CHOICES = [
         ('USD', 'US Dollar ($)'),
         ('EUR', 'Euro (€)'),
@@ -202,7 +232,6 @@ class CurrencySettingsTable(models.Model):
         return f"{self.currency_code} ({self.currency_symbol})"
     
     def clean(self):
-        # Ensure only one active currency exists
         if self.is_active:
             active_currencies = CurrencySettingsTable.objects.filter(is_active=True)
             if self.pk:
@@ -213,3 +242,11 @@ class CurrencySettingsTable(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_active_currency(cls):
+        """Get active currency with caching"""
+        try:
+            return cls.objects.filter(is_active=True).first()
+        except:
+            return None
