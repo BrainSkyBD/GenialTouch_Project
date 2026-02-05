@@ -22,5 +22,20 @@ urlpatterns = [
     path('categories/', views.category_list, name='category_list'),
     path('brands/', views.brand_list, name='brand_list'),
     path('<slug:slug>/', views.product_detail, name='product_detail'),
+
+    # AJAX endpoints
+    path('ajax/frequently-bought/', views.get_frequently_bought, name='get_frequently_bought'),
+    path('ajax/related-products/', views.get_related_products, name='get_related_products'),
+    path('ajax/tab-content/', views.get_tab_content, name='get_tab_content'),
+    path('ajax/variation-price/', views.get_product_variation_price, name='get_product_variation_price'),
+    path('ajax/quick-add-to-cart/', views.quick_add_to_cart, name='quick_add_to_cart'),
+
+    path('ajax/reviews-content/', views.get_reviews_content, name='get_reviews_content'),
+    path('product/<int:product_id>/review/submit/', views.submit_review, name='submit_review'),
+    path('ajax/review/helpfulness/', views.review_helpfulness, name='review_helpfulness'),
+    path('ajax/reviews/load-more/', views.load_more_reviews, name='load_more_reviews'),
+    
+    
+
     
 ]

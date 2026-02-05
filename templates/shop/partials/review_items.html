@@ -1,0 +1,39 @@
+{% for review in reviews %}
+<div class="review-item mb-4 pb-4 border-bottom">
+    <div class="review-header d-flex justify-content-between align-items-start mb-2">
+        <div>
+            <h6 class="mb-1">{{ review.user.get_full_name|default:review.user.email }}</h6>
+            <div class="review-rating mb-2">
+                {% for i in review.get_rating_stars %}
+                    <i class="fa fa-star text-warning"></i>
+                {% endfor %}
+                {% for i in "12345" %}
+                    {% if forloop.counter > review.rating %}
+                        <i class="fa fa-star-o text-muted"></i>
+                    {% endif %}
+                {% endfor %}
+                <span class="ms-2 text-muted">{{ review.rating }}.0</span>
+            </div>
+        </div>
+        <small class="text-muted">{{ review.created_at|date:"F d, Y" }}</small>
+    </div>
+    
+    <div class="review-body">
+        {% if review.title %}
+        <h6 class="mb-2">{{ review.title }}</h6>
+        {% endif %}
+        <p class="mb-2">{{ review.comment|linebreaks }}</p>
+    </div>
+    
+    <!-- Review Helpfulness -->
+    <div class="review-helpfulness mt-3">
+        <span class="text-muted me-3">Was this review helpful?</span>
+        <button type="button" class="btn btn-sm btn-outline-success me-2 helpful-btn" data-review-id="{{ review.id }}" data-action="helpful">
+            <i class="fa fa-thumbs-up"></i> Yes (0)
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger unhelpful-btn" data-review-id="{{ review.id }}" data-action="unhelpful">
+            <i class="fa fa-thumbs-down"></i> No (0)
+        </button>
+    </div>
+</div>
+{% endfor %}

@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
 from .models import Product, Category, Brand, ProductVariation
-
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
 from products.models import Product, Category, Brand, AttributeValue
@@ -9,14 +9,14 @@ from reviews.models import Review
 from django.db.models import Q, Count, Avg, Max
 from decimal import Decimal
 import json
-
+from django.views.decorators.http import require_POST
 # views.py - add this new view
 from django.http import JsonResponse
 # views.py
 from django.shortcuts import render
 from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
-from .models import Product, Category, Brand, AttributeValue, Attribute, ProductImage
+from .models import Product, Category, Brand, AttributeValue, Attribute, ProductImage, ProductAttribute
 from django.db.models import Q
 from django.http import JsonResponse
 from orders.models import PaymentMethod, Order, OrderItem, Country, District, TaxConfiguration
@@ -39,7 +39,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-
+from django.template.loader import render_to_string
 # def product_list(request):
 #     # Get all filter parameters
 #     query = request.GET.get('q', '')
@@ -1179,97 +1179,579 @@ def load_more_products(request):
 #     }
 #     return render(request, 'shop/product_detail.html', context)
 
+# views.py
+from django.db.models import Prefetch
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+
+# views.py - Fix the product_detail view
+# views.py - Fix the product_detail view
+
+from django.core.cache import cache
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404, render
+import json
+
 def product_detail(request, slug):
-    product = get_object_or_404(
-        Product.objects.select_related('brand')
-                      .prefetch_related('images', 'categories', 'variations__attributes__attribute'),
-        slug=slug,
-        is_active=True
-    )
+    # Try to get from cache first
+    cache_key = f'product_detail_{slug}'
+    context = cache.get(cache_key)
     
-    # Get available variations
-    variations = {}
-    for variation in product.variations.filter(is_active=True, stock__gt=0):
-        for attr in variation.attributes.all():
-            if attr.attribute.name not in variations:
-                variations[attr.attribute.name] = []
-            if attr.value not in variations[attr.attribute.name]:
-                variations[attr.attribute.name].append(attr.value)
+    if not context:
+        # SIMPLIFIED QUERYSET - Avoid complex prefetches that cause errors
+        product = get_object_or_404(
+            Product.objects.select_related('brand'),
+            slug=slug,
+            is_active=True
+        )
+        
+        # Get variations separately
+        variations_data = {}
+        try:
+            product_variations = ProductVariation.objects.filter(
+                product=product,
+                is_active=True,
+                stock__gt=0
+            ).prefetch_related(
+                'attributes__attribute'  # FIXED: attributes -> attribute_value -> attribute
+            )
+            
+            for variation in product_variations:
+                for attr in variation.attributes.all():
+                    attr_name = attr.attribute.name  # Correct: attr is AttributeValue
+                    if attr_name not in variations_data:
+                        variations_data[attr_name] = set()
+                    variations_data[attr_name].add(attr.value)
+        except Exception as e:
+            print(f"Error loading variations: {e}")
+            variations_data = {}
+        
+        variations = {k: list(v) for k, v in variations_data.items()}
+        
+        # Get related products
+        related_products = []
+        try:
+            # Get category IDs as a list first
+            category_ids = list(product.categories.filter(
+                is_active=True
+            ).values_list('id', flat=True))
+            
+            if category_ids:
+                related_products = Product.objects.filter(
+                    categories__id__in=category_ids,
+                    is_active=True
+                ).exclude(id=product.id).select_related('brand').distinct()[:8]
+        except Exception as e:
+            print(f"Error loading related products: {e}")
+        
+        # Get frequently bought together
+        frequently_bought = []
+        try:
+            from orders.models import OrderItem
+            frequently_bought = Product.objects.filter(
+                orderitem__order__items__product=product
+            ).exclude(id=product.id).distinct()[:4]
+        except (ImportError, Exception) as e:
+            print(f"Error loading frequently bought: {e}")
+        
+        # Same brand products
+        same_brand_products = []
+        if product.brand:
+            try:
+                same_brand_products = Product.objects.filter(
+                    brand=product.brand,
+                    is_active=True
+                ).exclude(id=product.id)[:2]
+            except Exception as e:
+                print(f"Error loading same brand products: {e}")
+        
+        # Get payment methods
+        try:
+            payment_methods = PaymentMethod.objects.filter(is_active=True)
+        except:
+            payment_methods = []
+
+        context = {
+            'product': product,
+            'variations': variations,
+            'related_products': related_products,
+            'frequently_bought_together': frequently_bought,
+            'same_brand_products': same_brand_products,
+            'payment_methods': payment_methods,
+            'currency_symbol': '₹',
+        }
+        
+        # Cache the context
+        try:
+            cache.set(cache_key, context, 60 * 15)
+        except:
+            pass  # Continue even if caching fails
     
-    # Get related products (same categories)
-    related_products = Product.objects.filter(
-        categories__in=product.categories.all(),
-        is_active=True
-    ).exclude(id=product.id).distinct()[:8]
-    
-    # Get frequently bought together (through order items)
-    from orders.models import OrderItem  # Import your OrderItem model
-    frequently_bought = Product.objects.filter(
-        orderitem__order__items__product=product
-    ).exclude(id=product.id).distinct().annotate(
-        freq_count=Count('id')
-    ).order_by('-freq_count')[:4]
-
-    if product.brand:
-        same_brand_products = product.brand.product_set.exclude(id=product.id)[:2]
-    else:
-        same_brand_products = None
-
-    payment_methods = PaymentMethod.objects.filter(is_active=True)
-    countries = Country.objects.filter(is_active=True)
-
-    # Days range for birth date dropdown
-    days_range = range(1, 32)  # 1 to 31
-
-    context = {
-        'product': product,
-        'variations': variations,
-        'related_products': related_products,
-        'frequently_bought_together': frequently_bought,
-        'same_brand_products': same_brand_products,
-        'payment_methods': payment_methods,
-        'countries': countries,
-        'days_range':days_range
-    }
     return render(request, 'shop/product_detail.html', context)
 
+# # views.py - Add these AJAX views
+# from django.http import JsonResponse
+# from django.template.loader import render_to_string
 
-
-
-    
-def get_product_variation_price(request):
-    print("get_product_variation_price")
-    if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        attributes = json.loads(request.POST.get('attributes'))
+# def get_frequently_bought(request):
+#     product_id = request.GET.get('product_id')
+#     try:
+#         product = Product.objects.get(id=product_id)
+#         frequently_bought = Product.objects.filter(
+#             orderitem__order__items__product=product
+#         ).exclude(id=product.id).distinct().annotate(
+#             freq_count=Count('id')
+#         ).order_by('-freq_count')[:4]
         
+#         html = render_to_string('shop/partials/frequently_bought.html', {
+#             'products': frequently_bought,
+#             'currency_symbol': '₹'
+#         })
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': ''})
+
+# def get_related_products(request):
+#     product_id = request.GET.get('product_id')
+#     try:
+#         product = Product.objects.get(id=product_id)
+#         category_ids = product.categories.values_list('id', flat=True)
+#         related_products = Product.objects.filter(
+#             categories__id__in=category_ids,
+#             is_active=True
+#         ).exclude(id=product.id).distinct()[:8]
+        
+#         html = render_to_string('shop/partials/related_products.html', {
+#             'products': related_products,
+#             'currency_symbol': '₹'
+#         })
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': ''})
+
+# def get_tab_content(request):
+#     product_id = request.GET.get('product_id')
+#     tab_type = request.GET.get('tab_type')
+    
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         if tab_type == 'specifications':
+#             html = render_to_string('shop/partials/specifications.html', {
+#                 'product': product
+#             })
+#         elif tab_type == 'reviews':
+#             html = render_to_string('shop/partials/reviews.html', {
+#                 'product': product
+#             })
+#         else:
+#             html = ''
+        
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': ''})
+    
+
+
+# # views.py - Add these AJAX views
+
+# def get_reviews_tab(request):
+#     """AJAX view to load reviews tab content"""
+#     product_id = request.GET.get('product_id')
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         # Get review statistics
+#         reviews = product.reviews.filter(is_approved=True)
+#         total_reviews = reviews.count()
+        
+#         # Calculate rating distribution
+#         rating_counts = reviews.values('rating').annotate(count=Count('id'))
+#         rating_dist = {i: 0 for i in range(1, 6)}
+#         for rc in rating_counts:
+#             rating_dist[rc['rating']] = rc['count']
+        
+#         context = {
+#             'product': product,
+#             'reviews': reviews[:5],  # Load first 5 reviews
+#             'total_reviews': total_reviews,
+#             'five_star_count': rating_dist[5],
+#             'four_star_count': rating_dist[4],
+#             'three_star_count': rating_dist[3],
+#             'two_star_count': rating_dist[2],
+#             'one_star_count': rating_dist[1],
+#         }
+        
+#         html = render_to_string('shop/partials/reviews.html', context)
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': '<p>Product not found.</p>'}, status=404)
+
+
+# def submit_review(request, product_id):
+#     """Handle review submission"""
+#     if request.method == 'POST' and request.is_ajax():
+#         try:
+#             product = Product.objects.get(id=product_id)
+            
+#             # Check if user has already reviewed
+#             existing_review = ProductReview.objects.filter(
+#                 product=product, 
+#                 user=request.user
+#             ).first()
+            
+#             if existing_review:
+#                 return JsonResponse({
+#                     'status': 'error',
+#                     'message': 'You have already reviewed this product.'
+#                 })
+            
+#             # Create new review
+#             review = ProductReview.objects.create(
+#                 product=product,
+#                 user=request.user,
+#                 rating=request.POST.get('rating'),
+#                 comment=request.POST.get('comment'),
+#                 verified_purchase=request.user.orders.filter(
+#                     items__product=product
+#                 ).exists()  # Check if user purchased this product
+#             )
+            
+#             return JsonResponse({
+#                 'status': 'success',
+#                 'message': 'Review submitted successfully!'
+#             })
+#         except Product.DoesNotExist:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'Product not found.'
+#             }, status=404)
+#         except Exception as e:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': str(e)
+#             }, status=400)
+    
+#     return JsonResponse({
+#         'status': 'error',
+#         'message': 'Invalid request.'
+#     }, status=400)
+
+
+# def review_helpfulness(request):
+#     """Handle review helpfulness votes"""
+#     if request.method == 'POST' and request.is_ajax():
+#         try:
+#             review = ProductReview.objects.get(id=request.POST.get('review_id'))
+#             action = request.POST.get('action')
+            
+#             # Check if user already voted
+#             existing_vote = ReviewHelpfulness.objects.filter(
+#                 review=review,
+#                 user=request.user
+#             ).first()
+            
+#             if existing_vote:
+#                 return JsonResponse({
+#                     'status': 'error',
+#                     'message': 'You have already voted on this review.'
+#                 })
+            
+#             # Create vote
+#             ReviewHelpfulness.objects.create(
+#                 review=review,
+#                 user=request.user,
+#                 is_helpful=(action == 'helpful')
+#             )
+            
+#             # Update counts
+#             if action == 'helpful':
+#                 review.helpful_count += 1
+#             else:
+#                 review.unhelpful_count += 1
+#             review.save()
+            
+#             return JsonResponse({
+#                 'status': 'success',
+#                 'new_count': review.helpful_count if action == 'helpful' else review.unhelpful_count
+#             })
+#         except ProductReview.DoesNotExist:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': 'Review not found.'
+#             }, status=404)
+#         except Exception as e:
+#             return JsonResponse({
+#                 'status': 'error',
+#                 'message': str(e)
+#             }, status=400)
+    
+#     return JsonResponse({
+#         'status': 'error',
+#         'message': 'Invalid request.'
+#     }, status=400)
+
+
+# def load_more_reviews(request):
+#     """Load more reviews for pagination"""
+#     product_id = request.GET.get('product_id')
+#     offset = int(request.GET.get('offset', 0))
+    
+#     try:
+#         product = Product.objects.get(id=product_id)
+#         reviews = product.reviews.filter(is_approved=True)[offset:offset + 5]
+        
+#         html = render_to_string('shop/partials/review_items.html', {
+#             'reviews': reviews
+#         })
+        
+#         return JsonResponse({
+#             'html': html,
+#             'has_more': reviews.count() == 5
+#         })
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': ''})
+
+        
+# def get_product_variation_price(request):
+#     print("get_product_variation_price")
+#     if request.method == 'POST':
+#         product_id = request.POST.get('product_id')
+#         attributes = json.loads(request.POST.get('attributes'))
+        
+#         try:
+#             product = Product.objects.get(id=product_id)
+#             variations = product.variations.filter(is_active=True)
+            
+#             # Filter variations based on selected attributes
+#             for attr_name, attr_value in attributes.items():
+#                 variations = variations.filter(attributes__value=attr_value)
+            
+#             if variations.exists():
+#                 variation = variations.first()
+#                 return JsonResponse({
+#                     'price': str(variation.get_price()),
+#                     'original_price': str(variation.price) if variation.price else str(product.price),
+#                     'stock': variation.stock
+#                 })
+            
+#             return JsonResponse({
+#                 'price': str(product.get_price()),
+#                 'original_price': str(product.price),
+#                 'stock': 0
+#             })
+            
+#         except Product.DoesNotExist:
+#             return JsonResponse({'error': 'Product not found'}, status=404)
+    
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+# views.py - Add these functions
+
+def get_frequently_bought(request):
+    """AJAX view to load frequently bought together products"""
+    product_id = request.GET.get('product_id')
+    
+    try:
+        product = Product.objects.get(id=product_id)
+        
+        # Get frequently bought together products
         try:
-            product = Product.objects.get(id=product_id)
-            variations = product.variations.filter(is_active=True)
+            from orders.models import OrderItem
+            # CORRECT: Apply all operations first, then slice
+            frequently_bought = Product.objects.filter(
+                orderitem__order__items__product=product
+            ).exclude(id=product.id).distinct()[:4]  # Slice LAST
+        except:
+            frequently_bought = Product.objects.none()
+        
+        context = {
+            'products': frequently_bought,
+            'currency_symbol': '₹',
+        }
+        
+        html = render_to_string('shop/partials/frequently_bought.html', context)
+        return JsonResponse({'html': html})
+        
+    except Product.DoesNotExist:
+        return JsonResponse({'html': '<div class="col-12"><p>No frequently bought items found.</p></div>'})
+    except Exception as e:
+        print(f"Error in get_frequently_bought: {e}")
+        return JsonResponse({
+            'html': '''
+            <div class="text-center py-4">
+                <i class="fa fa-shopping-basket fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Unable to load frequently bought items.</p>
+            </div>
+            '''
+        })
+
+# views.py - Fix the get_related_products view
+
+def get_related_products(request):
+    """AJAX view to load related products"""
+    product_id = request.GET.get('product_id')
+    
+    try:
+        product = Product.objects.get(id=product_id)
+        
+        # Get first category - DON'T slice the queryset before filtering
+        first_category = product.categories.filter(is_active=True).first()
+        
+        if first_category:
+            # CORRECT: Apply all filters first, then slice at the end
+            related_products = Product.objects.filter(
+                categories=first_category,
+                is_active=True
+            ).exclude(id=product.id).select_related('brand')[:8]  # Slice LAST
+        
+        else:
+            related_products = Product.objects.none()
+        
+        context = {
+            'products': related_products,
+            'currency_symbol': '₹',
+        }
+        
+        html = render_to_string('shop/partials/related_products.html', context)
+        return JsonResponse({'html': html})
+        
+    except Product.DoesNotExist:
+        return JsonResponse({'html': '<p>Product not found.</p>'})
+    except Exception as e:
+        print(f"Error in get_related_products: {e}")
+        # Return a simpler version without carousel
+        return JsonResponse({
+            'html': '''
+            <div class="text-center py-4">
+                <i class="fa fa-cubes fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No related products found.</p>
+            </div>
+            '''
+        })
+
+# views.py - Fix the get_tab_content view
+
+def get_tab_content(request):
+    """AJAX view to load tab content"""
+    product_id = request.GET.get('product_id')
+    tab_type = request.GET.get('tab_type')
+    
+    try:
+        product = Product.objects.get(id=product_id)
+        
+        if tab_type == 'specifications':
+            # CORRECT: ProductAttribute -> attribute_value -> attribute
+            specifications = ProductAttribute.objects.filter(
+                product=product
+            ).select_related(
+                'attribute_value__attribute'  # FIXED: This is the correct relationship
+            )
             
-            # Filter variations based on selected attributes
-            for attr_name, attr_value in attributes.items():
-                variations = variations.filter(attributes__value=attr_value)
+            html = render_to_string('shop/partials/specifications.html', {
+                'product': product,
+                'specifications': specifications
+            })
+        elif tab_type == 'reviews':
+            # Get reviews
+            reviews = product.reviews.filter(is_approved=True)[:5] if hasattr(product, 'reviews') else []
             
-            if variations.exists():
-                variation = variations.first()
-                return JsonResponse({
-                    'price': str(variation.get_price()),
-                    'original_price': str(variation.price) if variation.price else str(product.price),
-                    'stock': variation.stock
-                })
+            html = render_to_string('shop/partials/reviews.html', {
+                'product': product,
+                'reviews': reviews,
+                'review_count': len(reviews)
+            })
+        else:
+            html = '<p>Content not available.</p>'
+        
+        return JsonResponse({'html': html})
+    except Product.DoesNotExist:
+        return JsonResponse({'html': '<p>Product not found.</p>'})
+    except Exception as e:
+        print(f"Error in get_tab_content: {e}")
+        return JsonResponse({'html': f'<p>Error loading content: {str(e)}</p>'})
+# views.py - Fix the get_product_variation_price view
+# views.py - Add quick_add_to_cart view
+
+def quick_add_to_cart(request):
+    """Quick add to cart for sidebar products"""
+    if request.method == 'POST' and request.is_ajax():
+        try:
+            product_id = request.POST.get('product_id')
+            quantity = int(request.POST.get('quantity', 1))
             
+            # Get product
+            product = Product.objects.get(id=product_id, is_active=True)
+            
+            # Here you would add to cart logic
+            # For now, just return success
             return JsonResponse({
-                'price': str(product.get_price()),
-                'original_price': str(product.price),
-                'stock': 0
+                'status': 'success',
+                'message': f'{product.name} added to cart',
+                'cart_item_count': 1,  # You would get this from your cart system
+                'cart_total': str(product.get_price())
             })
             
         except Product.DoesNotExist:
-            return JsonResponse({'error': 'Product not found'}, status=404)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Product not found'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request'
+    }, status=400)
+def get_product_variation_price(request):
+    """AJAX view to get variation price"""
+    if request.method == 'POST':
+        try:
+            product_id = request.POST.get('product_id')
+            attributes = json.loads(request.POST.get('attributes', '{}'))
+            
+            product = Product.objects.get(id=product_id)
+            
+            # Find matching variation
+            variations = ProductVariation.objects.filter(
+                product=product,
+                is_active=True
+            ).prefetch_related('attributes__attribute')  # FIXED
+            
+            matching_variation = None
+            for variation in variations:
+                variation_attrs = {}
+                for attr in variation.attributes.all():
+                    variation_attrs[attr.attribute.name] = attr.value
+                
+                if variation_attrs == attributes:
+                    matching_variation = variation
+                    break
+            
+            if matching_variation:
+                return JsonResponse({
+                    'price': str(matching_variation.get_price()),
+                    'original_price': str(product.price) if product.discount_price else None,
+                    'stock': matching_variation.stock
+                })
+            else:
+                # Return base product price
+                return JsonResponse({
+                    'price': str(product.get_price()),
+                    'original_price': str(product.price) if product.discount_price else None,
+                    'stock': product.get_total_stock()
+                })
+                
+        except Exception as e:
+            print(f"Error in get_product_variation_price: {e}")
+            return JsonResponse({'error': str(e)}, status=400)
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
 def add_to_cart(request, product_id):
     if request.method == 'POST':
         # Handle adding to cart logic here
@@ -1319,3 +1801,172 @@ def category_list(request):
 def brand_list(request):
     brands = Brand.objects.filter(is_active=True)
     return render(request, 'products/brand_list.html', {'brands': brands})
+
+
+
+# views.py - Update review views
+
+from reviews.models import Review  # Import your Review model
+
+def get_reviews_content(request):
+    """Get reviews tab content with proper rating calculations"""
+    product_id = request.GET.get('product_id')
+    
+    try:
+        product = Product.objects.get(id=product_id)
+        
+        # Get approved reviews using your Review model
+        reviews = Review.objects.filter(product=product, is_approved=True)
+        
+        # Calculate rating distribution
+        rating_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        total_rating = 0
+        total_reviews = reviews.count()
+        
+        for review in reviews:
+            rating_counts[review.rating] += 1
+            total_rating += review.rating
+        
+        # Calculate average rating
+        avg_rating = total_rating / total_reviews if total_reviews > 0 else 0
+        
+        context = {
+            'product': product,
+            'reviews': reviews[:5],  # Show only first 5
+            'review_count': total_reviews,
+            'avg_rating': round(avg_rating, 1),
+            'five_star_count': rating_counts[5],
+            'four_star_count': rating_counts[4],
+            'three_star_count': rating_counts[3],
+            'two_star_count': rating_counts[2],
+            'one_star_count': rating_counts[1],
+            'total_reviews': total_reviews,
+        }
+        
+        html = render_to_string('shop/partials/reviews.html', context)
+        return JsonResponse({'html': html})
+        
+    except Product.DoesNotExist:
+        return JsonResponse({'html': '<p>Product not found.</p>'})
+    except Exception as e:
+        print(f"Error in get_reviews_content: {e}")
+        return JsonResponse({
+            'html': '''
+            <div class="text-center py-4">
+                <i class="fa fa-comments fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Unable to load reviews at this time.</p>
+            </div>
+            '''
+        })
+
+@login_required
+@require_POST
+def submit_review(request, product_id):
+    """Submit a new review using your Review model"""
+    try:
+        product = Product.objects.get(id=product_id, is_active=True)
+        
+        # Check if user already reviewed this product
+        if Review.objects.filter(user=request.user, product=product).exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': 'You have already reviewed this product.'
+            })
+        
+        # Get form data
+        rating = int(request.POST.get('rating', 0))
+        comment = request.POST.get('comment', '').strip()
+        title = request.POST.get('title', f'Review for {product.name}')  # You might want to add title field
+        
+        # Validate rating
+        if rating < 1 or rating > 5:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please select a valid rating (1-5).'
+            })
+        
+        if not comment:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please write a review comment.'
+            })
+        
+        # Create review using your Review model
+        review = Review.objects.create(
+            user=request.user,
+            product=product,
+            rating=rating,
+            title=title[:100],  # Truncate to 100 chars
+            comment=comment,
+            is_approved=False  # Default to False for moderation
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Thank you for your review! It will be visible after approval.'
+        })
+        
+    except Product.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Product not found.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error submitting review: {str(e)}'
+        })
+
+def review_helpfulness(request):
+    """Handle review helpfulness votes"""
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            review_id = request.POST.get('review_id')
+            action = request.POST.get('action')  # 'helpful' or 'unhelpful'
+            
+            # You can add helpful_count and unhelpful_count fields to your Review model
+            # For now, just return a success message
+            
+            return JsonResponse({
+                'status': 'success',
+                'new_count': 1,  # You would update this with actual count
+                'message': 'Thank you for your feedback!'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'You must be logged in to vote.'
+    })
+
+def load_more_reviews(request):
+    """Load more reviews for pagination"""
+    product_id = request.GET.get('product_id')
+    offset = int(request.GET.get('offset', 0))
+    
+    try:
+        product = Product.objects.get(id=product_id)
+        reviews = Review.objects.filter(
+            product=product, 
+            is_approved=True
+        ).order_by('-created_at')[offset:offset + 5]
+        
+        if reviews:
+            html = render_to_string('shop/partials/review_items.html', {
+                'reviews': reviews
+            })
+        else:
+            html = ''
+        
+        return JsonResponse({
+            'html': html,
+            'has_more': len(reviews) == 5
+        })
+    except Exception as e:
+        print(f"Error in load_more_reviews: {e}")
+        return JsonResponse({'html': '', 'has_more': False})

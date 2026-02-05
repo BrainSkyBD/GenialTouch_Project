@@ -1,0 +1,63 @@
+{% load static %}
+{% if products %}
+<div class="ps-carousel--nav owl-slider owl-carousel" 
+     data-owl-auto="true" 
+     data-owl-loop="true" 
+     data-owl-speed="10000" 
+     data-owl-gap="30" 
+     data-owl-nav="true" 
+     data-owl-dots="true" 
+     data-owl-item="6" 
+     data-owl-item-xs="2" 
+     data-owl-item-sm="2" 
+     data-owl-item-md="3" 
+     data-owl-item-lg="4" 
+     data-owl-item-xl="5" 
+     data-owl-duration="1000" 
+     data-owl-mousedrag="on">
+    
+    {% for product in products %}
+    <div class="ps-product">
+        <div class="ps-product__thumbnail">
+            <a href="{{ product.get_absolute_url }}">
+                {% with product.images.all|first as image %}
+                    {% if image %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ product.name }}" 
+                             class="img-fluid"
+                             loading="lazy">
+                    {% else %}
+                        <img src="{% static 'img/no-image.jpg' %}" 
+                             alt="{{ product.name }}" 
+                             class="img-fluid"
+                             loading="lazy">
+                    {% endif %}
+                {% endwith %}
+            </a>
+            {% if product.discount_price %}
+                <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+            {% endif %}
+            
+        </div>
+        <div class="ps-product__container">
+            <div class="ps-product__content">
+                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                    {{ product.name|truncatechars:30 }}
+                </a>
+                <p class="ps-product__price{% if product.discount_price %} sale{% endif %}">
+                    {{ currency_symbol }} {{ product.get_price }}
+                    {% if product.discount_price %}
+                        <del>{{ currency_symbol }} {{ product.price }}</del>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-4">
+    <i class="fa fa-cubes fa-3x text-muted mb-3"></i>
+    <p class="text-muted">No related products found.</p>
+</div>
+{% endif %}
