@@ -37,18 +37,7 @@
             {% if product.discount_price %}
                 <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
             {% endif %}
-            <ul class="ps-product__actions">
-                <li>
-                    <a href="#" 
-                       class="add-to-cart-quick" 
-                       data-product-id="{{ product.id }}"
-                       data-toggle="tooltip" 
-                       data-placement="top" 
-                       title="Add To Cart">
-                        <i class="icon-bag2"></i>
-                    </a>
-                </li>
-            </ul>
+            
         </div>
         <div class="ps-product__container">
             <div class="ps-product__content">
