@@ -569,6 +569,7 @@
                                                 {% if product.discount_price %}
                                                 <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
                                                 {% endif %}
+                                                {% comment %}
                                                 <ul class="ps-product__actions">
                                                     <li>
                                                         <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
@@ -580,6 +581,7 @@
                                                     <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Wishlist"><i class="icon-heart"></i></a></li>
                                                     <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
                                                 </ul>
+                                                {% endcomment %}
                                             </div>
                                             <div class="ps-product__container">
                                                 {% if product.brand %}
