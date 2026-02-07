@@ -72,7 +72,7 @@
                             {% if category.image %}
                             <img class="lazy-image" 
                                  data-src="{{ category.image.url }}" 
-                                 src="{% static 'img/placeholder.png' %}"
+                                 src="{% static 'img/placeholder.webp' %}"
                                  alt="{{ category.name }}"
                                  style="width: 100%;
                                         height: 100%;
@@ -102,6 +102,7 @@
                     <div class="ps-banner bg--cover lazy-placeholder" data-background="{{ banner.image.url }}">
                         <img class="lazy-image" 
                              data-src="{{ banner.image.url }}" 
+                             src="{% static 'img/banner-placeholder.webp' %}"
                              style="display: none;">
                         <a class="ps-banner__overlay" href="{{ banner.url }}"></a>
                     </div>
@@ -113,7 +114,7 @@
                 <a class="ps-collection" href="{{ promo.url }}">
                     <img class="lazy-image" 
                          data-src="{{ promo.image.url }}" 
-                         src="{% static 'img/placeholder.png' %}"
+                         src="{% static 'img/ads-placeholder.webp' %}"
                          alt="{{ promo.title }}">
                 </a>
                 {% endfor %}
@@ -194,7 +195,7 @@
                             <a href="{{ product.get_absolute_url }}">
                                 <img class="lazy-image" 
                                      data-src="{{ product.images.first.image.url }}" 
-                                     src="{% static 'img/placeholder.png' %}"
+                                     src="{% static 'img/placeholder.webp' %}"
                                      alt="">
                             </a>
                             {% if product.discount_price %}
@@ -242,7 +243,7 @@
                     <a class="ps-collection" href="{{ ad.url }}">
                         <img class="lazy-image" 
                              data-src="{{ ad.image.url }}" 
-                             src="{% static 'img/placeholder.png' %}"
+                             src="{% static 'img/ads-placeholder.webp' %}"
                              alt="{{ ad.title }}">
                     </a>
                 </div>
@@ -272,7 +273,7 @@
                             <a href="{{ product.get_absolute_url }}">
                                 <img class="lazy-image" 
                                      data-src="{{ product.images.first.image.url }}" 
-                                     src="{% static 'img/placeholder.png' %}"
+                                     src="{% static 'img/placeholder.webp' %}"
                                      alt="" />
                             </a>
                             {% if product.discount_price %}
@@ -331,7 +332,7 @@
                     <a class="ps-collection" href="{{ ad.url }}">
                         <img class="lazy-image" 
                              data-src="{{ ad.image.url }}" 
-                             src="{% static 'img/placeholder.png' %}"
+                             src="{% static 'img/placeholder.webp' %}"
                              alt="{{ ad.title }}">
                     </a>
                 </div>
@@ -350,7 +351,7 @@
                             <div class="ps-block__thumbnail">
                                 <img class="lazy-image" 
                                      data-src="{% static 'downloadapp.png' %}" 
-                                     src="{% static 'img/placeholder.png' %}"
+                                     src="{% static 'img/placeholder.webp' %}"
                                      alt="">
                             </div>
                         </div>
@@ -366,8 +367,8 @@
                                     </div>
                                 </form>
                                 <p class="download-link">
-                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/google-play.png' %}" src="{% static 'img/placeholder.png' %}" alt=""></a>
-                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/app-store.png' %}" src="{% static 'img/placeholder.png' %}" alt=""></a>
+                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/google-play.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
+                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/app-store.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
                                 </p>
                             </div>
                         </div>
@@ -400,7 +401,7 @@
                                 <a href="{{ product.get_absolute_url }}">
                                     <img class="lazy-image" 
                                          data-src="{{ product.images.first.image.url }}" 
-                                         src="{% static 'img/placeholder.png' %}"
+                                         src="{% static 'img/placeholder.webp' %}"
                                          alt="" />
                                 </a>
                             </div>

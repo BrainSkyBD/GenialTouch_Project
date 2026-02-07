@@ -229,7 +229,7 @@
                                                         {% if product.images.first %}
                                                         <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
                                                         {% else %}
-                                                        <img src="{% static 'img/placeholder.png' %}" alt="{{ product.name }}">
+                                                        <img src="{% static 'img/placeholder.webp' %}" alt="{{ product.name }}">
                                                         {% endif %}
                                                     </a>
                                                     {% if product.discount_price %}

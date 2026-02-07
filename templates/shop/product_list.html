@@ -291,7 +291,7 @@
             {% if subcat.image %}
             <img class="subcategory-image lazy-product-image" 
                  data-src="{{ subcat.image.url }}" 
-                 src="{% static 'img/placeholder.png' %}"
+                 src="{% static 'img/placeholder.webp' %}"
                  alt="{{ subcat.name }}">
             {% else %}
             <div class="subcategory-image" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
@@ -559,7 +559,7 @@
                                                     {% if first_image %}
                                                     <img class="lazy-product-image" 
                                                          data-src="{{ first_image.image.url }}" 
-                                                         src="{% static 'img/placeholder.png' %}"
+                                                         src="{% static 'img/placeholder.webp' %}"
                                                          alt="{{ product.name }}">
                                                     {% else %}
                                                     <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
@@ -1069,20 +1069,12 @@ function appendProducts(products) {
                         <a href="${product.url}">
                             <img class="lazy-product-image" 
                                  data-src="${product.image_url}" 
-                                 src="{% static 'img/placeholder.png' %}"
+                                 src="{% static 'img/placeholder.webp' %}"
                                  alt="${product.name}">
                         </a>
                         ${discountBadge}
                         <ul class="ps-product__actions">
-                            <li>
-                                <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
-                                   data-product-id="${product.id}" class="add-to-cart">
-                                    <i class="icon-bag2"></i>
-                                </a>
-                            </li>
-                            <li><a href="#" data-placement="top" title="Quick View" data-toggle="modal" data-target="#product-quickview" data-product-id="${product.id}"><i class="icon-eye"></i></a></li>
-                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Wishlist"><i class="icon-heart"></i></a></li>
-                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
+                            
                         </ul>
                     </div>
                     <div class="ps-product__container">

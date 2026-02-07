@@ -372,7 +372,7 @@ class InfiniteScrollManager {
                             <a href="${product.url}">
                                 <img class="lazy-image" 
                                      data-src="${product.image_url}" 
-                                     src="/static/img/placeholder.png"
+                                     src="/static/img/placeholder.webp"
                                      alt="${product.name}">
                             </a>
                             ${discountBadge}
@@ -630,7 +630,7 @@ function displayCategoryProducts(categoryId, categoryName, data) {
                         <a href="${product.url}">
                             <img class="lazy-image" 
                                  data-src="${product.image_url}" 
-                                 src="/static/img/placeholder.png"
+                                 src="/static/img/placeholder.webp"
                                  alt="${product.name}">
                         </a>
                         ${discountBadge}
@@ -740,7 +740,7 @@ window.loadMoreCategoryProducts = async function(categoryId, page) {
                                     <a href="${product.url}">
                                         <img class="lazy-image" 
                                              data-src="${product.image_url}" 
-                                             src="/static/img/placeholder.png"
+                                             src="/static/img/placeholder.webp"
                                              alt="${product.name}">
                                     </a>
                                     ${discountBadge}

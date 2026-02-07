@@ -2,20 +2,12 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from django.db.models import Sum, Avg, Count
-from imagekit.models import ProcessedImageField, ImageSpecField
-from imagekit.processors import ResizeToFill, ResizeToFit, SmartResize
 
-
+from django.db.models import Avg
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
-    logo = ProcessedImageField(
-        upload_to='brands/',
-        processors=[ResizeToFill(200, 200)],  # Resize to 200x200
-        format='WEBP',
-        options={'quality': 85},
-        blank=True
-    )
+    logo = models.ImageField(upload_to='brands/', blank=True)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     
@@ -47,26 +39,8 @@ class Category(models.Model):
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     description = models.TextField(blank=True)
-    
-    # Regular image - will be converted to WebP automatically
-    image = ProcessedImageField(
-        upload_to='categories/image/',
-        processors=[ResizeToFill(400, 400)],  # Square 400x400
-        format='WEBP',
-        options={'quality': 85},
-        blank=True
-    )
-    
-    # Banner image - different dimensions
-    banner = ProcessedImageField(
-        upload_to='categories/banner/',
-        processors=[ResizeToFit(1200, 400)],  # Wide banner 1200x400
-        format='WEBP',
-        options={'quality': 85},
-        blank=True,
-        null=True
-    )
-    
+    image = models.ImageField(upload_to='categories/image/', blank=True)
+    banner = models.ImageField(upload_to='categories/banner/', blank=True, default=None, null=True)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     display_order = models.PositiveIntegerField(default=0)
@@ -214,7 +188,7 @@ class Product(models.Model):
             'discount_price': str(self.discount_price) if self.discount_price else None,
             'discount_percentage': self.get_discount_percentage(),
             'brand': self.brand.to_dict() if self.brand else None,
-            'image_url': main_image.thumbnail.url if main_image else '/static/img/no-image.jpg',
+            'image_url': main_image.image.url if main_image else '/static/img/no-image.jpg',
             'url': self.get_absolute_url(),
             'is_in_stock': self.is_in_stock(),
             'sku': self.sku,
@@ -228,9 +202,9 @@ class Product(models.Model):
         if hasattr(self, 'images'):
             for image in self.images.all():
                 if image.is_featured:
-                    return image.thumbnail.url  # Changed to use thumbnail
+                    return image.image.url
             if self.images.first():
-                return self.images.first().thumbnail.url
+                return self.images.first().image.url
         return '/static/img/no-image.jpg'
     
     def get_price_display(self):
@@ -285,6 +259,8 @@ class Product(models.Model):
         except:
             return 0
     
+    
+
     @property
     def avg_rating(self):
         """Return average approved rating rounded to 1 decimal"""
@@ -300,50 +276,21 @@ class Product(models.Model):
             return 0
 
 
+
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    
-    # Original image - converted to WebP and resized
-    image = ProcessedImageField(
-        upload_to='products/',
-        processors=[ResizeToFit(1200, 1200)],  # Max size 1200x1200, maintains aspect ratio
-        format='WEBP',
-        options={'quality': 85}
-    )
-    
-    # Image specifications - generated on the fly
-    thumbnail = ImageSpecField(
-        source='image',
-        processors=[SmartResize(400, 400)],  # Square 400x400 thumbnail
-        format='WEBP',
-        options={'quality': 80}
-    )
-    
-    small = ImageSpecField(
-        source='image',
-        processors=[SmartResize(200, 200)],  # Small 200x200
-        format='WEBP',
-        options={'quality': 75}
-    )
-    
-    medium = ImageSpecField(
-        source='image',
-        processors=[SmartResize(800, 800)],  # Medium 800x800
-        format='WEBP',
-        options={'quality': 85}
-    )
-    
-    # Optional: For gallery with exact dimensions
-    gallery = ImageSpecField(
-        source='image',
-        processors=[ResizeToFill(800, 600)],  # Fixed 800x600 for gallery
-        format='WEBP',
-        options={'quality': 85}
-    )
-    
+    image = models.ImageField(upload_to='products/')
     alt_text = models.CharField(max_length=100, blank=True)
     is_featured = models.BooleanField(default=False)
     display_order = models.PositiveIntegerField(default=0)
+    
+    # class Meta:
+    #     ordering = ['display_order', 'id']
+    #     indexes = [
+    #         models.Index(fields=['product', 'is_featured']),
+    #         models.Index(fields=['product', 'display_order']),
+    #     ]
     
     class Meta:
         ordering = ['display_order', 'id']
@@ -359,16 +306,9 @@ class ProductImage(models.Model):
         return {
             'id': self.id,
             'image_url': self.image.url,
-            'thumbnail_url': self.thumbnail.url,  # Added thumbnail URL
-            'medium_url': self.medium.url,        # Added medium URL
             'alt_text': self.alt_text,
             'is_featured': self.is_featured,
         }
-    
-    # Optional: Add a property for backward compatibility
-    @property
-    def image_url(self):
-        return self.image.url
 
 
 class ProductAttribute(models.Model):
