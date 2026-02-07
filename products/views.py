@@ -665,11 +665,20 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
         products = products.order_by('-created_at')
 
     # Calculate average ratings for products (if not already done in rating sort)
-    if sort != 'rating':
-        products = products.annotate(
-            avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
-        )
+    # if sort != 'rating':
+    #     products = products.annotate(
+    #         avg_rating=Avg('reviews__rating'),
+    #         review_count=Count('reviews')
+    #     )
+
+    print('sort--------------------------')
+    print(sort)
+
+    # if sort != 'rating':
+    #     products = products.annotate(
+    #         avg_rating=Avg('reviews__rating'),
+    #         review_count=Count('reviews')
+    #     )
     
     
     # Pagination for infinite scroll

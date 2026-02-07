@@ -34,8 +34,4 @@ urlpatterns = [
     path('product/<int:product_id>/review/submit/', views.submit_review, name='submit_review'),
     path('ajax/review/helpfulness/', views.review_helpfulness, name='review_helpfulness'),
     path('ajax/reviews/load-more/', views.load_more_reviews, name='load_more_reviews'),
-    
-    
-
-    
 ]

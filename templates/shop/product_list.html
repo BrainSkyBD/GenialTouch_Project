@@ -590,19 +590,21 @@
                                                 <div class="ps-product__content">
                                                     <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
                                                     <div class="ps-product__rating">
-                                                        {% if product.review_count > 0 %}
-                                                        <div class="br-wrapper br-theme-fontawesome-stars">
-                                                            <select class="ps-rating" data-read-only="true">
-                                                                {% for i in "12345" %}
-                                                                <option value="{{ i }}" {% if i == product.avg_rating|floatformat:"0" %}selected{% endif %}>{{ i }}</option>
-                                                                {% endfor %}
-                                                            </select>
-                                                        </div>
-                                                        <span>({{ product.review_count }})</span>
-                                                        {% else %}
-                                                        <span>No reviews yet</span>
-                                                        {% endif %}
+                                                    {% with avg_rating=product.average_rating review_count=product.review_count %}
+                                                    {% if review_count > 0 %}
+                                                    <div class="br-wrapper br-theme-fontawesome-stars">
+                                                        <select class="ps-rating" data-read-only="true">
+                                                            {% for i in "12345" %}
+                                                            <option value="{{ i }}" {% if i == avg_rating|floatformat:"0" %}selected{% endif %}>{{ i }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     </div>
+                                                    <span>({{ review_count }})</span>
+                                                    {% else %}
+                                                    <!-- <span>No reviews yet</span> -->
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </div>
                                                     <p class="ps-product__price">
                                                         {% if product.discount_price %}
                                                         <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
