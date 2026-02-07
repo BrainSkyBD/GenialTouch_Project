@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.db.models import Sum, Avg, Count
 
-
+from django.db.models import Avg
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
@@ -258,6 +258,24 @@ class Product(models.Model):
             return Review.objects.filter(product=self, is_approved=True).count()
         except:
             return 0
+    
+    
+
+    @property
+    def avg_rating(self):
+        """Return average approved rating rounded to 1 decimal"""
+        try:
+            from reviews.models import Review
+            result = Review.objects.filter(
+                product=self,
+                is_approved=True
+            ).aggregate(avg=Avg('rating'))['avg']
+
+            return round(result, 1) if result else 0
+        except Exception:
+            return 0
+
+
 
 
 class ProductImage(models.Model):
