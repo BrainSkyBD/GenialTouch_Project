@@ -1287,7 +1287,7 @@ def product_detail(request, slug):
             'frequently_bought_together': frequently_bought,
             'same_brand_products': same_brand_products,
             'payment_methods': payment_methods,
-            'currency_symbol': '₹',
+            'currency_symbol': '৳',
         }
         
         # Cache the context
@@ -1577,7 +1577,7 @@ def get_frequently_bought(request):
         
         context = {
             'products': frequently_bought,
-            'currency_symbol': '₹',
+            'currency_symbol': '৳',
         }
         
         html = render_to_string('shop/partials/frequently_bought.html', context)
@@ -1620,7 +1620,7 @@ def get_related_products(request):
         
         context = {
             'products': related_products,
-            'currency_symbol': '₹',
+            'currency_symbol': '৳',
         }
         
         html = render_to_string('shop/partials/related_products.html', context)
