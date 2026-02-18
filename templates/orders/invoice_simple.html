@@ -253,8 +253,8 @@
                         {% endif %}
                     </td>
                     <td class="text-center">{{ item.quantity }}</td>
-                    <td class="text-right">${{ item.price }}</td>
-                    <td class="text-right">${{ item.get_total }}</td>
+                    <td class="text-right">৳{{ item.price }}</td>
+                    <td class="text-right">৳{{ item.get_total }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -264,13 +264,13 @@
         <div class="totals">
             <div class="total-row">
                 <span>Subtotal:</span>
-                <span>${{ order.order_total }}</span>
+                <span>৳{{ order.order_total }}</span>
             </div>
             
             {% if order.tax_amount and order.tax_amount > 0 %}
             <div class="total-row">
                 <span>Tax ({{ order.tax_rate }}%):</span>
-                <span>${{ order.tax_amount }}</span>
+                <span>৳{{ order.tax_amount }}</span>
             </div>
             {% endif %}
             
@@ -278,7 +278,7 @@
                 <span>Shipping:</span>
                 <span>
                     {% if order.shipping_cost and order.shipping_cost > 0 %}
-                        ${{ order.shipping_cost }}
+                        ৳{{ order.shipping_cost }}
                     {% else %}
                         Free
                     {% endif %}
@@ -287,7 +287,7 @@
             
             <div class="total-row">
                 <span><strong>GRAND TOTAL:</strong></span>
-                <span><strong>${{ order.grand_total }}</strong></span>
+                <span><strong>৳{{ order.grand_total }}</strong></span>
             </div>
         </div>
         

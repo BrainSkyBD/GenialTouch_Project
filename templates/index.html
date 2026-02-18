@@ -122,6 +122,8 @@
         </div>
     </div>
 
+
+    {% comment %}
     <!-- Site Features -->
     <div class="ps-site-features">
         <div class="ps-container">
@@ -161,6 +163,35 @@
                         <p>Support gift service</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    {% endcomment %}
+
+    <!-- Site Features -->
+    <div class="ps-site-features">
+        <div class="ps-container">
+            <div class="ps-block--site-features">
+                {% for feature in site_features %}
+                <div class="ps-block__item">
+                    <div class="ps-block__left">
+                        <i class="{{ feature.icon }}"></i>
+                    </div>
+                    <div class="ps-block__right">
+                        <h4>{{ feature.title }}</h4>
+                        <p>
+                            {% if feature.min_order_amount %}
+                                For all orders over {{ currency_symbol }} {{ feature.min_order_amount }}
+                            {% elif feature.return_days %}
+                                If goods have problems within {{ feature.return_days }} days
+                            {% else %}
+                                {{ feature.description }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% endfor %}
             </div>
         </div>
     </div>
