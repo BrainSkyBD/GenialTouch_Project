@@ -31,7 +31,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Prefetch
 from django.core.cache import cache
 from django.http import JsonResponse
-from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable
+from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable, SiteFeature
 from products.models import Category, Product, ProductImage
 import time
 
@@ -43,9 +43,9 @@ def home(request):
     # Get active currency
     try:
         active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '$'
+        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
     except:
-        currency_symbol = '$'
+        currency_symbol = '৳'
     
     # Get data (with optimizations)
     start_time = time.time()
@@ -130,6 +130,25 @@ def home(request):
     # Log performance
     load_time = time.time() - start_time
     print(f"Home page loaded in {load_time:.2f} seconds")
+
+
+
+    # Get all active site features
+    site_features = SiteFeature.objects.filter(is_active=True).select_related()
+    
+    # Process features for template
+    processed_features = []
+    for feature in site_features:
+        feature_data = {
+            'title': feature.title,
+            'description': feature.get_display_description(),
+            'icon': feature.icon,
+            'min_order_amount': feature.min_order_amount,
+            'return_days': feature.return_days,
+        }
+        processed_features.append(feature_data)
+    
+    
     
     context = {
         'categories': categories,
@@ -143,6 +162,8 @@ def home(request):
         'deal_end_date': deal_end_date,
         'top_categories': top_categories,
         'currency_symbol': currency_symbol,
+
+        'site_features': processed_features,
     }
     
     return render(request, 'index.html', context)

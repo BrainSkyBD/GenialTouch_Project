@@ -4,6 +4,10 @@ from django.utils.text import slugify
 from django.db.models import Sum, Avg, Count
 from imagekit.models import ProcessedImageField, ImageSpecField
 from imagekit.processors import ResizeToFill, ResizeToFit, SmartResize
+from imagekit.processors import ResizeToFit, ResizeToFill, Transpose
+from imagekit import ImageSpec
+from PIL import Image
+
 
 
 class Brand(models.Model):
@@ -300,13 +304,46 @@ class Product(models.Model):
             return 0
 
 
+
+
+
+# First, create a custom processor to handle color properly
+class PreserveColorProcessor:
+    def process(self, img):
+        # Convert RGBA to RGB if needed (removes alpha channel)
+        if img.mode in ('RGBA', 'LA'):
+            # Create a white background
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            # Paste the image on white background
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else img)
+            img = background
+        elif img.mode == 'P':
+            img = img.convert('RGB')
+        return img
+
+
+    
+
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     
     # Original image - converted to WebP and resized
+    # image = ProcessedImageField(
+    #     upload_to='products/',
+    #     # processors=[ResizeToFit(1200, 1200)],  # Max size 1200x1200, maintains aspect ratio
+    #     format='WEBP',
+    #     options={'quality': 85}
+    # )
+
+    
     image = ProcessedImageField(
         upload_to='products/',
-        processors=[ResizeToFit(1200, 1200)],  # Max size 1200x1200, maintains aspect ratio
+        processors=[
+            PreserveColorProcessor(),  # Add this processor first
+            ResizeToFit(1200, 1200),   # Then resize
+            Transpose(),               # Auto-rotate based on EXIF
+        ],
         format='WEBP',
         options={'quality': 85}
     )
@@ -314,21 +351,21 @@ class ProductImage(models.Model):
     # Image specifications - generated on the fly
     thumbnail = ImageSpecField(
         source='image',
-        processors=[SmartResize(400, 400)],  # Square 400x400 thumbnail
+        # processors=[SmartResize(400, 400)],  # Square 400x400 thumbnail
         format='WEBP',
         options={'quality': 80}
     )
     
     small = ImageSpecField(
         source='image',
-        processors=[SmartResize(200, 200)],  # Small 200x200
+        # processors=[SmartResize(200, 200)],  # Small 200x200
         format='WEBP',
         options={'quality': 75}
     )
     
     medium = ImageSpecField(
         source='image',
-        processors=[SmartResize(800, 800)],  # Medium 800x800
+        # processors=[SmartResize(800, 800)],  # Medium 800x800
         format='WEBP',
         options={'quality': 85}
     )

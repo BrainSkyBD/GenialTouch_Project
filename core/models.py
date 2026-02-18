@@ -250,3 +250,67 @@ class CurrencySettingsTable(models.Model):
             return cls.objects.filter(is_active=True).first()
         except:
             return None
+
+
+
+
+from django.db import models
+from django.core.validators import MinValueValidator
+
+class SiteFeature(models.Model):
+    ICON_CHOICES = [
+        ('icon-rocket', 'Rocket'),
+        ('icon-sync', 'Sync'),
+        ('icon-credit-card', 'Credit Card'),
+        ('icon-bubbles', 'Bubbles'),
+        ('icon-gift', 'Gift'),
+        ('icon-truck', 'Truck'),
+        ('icon-clock', 'Clock'),
+        ('icon-heart', 'Heart'),
+        ('icon-star', 'Star'),
+        ('icon-cart', 'Cart'),
+        ('icon-user', 'User'),
+        ('icon-lock', 'Lock'),
+    ]
+    
+    title = models.CharField(max_length=100, help_text="Feature title (e.g., Free Delivery)")
+    description = models.TextField(max_length=200, help_text="Feature description")
+    icon = models.CharField(max_length=50, choices=ICON_CHOICES, default='icon-rocket')
+    
+    # For free delivery special case
+    min_order_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Minimum order amount for free delivery (only for Free Delivery feature)"
+    )
+    
+    # For return days special case
+    return_days = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Number of return days (only for Return feature)"
+    )
+    
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, help_text="Display order")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = 'Site Feature'
+        verbose_name_plural = 'Site Features'
+    
+    def __str__(self):
+        return self.title
+    
+    def get_display_description(self):
+        """Process description with dynamic values"""
+        if self.title.lower() == 'free delivery' and self.min_order_amount:
+            return f"For all orders over {self.min_order_amount}"
+        elif 'return' in self.title.lower() and self.return_days:
+            return f"If goods have problems within {self.return_days} days"
+        return self.description
