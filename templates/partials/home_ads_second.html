@@ -1,0 +1,18 @@
+{% load static %}
+<!-- Home Ads 2 -->
+<div class="ps-home-ads">
+    <div class="ps-container">
+        <div class="row">
+            {% for ad in home_ads %}
+            <div class="col-xl-{% if forloop.first %}8{% else %}4{% endif %} col-lg-{% if forloop.first %}8{% else %}4{% endif %} col-md-12 col-sm-12 col-12">
+                <a class="ps-collection" href="{{ ad.url }}">
+                    <img class="lazy-image" 
+                         data-src="{{ ad.image.url }}" 
+                         src="{% static 'img/placeholder.webp' %}"
+                         alt="{{ ad.title }}">
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+{% load static %}
+
+<!-- Deal of the Day -->
+    <div class="ps-deal-of-day">
+        <div class="ps-container">
+            <div class="ps-section__header">
+                <div class="ps-block--countdown-deal">
+                    <div class="ps-block__left">
+                        <h3>Deals of the day</h3>
+                    </div>
+                    <div class="ps-block__right">
+                        <figure>
+                            <figcaption>End in:</figcaption>
+                            <ul class="ps-countdown" data-time="{{ deal_end_date|date:'F d, Y H:i:s' }}">
+                                <li><span class="days"></span></li>
+                                <li><span class="hours"></span></li>
+                                <li><span class="minutes"></span></li>
+                                <li><span class="seconds"></span></li>
+                            </ul>
+                        </figure>
+                    </div>
+                </div>
+                <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">View all</a>
+            </div>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="30" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="3" data-owl-item-md="4" data-owl-item-lg="5" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for product in deals %}
+                    <div class="ps-product ps-product--inner">
+                        <div class="ps-product__thumbnail">
+                            <a href="{{ product.get_absolute_url }}">
+                                <img class="lazy-image" 
+                                     data-src="{{ product.images.first.image.url }}" 
+                                     src="{% static 'img/placeholder.webp' %}"
+                                     alt="">
+                            </a>
+                            {% if product.discount_price %}
+                            <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ps-product__container">
+                            {% if product.discount_price %}
+                            <p class="ps-product__price sale">
+                                {{ currency_symbol }} {{ product.discount_price }} 
+                                <del>{{ currency_symbol }} {{ product.price }}</del>
+                                <br>
+                                <small>{{ product.get_discount_percentage }}% off</small>
+                            </p>
+                            {% else %}
+                            <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+                            {% endif %}
+                            <div class="ps-product__content">
+                                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                    {{ product.name }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View All Deals Button -->
+                <div class="view-all-btn-container">
+                    <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">
+                        View All Deals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}GenialTouch - Home{% endblock %}
+{% block content %}
+
+<style>
+    .ps-block--category img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Lazy loading styles */
+    .lazy-image {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .lazy-image.loaded {
+        opacity: 1;
+    }
+    
+    .lazy-placeholder {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    
+    /* View All Button Styles */
+    .view-all-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #ff6b6b;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: background 0.3s;
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .view-all-btn:hover {
+        background: #ff5252;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .view-all-btn-container {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }
+</style>
+
+<div id="homepage-1">
+
+    <!-- Top Categories Slider -->
+    <div class="ps-deal-of-day" style="margin-top: 25px;">
+        <div class="ps-container">
+            <h3>Top categories of the month</h3>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="30" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="3" data-owl-item-md="4" data-owl-item-lg="5" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for category in top_categories %}
+                    <div class="ps-product ps-product--inner">
+                        <div class="ps-block--category">
+                            <a class="ps-block__overlay" href="{% url 'products_by_category' category.slug %}"></a>
+                            {% if category.image %}
+                            <img class="lazy-image" 
+                                 data-src="{{ category.image.url }}" 
+                                 src="{% static 'img/placeholder.webp' %}"
+                                 alt="{{ category.name }}"
+                                 style="width: 100%;
+                                        height: 100%;
+                                        object-fit: cover;
+                                        clip-path: polygon(
+                                            25% 6%, 75% 6%,
+                                            100% 50%, 75% 94%,
+                                            25% 94%, 0% 50%
+                                        );
+                                        transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                            {% endif %}
+                            <p>{{ category.name }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Banner -->
+    <div class="ps-home-banner ps-home-banner--1">
+        <div class="ps-container">
+            <div class="ps-section__left">
+                <div class="ps-carousel--nav-inside owl-slider" data-owl-auto="true" data-owl-loop="true" data-owl-speed="5000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="1" data-owl-item-xs="1" data-owl-item-sm="1" data-owl-item-md="1" data-owl-item-lg="1" data-owl-duration="1000" data-owl-mousedrag="on" data-owl-animate-in="fadeIn" data-owl-animate-out="fadeOut">
+                    {% for banner in banners %}
+                    <div class="ps-banner bg--cover lazy-placeholder" data-background="{{ banner.image.url }}">
+                        <img class="lazy-image" 
+                             data-src="{{ banner.image.url }}" 
+                             src="{% static 'img/banner-placeholder.webp' %}"
+                             style="display: none;">
+                        <a class="ps-banner__overlay" href="{{ banner.url }}"></a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ps-section__right">
+                {% for promo in promotions|slice:":2" %}
+                <a class="ps-collection" href="{{ promo.url }}">
+                    <img class="lazy-image" 
+                         data-src="{{ promo.image.url }}" 
+                         src="{% static 'img/ads-placeholder.webp' %}"
+                         alt="{{ promo.title }}">
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %}
+    <!-- Site Features -->
+    <div class="ps-site-features">
+        <div class="ps-container">
+            <div class="ps-block--site-features">
+                <div class="ps-block__item">
+                    <div class="ps-block__left"><i class="icon-rocket"></i></div>
+                    <div class="ps-block__right">
+                        <h4>Free Delivery</h4>
+                        <p>For all orders over {{ currency_symbol }} 99</p>
+                    </div>
+                </div>
+                <div class="ps-block__item">
+                    <div class="ps-block__left"><i class="icon-sync"></i></div>
+                    <div class="ps-block__right">
+                        <h4>90 Days Return</h4>
+                        <p>If goods have problems</p>
+                    </div>
+                </div>
+                <div class="ps-block__item">
+                    <div class="ps-block__left"><i class="icon-credit-card"></i></div>
+                    <div class="ps-block__right">
+                        <h4>Secure Payment</h4>
+                        <p>100% secure payment</p>
+                    </div>
+                </div>
+                <div class="ps-block__item">
+                    <div class="ps-block__left"><i class="icon-bubbles"></i></div>
+                    <div class="ps-block__right">
+                        <h4>24/7 Support</h4>
+                        <p>Dedicated support</p>
+                    </div>
+                </div>
+                <div class="ps-block__item">
+                    <div class="ps-block__left"><i class="icon-gift"></i></div>
+                    <div class="ps-block__right">
+                        <h4>Gift Service</h4>
+                        <p>Support gift service</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endcomment %}
+
+    <!-- Site Features -->
+    <div class="ps-site-features">
+        <div class="ps-container">
+            <div class="ps-block--site-features">
+                {% for feature in site_features %}
+                <div class="ps-block__item">
+                    <div class="ps-block__left">
+                        <i class="{{ feature.icon }}"></i>
+                    </div>
+                    <div class="ps-block__right">
+                        <h4>{{ feature.title }}</h4>
+                        <p>
+                            {% if feature.min_order_amount %}
+                                For all orders over {{ currency_symbol }} {{ feature.min_order_amount }}
+                            {% elif feature.return_days %}
+                                If goods have problems within {{ feature.return_days }} days
+                            {% else %}
+                                {{ feature.description }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Deal of the Day -->
+    <div class="ps-deal-of-day">
+        <div class="ps-container">
+            <div class="ps-section__header">
+                <div class="ps-block--countdown-deal">
+                    <div class="ps-block__left">
+                        <h3>Deals of the day</h3>
+                    </div>
+                    <div class="ps-block__right">
+                        <figure>
+                            <figcaption>End in:</figcaption>
+                            <ul class="ps-countdown" data-time="{{ deal_end_date|date:'F d, Y H:i:s' }}">
+                                <li><span class="days"></span></li>
+                                <li><span class="hours"></span></li>
+                                <li><span class="minutes"></span></li>
+                                <li><span class="seconds"></span></li>
+                            </ul>
+                        </figure>
+                    </div>
+                </div>
+                <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">View all</a>
+            </div>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="30" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="3" data-owl-item-md="4" data-owl-item-lg="5" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for product in deals %}
+                    <div class="ps-product ps-product--inner">
+                        <div class="ps-product__thumbnail">
+                            <a href="{{ product.get_absolute_url }}">
+                                <img class="lazy-image" 
+                                     data-src="{{ product.images.first.image.url }}" 
+                                     src="{% static 'img/placeholder.webp' %}"
+                                     alt="">
+                            </a>
+                            {% if product.discount_price %}
+                            <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ps-product__container">
+                            {% if product.discount_price %}
+                            <p class="ps-product__price sale">
+                                {{ currency_symbol }} {{ product.discount_price }} 
+                                <del>{{ currency_symbol }} {{ product.price }}</del>
+                                <br>
+                                <small>{{ product.get_discount_percentage }}% off</small>
+                            </p>
+                            {% else %}
+                            <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+                            {% endif %}
+                            <div class="ps-product__content">
+                                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                    {{ product.name }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View All Deals Button -->
+                <div class="view-all-btn-container">
+                    <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">
+                        View All Deals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Ads -->
+    <div class="ps-home-ads">
+        <div class="ps-container">
+            <div class="row">
+                {% for ad in home_ads|slice:":3" %}
+                <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 col-12">
+                    <a class="ps-collection" href="{{ ad.url }}">
+                        <img class="lazy-image" 
+                             data-src="{{ ad.image.url }}" 
+                             src="{% static 'img/ads-placeholder.webp' %}"
+                             alt="{{ ad.title }}">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Products -->
+    {% for category_data in category_products %}
+    <div class="ps-product-list ps-clothings">
+        <div class="ps-container">
+            <div class="ps-section__header">
+                <h3>{{ category_data.category.name }}</h3>
+                <ul class="ps-section__links">
+                    <li><a href="{{ category_data.category.get_absolute_url }}?sort=newest">New Arrivals</a></li>
+                    <li><a href="{{ category_data.category.get_absolute_url }}?sort=bestseller">Best seller</a></li>
+                    <li><a href="{{ category_data.category.get_absolute_url }}?sort=popular">Most Popular</a></li>
+                    <li><a href="{{ category_data.category.get_absolute_url }}">View All</a></li>
+                </ul>
+            </div>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="2" data-owl-item-md="3" data-owl-item-lg="4" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for product in category_data.products %}
+                    <div class="ps-product">
+                        <div class="ps-product__thumbnail">
+                            <a href="{{ product.get_absolute_url }}">
+                                <img class="lazy-image" 
+                                     data-src="{{ product.images.first.image.url }}" 
+                                     src="{% static 'img/placeholder.webp' %}"
+                                     alt="" />
+                            </a>
+                            {% if product.discount_price %}
+                            <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                            {% endif %}
+                        </div>
+                        <div class="ps-product__container">
+                            {% if product.brand %}
+                            <a class="ps-product__vendor" href="{{ product.brand.get_absolute_url }}">
+                                {{ product.brand.name }}
+                            </a>
+                            {% endif %}
+                            <div class="ps-product__content">
+                                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                    {{ product.name }}
+                                </a>
+                                
+                                {% if product.discount_price %}
+                                <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
+                                {% else %}
+                                <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="ps-product__content hover">
+                                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                    {{ product.name }}
+                                </a>
+                                {% if product.discount_price %}
+                                <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
+                                {% else %}
+                                <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View All Category Button -->
+                <div class="view-all-btn-container">
+                    <a href="{{ category_data.category.get_absolute_url }}" class="view-all-btn">
+                        View All {{ category_data.category.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Home Ads 2 -->
+    <div class="ps-home-ads">
+        <div class="ps-container">
+            <div class="row">
+                {% for ad in home_ads|slice:"3:5" %}
+                <div class="col-xl-{% if forloop.first %}8{% else %}4{% endif %} col-lg-{% if forloop.first %}8{% else %}4{% endif %} col-md-12 col-sm-12 col-12">
+                    <a class="ps-collection" href="{{ ad.url }}">
+                        <img class="lazy-image" 
+                             data-src="{{ ad.image.url }}" 
+                             src="{% static 'img/placeholder.webp' %}"
+                             alt="{{ ad.title }}">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Download App -->
+    <div class="ps-download-app">
+        <div class="ps-container">
+            <div class="ps-block--download-app">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
+                            <div class="ps-block__thumbnail">
+                                <img class="lazy-image" 
+                                     data-src="{% static 'downloadapp.png' %}" 
+                                     src="{% static 'img/placeholder.webp' %}"
+                                     alt="">
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
+                            <div class="ps-block__content">
+                                <h3>Download GenialTouch App Now!</h3>
+                                <p>Shopping fastly and easily more with our app. Get a link to download the app on your phone</p>
+                                <form class="ps-form--download-app" action="" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-group--nest">
+                                        <input class="form-control" type="email" name="email" placeholder="Email Address" required>
+                                        <button class="ps-btn" type="submit">Subscribe</button>
+                                    </div>
+                                </form>
+                                <p class="download-link">
+                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/google-play.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
+                                    <a href="#"><img class="lazy-image" data-src="{% static 'img/app-store.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Arrivals -->
+    <div class="ps-product-list ps-new-arrivals">
+        <div class="ps-container">
+            <div class="ps-section__header">
+                <h3>Hot New Arrivals</h3>
+                <ul class="ps-section__links">
+                    <li><a href="{% url 'product_list' %}?category=technology&sort=newest">Technologies</a></li>
+                    <li><a href="{% url 'product_list' %}?category=electronics&sort=newest">Electronic</a></li>
+                    <li><a href="{% url 'product_list' %}?category=furniture&sort=newest">Furnitures</a></li>
+                    <li><a href="{% url 'product_list' %}?category=clothing&sort=newest">Clothing & Apparel</a></li>
+                    <li><a href="{% url 'product_list' %}?category=beauty&sort=newest">Health & Beauty</a></li>
+                    <li><a href="{% url 'product_list' %}?sort=newest">View All</a></li>
+                </ul>
+            </div>
+            <div class="ps-section__content">
+                <div class="row">
+                    {% for product in new_arrivals|slice:":8" %}
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                        <div class="ps-product--horizontal">
+                            <div class="ps-product__thumbnail">
+                                <a href="{{ product.get_absolute_url }}">
+                                    <img class="lazy-image" 
+                                         data-src="{{ product.images.first.image.url }}" 
+                                         src="{% static 'img/placeholder.webp' %}"
+                                         alt="" />
+                                </a>
+                            </div>
+                            <div class="ps-product__content">
+                                <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                    {{ product.name }}
+                                </a>
+                                <p class="ps-product__price">
+                                    {% if product.discount_price %}
+                                    <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                    <del>{{ currency_symbol }} {{ product.price }}</del>
+                                    {% else %}
+                                    {{ currency_symbol }} {{ product.price }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View All New Arrivals Button -->
+                <div class="view-all-btn-container">
+                    <a href="{% url 'product_list' %}?sort=newest" class="view-all-btn">
+                        View All New Arrivals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="ps-newsletter">
+        <div class="ps-container">
+            <form class="ps-form--newsletter" action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-xl-5 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="ps-form__left">
+                            <h3>Newsletter</h3>
+                            <p>Subscribe to get information about products and coupons</p>
+                        </div>
+                    </div>
+                    <div class="col-xl-7 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="ps-form__right">
+                            <div class="form-group--nest">
+                                <input class="form-control" type="email" name="email" placeholder="Email address" required>
+                                <button class="ps-btn" type="submit">Subscribe</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Lazy Image Loader
+class LazyImageLoader {
+    constructor() {
+        this.images = document.querySelectorAll('.lazy-image');
+        this.init();
+    }
+    
+    init() {
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        this.loadImage(img);
+                        observer.unobserve(img);
+                    }
+                });
+            });
+            
+            this.images.forEach(img => imageObserver.observe(img));
+        } else {
+            // Fallback for older browsers
+            this.loadAllImages();
+        }
+    }
+    
+    loadImage(img) {
+        const src = img.dataset.src;
+        if (!src) return;
+        
+        const tempImg = new Image();
+        tempImg.onload = () => {
+            img.src = src;
+            img.classList.add('loaded');
+        };
+        tempImg.onerror = () => {
+            img.src = '/static/img/no-image.jpg';
+            img.classList.add('loaded');
+        };
+        tempImg.src = src;
+    }
+    
+    loadAllImages() {
+        this.images.forEach(img => this.loadImage(img));
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize lazy image loader
+    window.lazyLoader = new LazyImageLoader();
+    
+    // Initialize Owl Carousels (make sure jQuery is loaded)
+    if (typeof $ !== 'undefined') {
+        $(document).ready(function() {
+            // Initialize all carousels
+            $('.owl-slider').each(function() {
+                if (!$(this).hasClass('owl-loaded')) {
+                    $(this).owlCarousel({
+                        loop: $(this).data('owl-loop') || false,
+                        margin: $(this).data('owl-gap') || 0,
+                        nav: $(this).data('owl-nav') || false,
+                        dots: $(this).data('owl-dots') || false,
+                        autoplay: $(this).data('owl-auto') || false,
+                        autoplayTimeout: $(this).data('owl-speed') || 5000,
+                        responsive: {
+                            0: { items: $(this).data('owl-item-xs') || 1 },
+                            576: { items: $(this).data('owl-item-sm') || 2 },
+                            768: { items: $(this).data('owl-item-md') || 3 },
+                            992: { items: $(this).data('owl-item-lg') || 4 },
+                            1200: { items: $(this).data('owl-item-xl') || 5 }
+                        }
+                    });
+                }
+            });
+        });
+    }
+    
+    // Countdown timer
+    function initializeCountdown() {
+        $('.ps-countdown').each(function() {
+            const endTime = new Date($(this).data('time')).getTime();
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    $(this).html('<span>Expired</span>');
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                $(this).find('.days').text(days.toString().padStart(2, '0'));
+                $(this).find('.hours').text(hours.toString().padStart(2, '0'));
+                $(this).find('.minutes').text(minutes.toString().padStart(2, '0'));
+                $(this).find('.seconds').text(seconds.toString().padStart(2, '0'));
+            }
+            
+            updateCountdown.call(this);
+            const countdownInterval = setInterval(updateCountdown.bind(this), 1000);
+        });
+    }
+    
+    // Initialize countdown
+    if (typeof $ !== 'undefined') {
+        $(document).ready(initializeCountdown);
+    }
+});
+
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+});
+</script>
+{% endblock %}
