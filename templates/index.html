@@ -185,11 +185,52 @@
 
     <!-- Dynamic Content Container (Loaded via AJAX) -->
     <div id="dynamic-content">
-
+        
         <!-- Placeholders for sections to be loaded -->
-        <div class="section-placeholder" id="deals-placeholder"></div>
+         <!-- Deal of the Day -->
+        <div class="ps-deal-of-day">
+            <div class="ps-container">
+                <div class="ps-section__header">
+                    <div class="ps-block--countdown-deal">
+                        <div class="ps-block__left">
+                            <h3>Deals of the day</h3>
+                        </div>
+                        <div class="ps-block__right">
+                            <figure>
+                                <figcaption>End in:</figcaption>
+                                <ul class="ps-countdown" data-time="{{ deal_end_date|date:'F d, Y H:i:s' }}">
+                                    <li><span class="days"></span></li>
+                                    <li><span class="hours"></span></li>
+                                    <li><span class="minutes"></span></li>
+                                    <li><span class="seconds"></span></li>
+                                </ul>
+                            </figure>
+                        </div>
+                    </div>
+                    <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">View all</a>
+                </div>
+                <div class="ps-section__content">
+                    <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="30" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="3" data-owl-item-md="4" data-owl-item-lg="5" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
+                        <div id="deals-container">
+                        <div class="section-placeholder" id="deals-placeholder"></div>
+                        </div>
+
+                    </div>
+                    
+                    <!-- View All Deals Button -->
+                    <div class="view-all-btn-container">
+                        <a href="{% url 'product_list' %}?featured=true" class="view-all-btn">
+                            View All Deals
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="section-placeholder" id="ads1-placeholder"></div>
+        
         <div class="section-placeholder" id="category-placeholder"></div>
+        
         <div class="section-placeholder" id="ads2-placeholder"></div>
         <div class="section-placeholder" id="new-arrivals-placeholder"></div>
     </div>
@@ -204,52 +245,53 @@
 {% endblock %}
 
 {% block extra_js %}
+
 <script>
 // Lazy Image Loader (exactly as your original)
-class LazyImageLoader {
-    constructor() {
-        this.images = document.querySelectorAll('.lazy-image');
-        this.init();
-    }
-    
-    init() {
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        this.loadImage(img);
-                        observer.unobserve(img);
-                    }
+    class LazyImageLoader {
+        constructor() {
+            this.images = document.querySelectorAll('.lazy-image');
+            this.init();
+        }
+        
+        init() {
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            this.loadImage(img);
+                            observer.unobserve(img);
+                        }
+                    });
                 });
-            });
+                
+                this.images.forEach(img => imageObserver.observe(img));
+            } else {
+                this.loadAllImages();
+            }
+        }
+        
+        loadImage(img) {
+            const src = img.dataset.src;
+            if (!src) return;
             
-            this.images.forEach(img => imageObserver.observe(img));
-        } else {
-            this.loadAllImages();
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                img.src = src;
+                img.classList.add('loaded');
+            };
+            tempImg.onerror = () => {
+                img.src = '/static/img/no-image.jpg';
+                img.classList.add('loaded');
+            };
+            tempImg.src = src;
+        }
+        
+        loadAllImages() {
+            this.images.forEach(img => this.loadImage(img));
         }
     }
-    
-    loadImage(img) {
-        const src = img.dataset.src;
-        if (!src) return;
-        
-        const tempImg = new Image();
-        tempImg.onload = () => {
-            img.src = src;
-            img.classList.add('loaded');
-        };
-        tempImg.onerror = () => {
-            img.src = '/static/img/no-image.jpg';
-            img.classList.add('loaded');
-        };
-        tempImg.src = src;
-    }
-    
-    loadAllImages() {
-        this.images.forEach(img => this.loadImage(img));
-    }
-}
 
 // Progressive Loading Manager
 class ProgressiveLoader {
@@ -313,31 +355,47 @@ class ProgressiveLoader {
                 const placeholder = document.getElementById(section.placeholder);
                 
                 if (placeholder && data.html) {
-                    // Insert the HTML
-                    placeholder.outerHTML = data.html;
+                    // For deals section, insert the products INSIDE the carousel wrapper
+                    if (section.name === 'deals') {
+                        // Get the parent carousel container
+                        const carouselContainer = placeholder.closest('.owl-slider');
+                        if (carouselContainer) {
+                            // Remove the placeholder
+                            placeholder.remove();
+                            // Insert the products HTML directly into the carousel
+                            carouselContainer.innerHTML = data.html;
+                        } else {
+                            placeholder.outerHTML = data.html;
+                        }
+                    } else {
+                        placeholder.outerHTML = data.html;
+                    }
+                    
                     section.loaded = true;
                     
-                    // Reinitialize carousels EXACTLY as your original code does
+                    // Reinitialize carousels
                     setTimeout(() => {
                         if (typeof $ !== 'undefined') {
+                            // Destroy and reinitialize the specific carousel
                             $('.owl-slider').each(function() {
-                                if (!$(this).hasClass('owl-loaded')) {
-                                    $(this).owlCarousel({
-                                        loop: $(this).data('owl-loop') || false,
-                                        margin: $(this).data('owl-gap') || 0,
-                                        nav: $(this).data('owl-nav') || false,
-                                        dots: $(this).data('owl-dots') || false,
-                                        autoplay: $(this).data('owl-auto') || false,
-                                        autoplayTimeout: $(this).data('owl-speed') || 5000,
-                                        responsive: {
-                                            0: { items: $(this).data('owl-item-xs') || 1 },
-                                            576: { items: $(this).data('owl-item-sm') || 2 },
-                                            768: { items: $(this).data('owl-item-md') || 3 },
-                                            992: { items: $(this).data('owl-item-lg') || 4 },
-                                            1200: { items: $(this).data('owl-item-xl') || 5 }
-                                        }
-                                    });
+                                if ($(this).hasClass('owl-loaded')) {
+                                    $(this).owlCarousel('destroy');
                                 }
+                                $(this).owlCarousel({
+                                    loop: $(this).data('owl-loop') || false,
+                                    margin: $(this).data('owl-gap') || 0,
+                                    nav: $(this).data('owl-nav') || false,
+                                    dots: $(this).data('owl-dots') || false,
+                                    autoplay: $(this).data('owl-auto') || false,
+                                    autoplayTimeout: $(this).data('owl-speed') || 5000,
+                                    responsive: {
+                                        0: { items: $(this).data('owl-item-xs') || 1 },
+                                        576: { items: $(this).data('owl-item-sm') || 2 },
+                                        768: { items: $(this).data('owl-item-md') || 3 },
+                                        992: { items: $(this).data('owl-item-lg') || 4 },
+                                        1200: { items: $(this).data('owl-item-xl') || 5 }
+                                    }
+                                });
                             });
                             
                             // Reinitialize countdown timers
@@ -370,11 +428,53 @@ class ProgressiveLoader {
                             });
                         }
                         
-                        // Reinitialize lazy loading for new images
+                        // CRITICAL FIX: Reinitialize lazy loading for new images
                         if (window.lazyLoader) {
+                            // Update the images collection with newly added images
                             window.lazyLoader.images = document.querySelectorAll('.lazy-image:not(.loaded)');
-                            window.lazyLoader.init();
+                            
+                            // Re-initialize the observer for new images
+                            if ('IntersectionObserver' in window) {
+                                const imageObserver = new IntersectionObserver((entries, observer) => {
+                                    entries.forEach(entry => {
+                                        if (entry.isIntersecting) {
+                                            const img = entry.target;
+                                            window.lazyLoader.loadImage(img);
+                                            observer.unobserve(img);
+                                        }
+                                    });
+                                });
+                                
+                                window.lazyLoader.images.forEach(img => imageObserver.observe(img));
+                            } else {
+                                // Fallback: load all images immediately
+                                window.lazyLoader.images.forEach(img => window.lazyLoader.loadImage(img));
+                            }
+                        } else {
+                            // If lazyLoader doesn't exist for some reason, create it
+                            window.lazyLoader = new LazyImageLoader();
                         }
+                        
+                        // Also trigger a manual load for images that might already be in viewport
+                        setTimeout(() => {
+                            const visibleImages = document.querySelectorAll('.lazy-image:not(.loaded)');
+                            visibleImages.forEach(img => {
+                                const rect = img.getBoundingClientRect();
+                                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                                    if (window.lazyLoader && window.lazyLoader.loadImage) {
+                                        window.lazyLoader.loadImage(img);
+                                    } else {
+                                        // Fallback direct loading
+                                        const src = img.dataset.src;
+                                        if (src) {
+                                            img.src = src;
+                                            img.classList.add('loaded');
+                                        }
+                                    }
+                                }
+                            });
+                        }, 200);
+                        
                     }, 100);
                 }
                 

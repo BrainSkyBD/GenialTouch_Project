@@ -173,12 +173,26 @@ def home(request):
     print(f"Home page initial load: {load_time:.2f} seconds")
     
 
+    # Products for different sections with optimization
+    # deals = Product.objects.filter(
+    #     is_active=True, 
+    #     is_featured=True
+    # ).select_related('brand').prefetch_related(
+    #     Prefetch(
+    #         'images',
+    #         queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+    #     )
+    # ).only(
+    #     'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+    # ).order_by('-created_at')[:8]
+
     context = {
         'top_categories': top_categories,
         'banners': banners,
         'promotions': promotions,
         'site_features': site_features,
-        'deal_end_date': deal_end_date
+        'deal_end_date': deal_end_date,
+        # "deals":deals
     }
     
     return render(request, 'index.html', context)
