@@ -1,0 +1,18 @@
+{% load static %}
+<!-- Home Ads -->
+<div class="ps-home-ads">
+    <div class="ps-container">
+        <div class="row">
+            {% for ad in home_ads|slice:":3" %}
+            <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 col-12">
+                <a class="ps-collection" href="{{ ad.url }}">
+                    <img class="lazy-image" 
+                         data-src="{{ ad.image.url }}" 
+                         src="{% static 'img/ads-placeholder.webp' %}"
+                         alt="{{ ad.title }}">
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

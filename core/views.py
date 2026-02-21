@@ -1,73 +1,239 @@
 # views.py
-from django.shortcuts import render
-from .models import Banner, Promotion, HomeAd
-from .models import Banner, Promotion, HomeAd
-from django.db.models import Q
 
-from django.db.models import Q, Count, Avg
-from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.db.models import Q, Count, Avg, Prefetch
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable, SiteFeature
 from products.models import Product, Category, Brand, AttributeValue, ProductImage
 from reviews.models import Review
 
-
-
-from django.shortcuts import render
-from django.db.models import Prefetch
-from django.core.cache import cache
-from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable
-from products.models import Category, Product, ProductImage
 import time
 
-from django.shortcuts import render
-from django.db.models import Prefetch
-from django.core.cache import cache
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import JsonResponse
-from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable
-from products.models import Category, Product, ProductImage
-import time
 
-from django.shortcuts import render, redirect
-from django.db.models import Prefetch
 from django.core.cache import cache
-from django.http import JsonResponse
-from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable, SiteFeature
-from products.models import Category, Product, ProductImage
-import time
+from django.db.models import Exists, OuterRef
+
+# def home(request):
+#     """
+#     Optimized home view keeping your exact frontend
+#     """
+    
+    
+#     # Get data (with optimizations)
+#     start_time = time.time()
+    
+    
+    
+#     # Get featured categories
+#     featured_categories = Category.objects.filter(
+#         is_active=True, 
+#         is_featured=True
+#     ).only('id', 'name', 'slug', 'image')[:8]
+    
+#     # Products for different sections with optimization
+#     deals = Product.objects.filter(
+#         is_active=True, 
+#         is_featured=True
+#     ).select_related('brand').prefetch_related(
+#         Prefetch(
+#             'images',
+#             queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#         )
+#     ).only(
+#         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#     ).order_by('-created_at')[:8]
+    
+#     new_arrivals = Product.objects.filter(
+#         is_active=True
+#     ).select_related('brand').prefetch_related(
+#         Prefetch(
+#             'images',
+#             queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#         )
+#     ).only(
+#         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#     ).order_by('-created_at')[:8]
+    
+#     # Get products for featured categories
+#     category_products = []
+#     for category in featured_categories:
+#         products = Product.objects.filter(
+#             categories=category,
+#             is_active=True
+#         ).select_related('brand').prefetch_related(
+#             Prefetch(
+#                 'images',
+#                 queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#             )
+#         ).only(
+#             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#         ).distinct().order_by('-created_at')[:10]
+        
+#         if products.exists():
+#             category_products.append({
+#                 'category': category,
+#                 'products': products
+#             })
+    
+#     # Marketing content
+#     banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
+#     promotions = Promotion.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:2]
+#     home_ads = HomeAd.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:5]
+    
+#     # Calculate deal end date
+#     from datetime import datetime, timedelta
+#     deal_end_date = datetime.now() + timedelta(days=1)
+    
+#     top_categories = Category.objects.filter(
+#         parent__isnull=True, 
+#         is_active=True, 
+#         is_featured=True
+#     ).only('id', 'name', 'slug', 'image')
+    
+#     # Log performance
+#     load_time = time.time() - start_time
+#     print(f"Home page loaded in {load_time:.2f} seconds")
+
+
+
+#     # Get all active site features
+#     site_features = SiteFeature.objects.filter(is_active=True).select_related()
+    
+#     # Process features for template
+#     processed_features = []
+#     for feature in site_features:
+#         feature_data = {
+#             'title': feature.title,
+#             'description': feature.get_display_description(),
+#             'icon': feature.icon,
+#             'min_order_amount': feature.min_order_amount,
+#             'return_days': feature.return_days,
+#         }
+#         processed_features.append(feature_data)
+    
+    
+    
+#     context = {
+#         'featured_categories': featured_categories,
+#         'category_products': category_products,
+#         'deals': deals,
+#         'new_arrivals': new_arrivals,
+#         'banners': banners,
+#         'promotions': promotions,
+#         'home_ads': home_ads,
+#         'deal_end_date': deal_end_date,
+#         'top_categories': top_categories,
+
+#         'site_features': processed_features,
+#     }
+    
+#     return render(request, 'index.html', context)
+
+
+# views.py - Updated home view with minimal data
+
+
+def get_featured_categories(limit=8):
+    from django.db import connection
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT c.id, c.name, c.slug, c.image
+            FROM products_category c
+            WHERE c.is_active = true 
+            AND c.is_featured = true
+            AND EXISTS (
+                SELECT 1 FROM products_product_categories pc
+                JOIN products_product p ON p.id = pc.product_id
+                WHERE pc.category_id = c.id 
+                AND p.is_active = true
+            )
+            LIMIT %s
+        """, [limit])
+        
+        # Convert to dict for template
+        columns = ['id', 'name', 'slug', 'image']
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
 
 
 def home(request):
     """
-    Optimized home view keeping your exact frontend
+    Home view with minimal initial data - rest loads via AJAX
     """
-    # Get active currency
-    try:
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
-    except:
-        currency_symbol = '৳'
-    
-    # Get data (with optimizations)
     start_time = time.time()
     
-    # Main categories (those without parents)
-    categories = Category.objects.filter(
+    # ONLY LOAD ESSENTIAL DATA FOR ABOVE THE FOLD
+    # Top categories (limited to 16 max)
+    top_categories = Category.objects.filter(
         parent__isnull=True, 
-        is_active=True
-    ).only('id', 'name', 'slug', 'image').prefetch_related(
-        Prefetch(
-            'children',
-            queryset=Category.objects.filter(is_active=True).only('id', 'name', 'slug', 'image')
-        )
-    )
-    
-    # Get featured categories
-    featured_categories = Category.objects.filter(
         is_active=True, 
         is_featured=True
-    ).only('id', 'name', 'slug', 'image')[:8]
+    ).only('id', 'name', 'slug', 'image')[:16]
     
+    # Banners (essential for hero section)
+    banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
+    
+    # Site features
+    site_features = []
+    feature_data = SiteFeature.objects.filter(is_active=True).select_related()
+    for feature in feature_data:
+        site_features.append({
+            'title': feature.title,
+            'description': feature.get_display_description(),
+            'icon': feature.icon,
+            'min_order_amount': feature.min_order_amount,
+            'return_days': feature.return_days,
+        })
+    
+    # Minimal promotions for sidebar (first 2 only)
+    promotions = Promotion.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:2]
+    
+    # Deal end date
+    from datetime import datetime, timedelta
+    deal_end_date = datetime.now() + timedelta(days=1)
+    
+    load_time = time.time() - start_time
+    print(f"Home page initial load: {load_time:.2f} seconds")
+    
+
     # Products for different sections with optimization
+    # deals = Product.objects.filter(
+    #     is_active=True, 
+    #     is_featured=True
+    # ).select_related('brand').prefetch_related(
+    #     Prefetch(
+    #         'images',
+    #         queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+    #     )
+    # ).only(
+    #     'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+    # ).order_by('-created_at')[:8]
+
+
+    featured_categories = get_featured_categories()
+
+    context = {
+        'top_categories': top_categories,
+        'banners': banners,
+        'promotions': promotions,
+        'site_features': site_features,
+        'deal_end_date': deal_end_date,
+        # "deals":deals,
+        "featured_categories": featured_categories,
+    }
+    
+    return render(request, 'index.html', context)
+
+
+def load_deals_section(request):
+    """Load deals section via AJAX"""
+    from django.template.loader import render_to_string
+    
     deals = Product.objects.filter(
         is_active=True, 
         is_featured=True
@@ -80,6 +246,82 @@ def home(request):
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     ).order_by('-created_at')[:8]
     
+    from datetime import datetime, timedelta
+    deal_end_date = datetime.now() + timedelta(days=1)
+    
+    html = render_to_string('partials/deals_section.html', {
+        'deals': deals,
+        'deal_end_date': deal_end_date,
+    })
+    
+    return JsonResponse({'html': html})
+
+
+# def load_category_products_section(request):
+#     """Load category products section via AJAX"""
+#     from django.template.loader import render_to_string
+    
+#     # Get featured categories
+#     featured_categories = Category.objects.filter(
+#         is_active=True, 
+#         is_featured=True
+#     ).only('id', 'name', 'slug', 'image')[:8]
+    
+#     # Get products for categories
+#     category_products = []
+#     for category in featured_categories:
+#         products = Product.objects.filter(
+#             categories=category,
+#             is_active=True
+#         ).select_related('brand').prefetch_related(
+#             Prefetch(
+#                 'images',
+#                 queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#             )
+#         ).only(
+#             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#         ).distinct().order_by('-created_at')[:10]
+        
+#         if products.exists():
+#             category_products.append({
+#                 'category': category,
+#                 'products': products
+#             })
+    
+#     html = render_to_string('partials/category_products_section.html', {
+#         'category_products': category_products,
+#     })
+    
+#     return JsonResponse({'html': html})
+
+
+def load_category_products_section(request, category_slug):
+    """Load deals section via AJAX"""
+    from django.template.loader import render_to_string
+    
+    products = Product.objects.filter(
+                    categories__slug=category_slug,
+                    is_active=True
+                ).select_related('brand').prefetch_related(
+                    Prefetch(
+                        'images',
+                        queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+                    )
+                ).only(
+                    'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+                ).distinct().order_by('-created_at')[:10]
+    
+    html = render_to_string('partials/category_products_section.html', {
+        'products': products,
+    })
+    
+    return JsonResponse({'html': html})
+
+
+def load_new_arrivals_section(request):
+    """Load new arrivals section via AJAX"""
+    from django.template.loader import render_to_string
+    
     new_arrivals = Product.objects.filter(
         is_active=True
     ).select_related('brand').prefetch_related(
@@ -91,82 +333,29 @@ def home(request):
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     ).order_by('-created_at')[:8]
     
-    # Get products for featured categories
-    category_products = []
-    for category in featured_categories:
-        products = Product.objects.filter(
-            categories=category,
-            is_active=True
-        ).select_related('brand').prefetch_related(
-            Prefetch(
-                'images',
-                queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
-            )
-        ).only(
-            'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
-        ).distinct().order_by('-created_at')[:10]
-        
-        if products.exists():
-            category_products.append({
-                'category': category,
-                'products': products
-            })
-    
-    # Marketing content
-    banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
-    promotions = Promotion.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:2]
-    home_ads = HomeAd.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:5]
-    
-    # Calculate deal end date
-    from datetime import datetime, timedelta
-    deal_end_date = datetime.now() + timedelta(days=1)
-    
-    top_categories = Category.objects.filter(
-        parent__isnull=True, 
-        is_active=True, 
-        is_featured=True
-    ).only('id', 'name', 'slug', 'image')
-    
-    # Log performance
-    load_time = time.time() - start_time
-    print(f"Home page loaded in {load_time:.2f} seconds")
-
-
-
-    # Get all active site features
-    site_features = SiteFeature.objects.filter(is_active=True).select_related()
-    
-    # Process features for template
-    processed_features = []
-    for feature in site_features:
-        feature_data = {
-            'title': feature.title,
-            'description': feature.get_display_description(),
-            'icon': feature.icon,
-            'min_order_amount': feature.min_order_amount,
-            'return_days': feature.return_days,
-        }
-        processed_features.append(feature_data)
-    
-    
-    
-    context = {
-        'categories': categories,
-        'featured_categories': featured_categories,
-        'category_products': category_products,
-        'deals': deals,
+    html = render_to_string('partials/new_arrivals_section.html', {
         'new_arrivals': new_arrivals,
-        'banners': banners,
-        'promotions': promotions,
-        'home_ads': home_ads,
-        'deal_end_date': deal_end_date,
-        'top_categories': top_categories,
-        'currency_symbol': currency_symbol,
-
-        'site_features': processed_features,
-    }
+    })
     
-    return render(request, 'index.html', context)
+    return JsonResponse({'html': html})
+
+
+def load_home_ads_section(request):
+    """Load home ads section via AJAX"""
+    from django.template.loader import render_to_string
+    
+    section = request.GET.get('section', 'first')
+    home_ads = HomeAd.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
+    
+    if section == 'first':
+        ads = home_ads[:3]
+        html = render_to_string('partials/home_ads_first.html', {'home_ads': ads})
+    else:
+        ads = home_ads[3:5]
+        html = render_to_string('partials/home_ads_second.html', {'home_ads': ads})
+    
+    return JsonResponse({'html': html})
+
 
 
 def view_all_deals(request):

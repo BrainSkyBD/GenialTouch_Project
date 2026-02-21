@@ -116,6 +116,8 @@ class Category(models.Model):
             'url': self.get_absolute_url(),
         }
 
+    
+
 
 class Attribute(models.Model):
     name = models.CharField(max_length=100)

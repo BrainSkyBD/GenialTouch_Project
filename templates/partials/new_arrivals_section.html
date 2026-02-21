@@ -1,0 +1,117 @@
+{% load static %}
+<!-- New Arrivals -->
+<div class="ps-product-list ps-new-arrivals">
+    <div class="ps-container">
+        <div class="ps-section__header">
+            <h3>Hot New Arrivals</h3>
+            <ul class="ps-section__links">
+                <li><a href="{% url 'product_list' %}?category=technology&sort=newest">Technologies</a></li>
+                <li><a href="{% url 'product_list' %}?category=electronics&sort=newest">Electronic</a></li>
+                <li><a href="{% url 'product_list' %}?category=furniture&sort=newest">Furnitures</a></li>
+                <li><a href="{% url 'product_list' %}?category=clothing&sort=newest">Clothing & Apparel</a></li>
+                <li><a href="{% url 'product_list' %}?category=beauty&sort=newest">Health & Beauty</a></li>
+                <li><a href="{% url 'product_list' %}?sort=newest">View All</a></li>
+            </ul>
+        </div>
+        <div class="ps-section__content">
+            <div class="row">
+                {% for product in new_arrivals|slice:":8" %}
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                    <div class="ps-product--horizontal">
+                        <div class="ps-product__thumbnail">
+                            <a href="{{ product.get_absolute_url }}">
+                                <img class="lazy-image" 
+                                     data-src="{{ product.images.first.image.url }}" 
+                                     src="{% static 'img/placeholder.webp' %}"
+                                     alt="" />
+                            </a>
+                        </div>
+                        <div class="ps-product__content">
+                            <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                                {{ product.name }}
+                            </a>
+                            <p class="ps-product__price">
+                                {% if product.discount_price %}
+                                <span class="sale">{{ currency_symbol }} {{ product.discount_price }}</span>
+                                <del>{{ currency_symbol }} {{ product.price }}</del>
+                                {% else %}
+                                {{ currency_symbol }} {{ product.price }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- View All New Arrivals Button -->
+            <div class="view-all-btn-container">
+                <a href="{% url 'product_list' %}?sort=newest" class="view-all-btn">
+                    View All New Arrivals
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download App -->
+<div class="ps-download-app">
+    <div class="ps-container">
+        <div class="ps-block--download-app">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
+                        <div class="ps-block__thumbnail">
+                            <img class="lazy-image" 
+                                 data-src="{% static 'downloadapp.png' %}" 
+                                 src="{% static 'img/placeholder.webp' %}"
+                                 alt="">
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
+                        <div class="ps-block__content">
+                            <h3>Download GenialTouch App Now!</h3>
+                            <p>Shopping fastly and easily more with our app. Get a link to download the app on your phone</p>
+                            <form class="ps-form--download-app" action="" method="post">
+                                {% csrf_token %}
+                                <div class="form-group--nest">
+                                    <input class="form-control" type="email" name="email" placeholder="Email Address" required>
+                                    <button class="ps-btn" type="submit">Subscribe</button>
+                                </div>
+                            </form>
+                            <p class="download-link">
+                                <a href="#"><img class="lazy-image" data-src="{% static 'img/google-play.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
+                                <a href="#"><img class="lazy-image" data-src="{% static 'img/app-store.png' %}" src="{% static 'img/placeholder.webp' %}" alt=""></a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter -->
+<div class="ps-newsletter">
+    <div class="ps-container">
+        <form class="ps-form--newsletter" action="" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-xl-5 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <div class="ps-form__left">
+                        <h3>Newsletter</h3>
+                        <p>Subscribe to get information about products and coupons</p>
+                    </div>
+                </div>
+                <div class="col-xl-7 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <div class="ps-form__right">
+                        <div class="form-group--nest">
+                            <input class="form-control" type="email" name="email" placeholder="Email address" required>
+                            <button class="ps-btn" type="submit">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
