@@ -8,7 +8,7 @@ urlpatterns = [
     path('', views.home, name='home'),
 
     path('load-deals-section/', views.load_deals_section, name='load_deals_section'),
-    path('load-category-products-section/', views.load_category_products_section, name='load_category_products_section'),
+    path('load-category-products-section/<str:category_slug>', views.load_category_products_section, name='load_category_products_section'),
     path('load-new-arrivals-section/', views.load_new_arrivals_section, name='load_new_arrivals_section'),
     path('load-home-ads-section/', views.load_home_ads_section, name='load_home_ads_section'),
 

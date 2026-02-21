@@ -1,70 +1,34 @@
 {% load static %}
-<!-- Category Products -->
-{% for category_data in category_products %}
-<div class="ps-product-list ps-clothings">
-    <div class="ps-container">
-        <div class="ps-section__header">
-            <h3>{{ category_data.category.name }}</h3>
-            <ul class="ps-section__links">
-                <li><a href="{{ category_data.category.get_absolute_url }}?sort=newest">New Arrivals</a></li>
-                <li><a href="{{ category_data.category.get_absolute_url }}?sort=bestseller">Best seller</a></li>
-                <li><a href="{{ category_data.category.get_absolute_url }}?sort=popular">Most Popular</a></li>
-                <li><a href="{{ category_data.category.get_absolute_url }}">View All</a></li>
-            </ul>
-        </div>
-        <div class="ps-section__content">
-            <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="7" data-owl-item-xs="2" data-owl-item-sm="2" data-owl-item-md="3" data-owl-item-lg="4" data-owl-item-xl="6" data-owl-duration="1000" data-owl-mousedrag="on">
-                {% for product in category_data.products %}
-                <div class="ps-product">
-                    <div class="ps-product__thumbnail">
-                        <a href="{{ product.get_absolute_url }}">
-                            <img class="lazy-image" 
-                                 data-src="{{ product.images.first.image.url }}" 
-                                 src="{% static 'img/placeholder.webp' %}"
-                                 alt="" />
-                        </a>
-                        {% if product.discount_price %}
-                        <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
-                        {% endif %}
-                    </div>
-                    <div class="ps-product__container">
-                        {% if product.brand %}
-                        <a class="ps-product__vendor" href="{{ product.brand.get_absolute_url }}">
-                            {{ product.brand.name }}
-                        </a>
-                        {% endif %}
-                        <div class="ps-product__content">
-                            <a class="ps-product__title" href="{{ product.get_absolute_url }}">
-                                {{ product.name }}
-                            </a>
-                            
-                            {% if product.discount_price %}
-                            <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
-                            {% else %}
-                            <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="ps-product__content hover">
-                            <a class="ps-product__title" href="{{ product.get_absolute_url }}">
-                                {{ product.name }}
-                            </a>
-                            {% if product.discount_price %}
-                            <p class="ps-product__price sale">{{ currency_symbol }} {{ product.discount_price }} <del>{{ currency_symbol }} {{ product.price }}</del></p>
-                            {% else %}
-                            <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- View All Category Button -->
-            <div class="view-all-btn-container">
-                <a href="{{ category_data.category.get_absolute_url }}" class="view-all-btn">
-                    View All {{ category_data.category.name }}
-                </a>
-            </div>
+
+{% for product in products %}
+<div class="ps-product ps-product--inner">
+    <div class="ps-product__thumbnail">
+        <a href="{{ product.get_absolute_url }}">
+            <img class="lazy-image" 
+                 data-src="{{ product.images.first.image.url }}" 
+                 src="{% static 'img/placeholder.webp' %}"
+                 alt="{{ product.name }}">
+        </a>
+        {% if product.discount_price %}
+        <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+        {% endif %}
+    </div>
+    
+    <div class="ps-product__container">
+        {% if product.discount_price %}
+        <p class="ps-product__price sale">
+            {{ currency_symbol }} {{ product.discount_price }} 
+            <del>{{ currency_symbol }} {{ product.price }}</del>
+            <br>
+            <small>{{ product.get_discount_percentage }}% off</small>
+        </p>
+        {% else %}
+        <p class="ps-product__price">{{ currency_symbol }} {{ product.price }}</p>
+        {% endif %}
+        <div class="ps-product__content">
+            <a class="ps-product__title" href="{{ product.get_absolute_url }}">
+                {{ product.name }}
+            </a>
         </div>
     </div>
 </div>

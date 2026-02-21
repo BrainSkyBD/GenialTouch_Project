@@ -14,6 +14,9 @@ from reviews.models import Review
 import time
 
 
+from django.core.cache import cache
+from django.db.models import Exists, OuterRef
+
 # def home(request):
 #     """
 #     Optimized home view keeping your exact frontend
@@ -133,6 +136,31 @@ import time
 
 # views.py - Updated home view with minimal data
 
+
+def get_featured_categories(limit=8):
+    from django.db import connection
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT c.id, c.name, c.slug, c.image
+            FROM products_category c
+            WHERE c.is_active = true 
+            AND c.is_featured = true
+            AND EXISTS (
+                SELECT 1 FROM products_product_categories pc
+                JOIN products_product p ON p.id = pc.product_id
+                WHERE pc.category_id = c.id 
+                AND p.is_active = true
+            )
+            LIMIT %s
+        """, [limit])
+        
+        # Convert to dict for template
+        columns = ['id', 'name', 'slug', 'image']
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+
 def home(request):
     """
     Home view with minimal initial data - rest loads via AJAX
@@ -186,13 +214,17 @@ def home(request):
     #     'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     # ).order_by('-created_at')[:8]
 
+
+    featured_categories = get_featured_categories()
+
     context = {
         'top_categories': top_categories,
         'banners': banners,
         'promotions': promotions,
         'site_features': site_features,
         'deal_end_date': deal_end_date,
-        # "deals":deals
+        # "deals":deals,
+        "featured_categories": featured_categories,
     }
     
     return render(request, 'index.html', context)
@@ -225,39 +257,62 @@ def load_deals_section(request):
     return JsonResponse({'html': html})
 
 
-def load_category_products_section(request):
-    """Load category products section via AJAX"""
+# def load_category_products_section(request):
+#     """Load category products section via AJAX"""
+#     from django.template.loader import render_to_string
+    
+#     # Get featured categories
+#     featured_categories = Category.objects.filter(
+#         is_active=True, 
+#         is_featured=True
+#     ).only('id', 'name', 'slug', 'image')[:8]
+    
+#     # Get products for categories
+#     category_products = []
+#     for category in featured_categories:
+#         products = Product.objects.filter(
+#             categories=category,
+#             is_active=True
+#         ).select_related('brand').prefetch_related(
+#             Prefetch(
+#                 'images',
+#                 queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#             )
+#         ).only(
+#             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#         ).distinct().order_by('-created_at')[:10]
+        
+#         if products.exists():
+#             category_products.append({
+#                 'category': category,
+#                 'products': products
+#             })
+    
+#     html = render_to_string('partials/category_products_section.html', {
+#         'category_products': category_products,
+#     })
+    
+#     return JsonResponse({'html': html})
+
+
+def load_category_products_section(request, category_slug):
+    """Load deals section via AJAX"""
     from django.template.loader import render_to_string
     
-    # Get featured categories
-    featured_categories = Category.objects.filter(
-        is_active=True, 
-        is_featured=True
-    ).only('id', 'name', 'slug', 'image')[:8]
-    
-    # Get products for categories
-    category_products = []
-    for category in featured_categories:
-        products = Product.objects.filter(
-            categories=category,
-            is_active=True
-        ).select_related('brand').prefetch_related(
-            Prefetch(
-                'images',
-                queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
-            )
-        ).only(
-            'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
-        ).distinct().order_by('-created_at')[:10]
-        
-        if products.exists():
-            category_products.append({
-                'category': category,
-                'products': products
-            })
+    products = Product.objects.filter(
+                    categories__slug=category_slug,
+                    is_active=True
+                ).select_related('brand').prefetch_related(
+                    Prefetch(
+                        'images',
+                        queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+                    )
+                ).only(
+                    'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+                ).distinct().order_by('-created_at')[:10]
     
     html = render_to_string('partials/category_products_section.html', {
-        'category_products': category_products,
+        'products': products,
     })
     
     return JsonResponse({'html': html})
