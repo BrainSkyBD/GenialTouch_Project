@@ -3,6 +3,7 @@
 {% block title %} Checkout - GenialTouch{% endblock %}
 {% block extra_css %}
 <style>
+
     /* Add new styles for birth date fields */
     .birthday-section {
         margin: 20px 0;
@@ -26,135 +27,7 @@
         margin-top: 5px;
     }
     
-    /* Promo Code Styles */
-    .promo-code-section {
-        margin: 20px 0;
-        padding: 15px;
-        background: #f0f8ff;
-        border-radius: 8px;
-        border: 1px dashed #fcb800;
-    }
-    
-    .promo-code-section h4 {
-        margin-bottom: 10px;
-        color: #2c3e50;
-        font-size: 16px;
-    }
-    
-    .input-group {
-        display: flex;
-        margin-bottom: 5px;
-    }
-    
-    .input-group .form-control {
-        flex: 1;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-    }
-    
-    .input-group-append {
-        margin-left: -1px;
-    }
-    
-    .input-group-append .btn {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        background: #fcb800;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .input-group-append .btn:hover {
-        background: #e5a600;
-    }
-    
-    .input-group-append .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    .btn-link {
-        background: none;
-        border: none;
-        color: #fcb800;
-        text-decoration: underline;
-        cursor: pointer;
-        padding: 0;
-    }
-    
-    .btn-link:hover {
-        color: #e5a600;
-    }
-    
-    .alert {
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-    }
-    
-    .alert-success {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    
-    .alert-danger {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    
-    .alert-info {
-        background: #e7f3ff;
-        color: #004085;
-        border: 1px solid #b8daff;
-    }
-    
-    .alert-warning {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-    }
-    
-    .btn-outline-danger {
-        color: #dc3545;
-        background: transparent;
-        border: 1px solid #dc3545;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-    
-    .btn-outline-danger:hover {
-        background: #dc3545;
-        color: white;
-    }
-    
-    .text-success {
-        color: #28a745;
-    }
-    
-    .text-warning {
-        color: #856404;
-    }
-    
-    .progress {
-        height: 5px;
-        margin-top: 8px;
-        background: #cce5ff;
-        border-radius: 3px;
-        overflow: hidden;
-    }
-    
-    .progress-bar {
-        height: 100%;
-        background: #28a745;
-        transition: width 0.3s ease;
-    }
+
 
     /* Base Styles */
     .ps-checkout {
@@ -253,18 +126,6 @@
     .ps-block--checkout-order figure.ps-block__items a small {
         color: #fcb800;
         font-weight: 700;
-    }
-    
-    .cart-item {
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .cart-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
     }
     
     /* Payment Methods */
@@ -425,24 +286,6 @@
         .payment-option input[type="radio"] {
             margin-bottom: 10px;
         }
-        
-        .input-group {
-            flex-direction: column;
-        }
-        
-        .input-group .form-control {
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .input-group-append {
-            margin-left: 0;
-        }
-        
-        .input-group-append .btn {
-            border-radius: 8px;
-            width: 100%;
-        }
     }
 </style>
 {% endblock %}
@@ -487,7 +330,44 @@
                                         </div>
                                     </div>
 
-                                    <!-- Birthday Section -->
+
+                                    <!-- Add Birthday Section -->
+                                    <!-- <div class="birthday-section">
+                                        <span class="birthday-label">Birthday Information (Optional)</span>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Birth Date</label>
+                                                    <input class="form-control" type="date" name="birth_date" 
+                                                           max="{{ today }}" id="birth_date">
+                                                    <small class="birthday-note">We might send you birthday surprises!</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Birth Month</label>
+                                                    <select class="form-control" name="birth_month" id="birth_month">
+                                                        <option value="">Select Month</option>
+                                                        <option value="January">January</option>
+                                                        <option value="February">February</option>
+                                                        <option value="March">March</option>
+                                                        <option value="April">April</option>
+                                                        <option value="May">May</option>
+                                                        <option value="June">June</option>
+                                                        <option value="July">July</option>
+                                                        <option value="August">August</option>
+                                                        <option value="September">September</option>
+                                                        <option value="October">October</option>
+                                                        <option value="November">November</option>
+                                                        <option value="December">December</option>
+                                                    </select>
+                                                    <small class="birthday-note">Select your birth month</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> -->
+
+                                    <!-- Add Birthday Section -->
                                     <div class="birthday-section">
                                         <span class="birthday-label">Birthday Information (Optional)</span>
                                         <small class="birthday-note">We might send you birthday surprises!</small>
@@ -531,7 +411,7 @@
                                         <label>Email (Optional)</label>
                                         <input class="form-control" type="email" name="email" 
                                                value="{{ initial_data.email|default:'' }}" 
-                                               placeholder="Optional - we'll use your account email if logged in">
+                                               placeholder="Optional - we'll use your account email">
                                     </div>
                                     
                                     <div class="form-group">
@@ -620,83 +500,17 @@
                                             </div>
                                             {% endfor %}
                                         </figure>
-                                        
-                                        <!-- Promo Code Section with Minimum Purchase Display -->
-                                        <div class="promo-code-section">
-                                            <h4>Have a Promo Code?</h4>
-                                            
-                                            <div id="promo-status" style="display: none;"></div>
-                                            
-                                            <!-- Minimum Purchase Requirement Info (shown when validating) -->
-                                            <div id="promo-requirements" style="display: none; margin-bottom: 10px;">
-                                                <div class="alert alert-info">
-                                                    <span id="promo-requirements-message"></span>
-                                                    <div class="progress">
-                                                        <div id="promo-progress-bar" class="progress-bar" style="width: 0%;"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div id="promo-input-group" {% if applied_promo %}style="display: none;"{% endif %}>
-                                                <div class="input-group">
-                                                    <input type="text" id="promo-code-input" class="form-control" 
-                                                           placeholder="Enter promo code" value="">
-                                                    <div class="input-group-append">
-                                                        <button type="button" id="apply-promo-btn" class="btn">
-                                                            Apply
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                                    <small class="form-text text-muted">Enter your promo code to get discount</small>
-                                                    <button type="button" id="validate-promo-btn" class="btn btn-sm btn-link">
-                                                        Check
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            
-                                            <div id="applied-promo-info" {% if not applied_promo %}style="display: none;"{% endif %}>
-                                                {% if applied_promo %}
-                                                <div class="alert alert-success">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>Promo Applied: {{ applied_promo.code }}</strong><br>
-                                                            <small>You saved: {{ currency_symbol }}{{ promo_discount|floatformat:2 }}</small>
-                                                            {% if applied_promo.minimum_purchase_amount > cart_total %}
-                                                            <div class="text-warning mt-1">
-                                                                <small>⚠️ Warning: Your cart total is below the minimum purchase requirement</small>
-                                                            </div>
-                                                            {% endif %}
-                                                        </div>
-                                                        <button type="button" id="remove-promo-btn" class="btn btn-outline-danger btn-sm">
-                                                            Remove
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        
                                         <figure>
                                             <figcaption>
                                                 <strong>Subtotal</strong>
                                                 <strong>{{ currency_symbol }}{{ cart_total|floatformat:2 }}</strong>
                                             </figcaption>
                                         </figure>
-                                        
-                                        {% if applied_promo %}
-                                        <figure>
-                                            <figcaption>
-                                                <strong>Promo Discount ({{ applied_promo.code }})</strong>
-                                                <strong class="text-success">-{{ currency_symbol }}{{ promo_discount|floatformat:2 }}</strong>
-                                            </figcaption>
-                                        </figure>
-                                        {% endif %}
-                                        
+
                                         <figure class="shipping-info" id="shipping-display">
                                             <figcaption>
                                                 <strong>Shipping: </strong>
-                                                <strong class="price" id="shipping-cost">(Select district to calculate shipping)</strong>
+                                                <strong class="price" id="shipping-cost"> (Select district to calculate shipping)</strong>
                                             </figcaption>
                                         </figure>
                                         
@@ -710,7 +524,7 @@
                                         <figure>
                                             <figcaption>
                                                 <strong>Total</strong>
-                                                <strong id="grand-total">{{ currency_symbol }}{{ display_cart_total|floatformat:2 }}</strong>
+                                                <strong id="grand-total">{{ currency_symbol }}{{ cart_total|floatformat:2 }}</strong>
                                             </figcaption>
                                         </figure>
                                         
@@ -753,10 +567,45 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+
+
         // Set max date for birth date field
         var today = new Date().toISOString().split('T')[0];
         $('#birth_date').attr('max', today);
         
+        // Auto-fill month when date is selected
+        $('#birth_date').change(function() {
+            if ($(this).val()) {
+                var selectedDate = new Date($(this).val());
+                var monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var monthName = monthNames[selectedDate.getMonth()];
+                $('#birth_month').val(monthName);
+            }
+        });
+        
+        // Auto-fill date when month is selected (set to 1st of month)
+        $('#birth_month').change(function() {
+            if ($(this).val() && !$('#birth_date').val()) {
+                var monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var monthIndex = monthNames.indexOf($(this).val());
+                if (monthIndex !== -1) {
+                    var currentYear = new Date().getFullYear();
+                    var date = new Date(currentYear, monthIndex, 1);
+                    var dateString = date.getFullYear() + '-' + 
+                                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                                    String(date.getDate()).padStart(2, '0');
+                    $('#birth_date').val(dateString);
+                }
+            }
+        });
+
+
         // Country change handler
         $('#country').change(function() {
             const countryId = $(this).val();
@@ -769,6 +618,7 @@
             if (countryId) {
                 $.get('{% url "get_districts" %}', {country_id: countryId}, function(data) {
                     $.each(data, function(i, district) {
+                        console.log(district);
                         $('#district').append($('<option>', {
                             value: district.id,
                             text: district.name,
@@ -787,8 +637,8 @@
         // District change handler
         $('#district').change(function() {
             const districtId = $(this).val();
-            const selectedOption = $(this).find('option:selected');
-            const shippingCost = selectedOption.data('shipping-cost') || 0;
+            const shippingCost = $(this).find('option:selected').data('shipping-cost') || 0;
+            console.log(shippingCost);
             
             // Reset thana
             $('#thana').html('<option value="">Select Thana</option>');
@@ -819,15 +669,17 @@
             }
         });
         
+        // Thana change handler (optional, no calculation needed)
+        $('#thana').change(function() {
+            // You can add any thana-specific logic here if needed
+        });
+        
         // Function to reset order summary
         function resetOrderSummary() {
             const cartTotal = parseFloat('{{ cart_total }}');
-            const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
-            const displayTotal = cartTotal - promoDiscount;
-            
-            $('#shipping-cost').text('(Select district to calculate shipping)');
+            $('#shipping-cost').text(' (Select district to calculate shipping)');
             $('#tax-display').hide();
-            $('#grand-total').text('{{ currency_symbol }}' + displayTotal.toFixed(2));
+            $('#grand-total').text('{{ currency_symbol }}' + cartTotal.toFixed(2));
         }
         
         // Function to update shipping display
@@ -835,24 +687,25 @@
             if (districtId) {
                 $('#shipping-cost').text('{{ currency_symbol }}' + parseFloat(shippingCost).toFixed(2));
             } else {
-                $('#shipping-cost').text('(Select district to calculate shipping)');
+                $('#shipping-cost').text(' (Select district to calculate shipping)');
             }
         }
         
         // Function to calculate tax and total
         function calculateTaxAndTotal(countryId, districtId, shippingCost) {
             const cartTotal = parseFloat('{{ cart_total }}');
-            const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
-            const subtotalAfterPromo = cartTotal - promoDiscount;
             
             $.get('{% url "calculate_tax" %}', {
                 country_id: countryId,
                 district_id: districtId,
-                subtotal: subtotalAfterPromo,
+                subtotal: cartTotal,
                 shipping: shippingCost
             }, function(data) {
                 if (data.status === 'success') {
-                    // Update shipping cost
+
+                    console.log(data);
+
+                    // Update shipping cost (in case it's different from the district's default)
                     $('#shipping-cost').text('{{ currency_symbol }}' + data.shipping_cost);
                     
                     // Update tax display
@@ -871,182 +724,6 @@
                 alert('Error calculating tax. Please try again.');
             });
         }
-        
-        // Validate promo code without applying (check button)
-        $('#validate-promo-btn').click(function() {
-            const promoCode = $('#promo-code-input').val().trim().toUpperCase();
-            
-            if (!promoCode) {
-                showPromoMessage('Please enter a promo code', 'error');
-                return;
-            }
-            
-            // Show loading
-            $(this).html('<i class="fas fa-spinner fa-spin"></i>');
-            
-            $.ajax({
-                url: '{% url "offer_management:validate_promo" %}',
-                method: 'GET',
-                data: {
-                    code: promoCode
-                },
-                success: function(response) {
-                    if (response.valid) {
-                        // Show success message with minimum purchase info
-                        let message = response.message;
-                        if (!response.meets_minimum) {
-                            message = `⚠️ ${response.message}`;
-                            showPromoRequirements(response);
-                        } else {
-                            $('#promo-requirements').hide();
-                            showPromoMessage(message, 'success');
-                        }
-                    } else {
-                        $('#promo-requirements').hide();
-                        showPromoMessage(response.message, 'error');
-                    }
-                },
-                error: function() {
-                    $('#promo-requirements').hide();
-                    showPromoMessage('Error validating promo code', 'error');
-                },
-                complete: function() {
-                    $('#validate-promo-btn').html('Check');
-                }
-            });
-        });
-        
-        // Show minimum purchase requirements
-        function showPromoRequirements(response) {
-            const percentage = (response.cart_total / response.minimum_purchase) * 100;
-            const remaining = response.remaining_amount;
-            
-            $('#promo-requirements-message').html(`
-                <strong>${response.message}</strong><br>
-                <small>Current cart: {{ currency_symbol }}${response.cart_total.toFixed(2)} | 
-                Required: {{ currency_symbol }}${response.minimum_purchase.toFixed(2)}</small>
-            `);
-            
-            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-            $('#promo-requirements').show();
-        }
-        
-        // Apply promo code with minimum purchase validation
-        $('#apply-promo-btn').click(function() {
-            const promoCode = $('#promo-code-input').val().trim().toUpperCase();
-            
-            if (!promoCode) {
-                showPromoMessage('Please enter a promo code', 'error');
-                return;
-            }
-            
-            // Disable button and show loading
-            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-            
-            $.ajax({
-                url: '{% url "offer_management:apply_promo" %}',
-                method: 'POST',
-                data: {
-                    promo_code: promoCode,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        showPromoMessage(response.message, 'success');
-                        
-                        // Reload page to reflect changes
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                        
-                    } else {
-                        showPromoMessage(response.message, 'error');
-                        
-                        // If minimum purchase not met, show requirements
-                        if (response.message.includes('minimum purchase')) {
-                            const cartTotal = response.cart_total || {{ cart_total }};
-                            const minPurchase = response.minimum_purchase || 0;
-                            const remaining = minPurchase - cartTotal;
-                            
-                            $('#promo-requirements-message').html(`
-                                <strong>${response.message}</strong><br>
-                                <small>Add {{ currency_symbol }}${remaining.toFixed(2)} more to your cart</small>
-                            `);
-                            
-                            const percentage = (cartTotal / minPurchase) * 100;
-                            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-                            $('#promo-requirements').show();
-                        }
-                    }
-                },
-                error: function(xhr) {
-                    let errorMsg = 'Error applying promo code. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
-                    showPromoMessage(errorMsg, 'error');
-                },
-                complete: function() {
-                    $('#apply-promo-btn').prop('disabled', false).html('Apply');
-                }
-            });
-        });
-        
-        // Show promo message function
-        function showPromoMessage(message, type) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            $('#promo-status').html(`
-                <div class="alert ${alertClass}">
-                    ${message}
-                </div>
-            `).show();
-            
-            // Auto-hide after 5 seconds for success, keep errors visible longer
-            if (type === 'success') {
-                setTimeout(function() {
-                    $('#promo-status').fadeOut();
-                }, 5000);
-            }
-        }
-        
-        // Remove promo code
-        $('#remove-promo-btn').click(function() {
-            $.ajax({
-                url: '{% url "offer_management:remove_promo" %}',
-                method: 'POST',
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        // Reload page to reflect changes
-                        location.reload();
-                    }
-                },
-                error: function() {
-                    alert('Error removing promo code. Please try again.');
-                }
-            });
-        });
-        
-        // Check if applied promo meets minimum purchase on page load
-        {% if applied_promo %}
-        const cartTotal = {{ cart_total }};
-        const minPurchase = {{ applied_promo.minimum_purchase_amount|default:0 }};
-        
-        if (cartTotal < minPurchase) {
-            $('#promo-requirements').show();
-            $('#promo-requirements-message').html(`
-                <strong>⚠️ Warning: Your cart total ({{ currency_symbol }}${cartTotal.toFixed(2)}) 
-                is below the minimum purchase requirement ({{ currency_symbol }}${minPurchase.toFixed(2)}) 
-                for promo code {{ applied_promo.code }}</strong><br>
-                <small>The promo code may not be applied at checkout</small>
-            `);
-            
-            const percentage = (cartTotal / minPurchase) * 100;
-            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-        }
-        {% endif %}
         
         // Form validation
         $('#checkout-form').submit(function(e) {
@@ -1072,13 +749,9 @@
                 $(this).removeClass('is-invalid');
             }
         });
-        
-        // Trigger district change on page load if district is pre-selected (for form validation errors)
-        if ($('#district').val()) {
-            $('#district').trigger('change');
-        }
     });
 </script>
+
 
 <!-- GA4 Checkout Tracking -->
 <script>
@@ -1103,8 +776,6 @@
         
         // Calculate cart total
         var cartValue = {{ cart_total|default:0 }};
-        var promoDiscount = {{ promo_discount|default:0 }};
-        var finalValue = cartValue - promoDiscount;
         
         // Push begin_checkout event to dataLayer
         window.dataLayer = window.dataLayer || [];
@@ -1112,24 +783,13 @@
             'event': 'begin_checkout',
             'ecommerce': {
                 'currency': 'BDT',
-                'value': finalValue,
-                'coupon': '{{ applied_promo.code|default:"" }}',
+                'value': cartValue,
+                'coupon': '', // Add if you have coupon codes
                 'items': cartItems
             }
         });
         
         console.log('GA4 begin_checkout tracked:', cartItems.length, 'items');
-        
-        // If promo applied, also track add_payment_info or view_cart with promo
-        {% if applied_promo %}
-        window.dataLayer.push({
-            'event': 'add_promo_code',
-            'ecommerce': {
-                'promo_code': '{{ applied_promo.code }}',
-                'promo_discount': {{ promo_discount }}
-            }
-        });
-        {% endif %}
     });
 </script>
 {% endblock %}

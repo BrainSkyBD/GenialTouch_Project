@@ -145,6 +145,19 @@ class Order(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     refunded_at = models.DateTimeField(null=True, blank=True)
 
+    promo_code = models.ForeignKey(
+        'offer_management.PromoCode', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
+    promo_discount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Discount amount from promo code"
+    )
+
 
     
     def __str__(self):
@@ -181,6 +194,15 @@ class Order(models.Model):
     def get_simplified_address(self):
         """Return just the full address without country/district details"""
         return self.full_address
+
+
+    @property
+    def subtotal_after_promo(self):
+        """Calculate subtotal after promo discount"""
+        return self.order_total - self.promo_discount
+
+    
+
 
 
 @receiver(pre_save, sender=Order)

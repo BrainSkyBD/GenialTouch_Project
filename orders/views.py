@@ -317,7 +317,246 @@ def calculate_tax(request):
 from datetime import datetime  
 
 
-@login_required
+# @login_required
+# def checkout(request):
+#     if request.method == 'POST':
+#         # Get form data
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+#         email = request.POST.get('email')
+#         phone_number = request.POST.get('phone_number')
+#         full_address = request.POST.get('full_address')
+#         country_id = request.POST.get('country')
+#         district_id = request.POST.get('district')
+#         thana_id = request.POST.get('thana')
+#         postal_code = request.POST.get('postal_code', '')
+#         order_note = request.POST.get('order_note', '')
+#         payment_method_id = request.POST.get('payment_method')
+        
+#         # Get birth date and month (optional) - NEW FORMAT
+#         birth_date = request.POST.get('birth_date', '')  # Now 1-31
+#         birth_month = request.POST.get('birth_month', '')
+
+#         # Get promo code from session if applied
+#         promo_code_id = request.session.get('applied_promo_code')
+#         promo_discount = request.session.get('promo_discount', 0)
+        
+#         # Validate birth date if provided
+#         if birth_date:
+#             try:
+#                 # Convert to integer and validate
+#                 birth_date_int = int(birth_date)
+#                 if not (1 <= birth_date_int <= 31):
+#                     messages.error(request, "Birth date must be between 1 and 31")
+#                     return redirect('checkout')
+#             except (ValueError, TypeError):
+#                 birth_date = None  # Reset to None if invalid
+        
+#         # Validate birth month if provided
+#         if birth_month and birth_month not in [
+#             'January', 'February', 'March', 'April', 'May', 'June',
+#             'July', 'August', 'September', 'October', 'November', 'December'
+#         ]:
+#             messages.error(request, "Invalid birth month selected")
+#             return redirect('checkout')
+        
+
+        
+#         # Validate required fields
+#         required_fields = {
+#             'First Name': first_name,
+#             'Last Name': last_name,
+#             'Phone Number': phone_number,
+#             'Full Address': full_address,
+#             'Country': country_id,
+#             'District': district_id,
+#             'Payment Method': payment_method_id
+#         }
+        
+#         for field, value in required_fields.items():
+#             if not value:
+#                 messages.error(request, f"{field} is required")
+#                 return redirect('checkout')
+        
+#         try:
+#             country = Country.objects.get(id=country_id)
+#             district = District.objects.get(id=district_id)
+#             thana = None
+#             if thana_id:
+#                 thana = Thana.objects.get(id=thana_id, district=district)
+#             payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
+#         except (Country.DoesNotExist, District.DoesNotExist, 
+#                 Thana.DoesNotExist, PaymentMethod.DoesNotExist) as e:
+#             messages.error(request, "Invalid selection")
+#             return redirect('checkout')
+        
+#         # Get cart data
+#         cart = request.session.get('cart', {})
+#         if not cart:
+#             messages.error(request, "Your cart is empty")
+#             return redirect('cart_detail')
+        
+#         # Calculate totals
+#         cart_context = get_cart_context(request)
+#         cart_total = cart_context['cart_total']
+#         shipping_cost = district.shipping_cost
+        
+#         # Calculate tax
+#         tax_config = TaxConfiguration.objects.filter(
+#             is_active=True,
+#         ).filter(
+#             Q(applies_to_all=True) | 
+#             Q(countries=country)
+#         ).first()
+        
+#         tax_rate = tax_config.rate if tax_config else Decimal('0')
+#         tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
+#         grand_total = cart_total + shipping_cost + tax_amount
+        
+#         # Create the order with promo code if applied
+#         order = Order.objects.create(
+#             user=request.user if request.user.is_authenticated else None,
+#             order_number=generate_order_number(),
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email if email else (request.user.email if request.user.is_authenticated else None),
+#             phone_number=phone_number,
+#             full_address=full_address,
+#             birth_date=birth_date if birth_date else None,
+#             birth_month=birth_month if birth_month else None,
+#             country=country,
+#             district=district,
+#             thana=thana,
+#             postal_code=postal_code,
+#             order_note=order_note,
+#             order_total=cart_total,
+#             shipping_cost=shipping_cost,
+#             tax_rate=tax_rate,
+#             tax_amount=tax_amount,
+#             promo_discount=promo_discount,
+#             grand_total=grand_total - promo_discount,  # Subtract promo discount
+#             payment_method=payment_method,
+#             status='pending',
+#             ip_address=request.META.get('REMOTE_ADDR'),
+#             promo_code_id=promo_code_id if promo_code_id else None,
+#         )
+
+#         # Record promo code usage if applied
+#         if promo_code_id:
+#             from offer_management.models import PromoCode, PromoCodeUsage
+#             promo_code = PromoCode.objects.get(id=promo_code_id)
+#             PromoCodeUsage.objects.create(
+#                 promo_code=promo_code,
+#                 order=order,
+#                 user=request.user if request.user.is_authenticated else None,
+#                 discount_amount=promo_discount
+#             )
+#             promo_code.used_count += 1
+#             promo_code.save()
+            
+#             # Clear promo code from session
+#             del request.session['applied_promo_code']
+#             del request.session['promo_discount']
+        
+#         # Create order items
+#         for cart_key, item_data in cart.items():
+#             product_id = int(cart_key.split('-')[0])
+#             product = Product.objects.get(id=product_id)
+#             variation = None
+#             if 'variation_id' in item_data:
+#                 variation = ProductVariation.objects.get(id=item_data['variation_id'])
+            
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product=product,
+#                 variation=variation,
+#                 quantity=item_data['quantity'],
+#                 price=item_data['price']
+#             )
+        
+#         # Clear the cart
+#         request.session['cart'] = {}
+#         request.session.modified = True
+        
+#         messages.success(request, f"Order #{order.order_number} placed successfully!")
+#         print(f"Order #{order.order_number} placed successfully!")
+#         return redirect('order_confirmation', order_number=order.order_number)
+    
+#     # GET request - show checkout form
+#     cart_context = get_cart_context(request)
+#     if not cart_context['cart_items']:
+#         messages.warning(request, "Your cart is empty")
+#         return redirect('cart_detail')
+    
+#     # Check if promo code is applied in session
+#     applied_promo = None
+#     promo_discount = 0
+#     if request.session.get('applied_promo_code'):
+#         from offer_management.models import PromoCode
+#         try:
+#             applied_promo = PromoCode.objects.get(
+#                 id=request.session['applied_promo_code']
+#             )
+#             promo_discount = request.session.get('promo_discount', 0)
+#         except PromoCode.DoesNotExist:
+#             # Clear invalid promo from session
+#             del request.session['applied_promo_code']
+#             if 'promo_discount' in request.session:
+#                 del request.session['promo_discount']
+    
+#     # Pre-fill form with user data if available
+#     initial_data = {}
+#     if request.user.is_authenticated:
+#         initial_data = {
+#             'first_name': request.user.first_name or '',
+#             'last_name': request.user.last_name or '',
+#             'email': request.user.email,
+#             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
+#         }
+    
+#     # Generate days range for birth date dropdown
+#     days_range = range(1, 32)  # 1 to 31
+
+#     # Calculate cart total with promo discount for display
+#     display_cart_total = cart_context['cart_total']
+#     if promo_discount > 0:
+#         display_cart_total = cart_context['cart_total'] - promo_discount
+    
+#     context = {
+#         'countries': Country.objects.filter(is_active=True).order_by('name'),
+#         'payment_methods': PaymentMethod.objects.filter(is_active=True),
+#         'cart_items': cart_context['cart_items'],
+#         'cart_total': cart_context['cart_total'],
+#         'cart_item_count': cart_context['cart_item_count'],
+#         'initial_data': initial_data,
+#         'days_range': days_range,  # Add days range for dropdown
+#         'applied_promo': applied_promo,
+#         'promo_discount': promo_discount,
+#     }
+#     return render(request, 'orders/checkout.html', context)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.http import JsonResponse, Http404
+from django.views.decorators.http import require_POST
+from django.db.models import Q
+from decimal import Decimal
+import uuid
+import random
+import string
+from django.utils import timezone
+from django.urls import reverse
+
+from .models import Order, OrderItem, Country, District, Thana, PaymentMethod, TaxConfiguration
+from products.models import Product, ProductVariation
+from cart.views import get_cart_context
+
+def generate_order_number():
+    """Generate a unique order number"""
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    random_str = ''.join(random.choices(string.digits, k=6))
+    return f'ORD-{timestamp}-{random_str}'
+
 def checkout(request):
     if request.method == 'POST':
         # Get form data
@@ -333,20 +572,19 @@ def checkout(request):
         order_note = request.POST.get('order_note', '')
         payment_method_id = request.POST.get('payment_method')
         
-        # Get birth date and month (optional) - NEW FORMAT
-        birth_date = request.POST.get('birth_date', '')  # Now 1-31
+        # Get birth date and month (optional)
+        birth_date = request.POST.get('birth_date', '')
         birth_month = request.POST.get('birth_month', '')
         
         # Validate birth date if provided
         if birth_date:
             try:
-                # Convert to integer and validate
                 birth_date_int = int(birth_date)
                 if not (1 <= birth_date_int <= 31):
                     messages.error(request, "Birth date must be between 1 and 31")
                     return redirect('checkout')
             except (ValueError, TypeError):
-                birth_date = None  # Reset to None if invalid
+                birth_date = None
         
         # Validate birth month if provided
         if birth_month and birth_month not in [
@@ -395,6 +633,51 @@ def checkout(request):
         cart_total = cart_context['cart_total']
         shipping_cost = district.shipping_cost
         
+        # Validate promo code if applied
+        promo_code_id = request.session.get('applied_promo_code')
+        promo_discount = request.session.get('promo_discount', 0)
+        
+        # Convert promo_discount to Decimal if it's a float
+        if isinstance(promo_discount, float):
+            promo_discount = Decimal(str(promo_discount))
+        else:
+            promo_discount = Decimal(promo_discount)
+        
+        if promo_code_id:
+            from offer_management.models import PromoCode
+            try:
+                promo_code = PromoCode.objects.get(id=promo_code_id)
+                user = request.user if request.user.is_authenticated else None
+                
+                # Re-validate the promo code with current cart total
+                discount_amount, is_valid, message = promo_code.calculate_discount(
+                    cart_total, 
+                    user=user
+                )
+                
+                if not is_valid:
+                    # Clear invalid promo from session
+                    if 'applied_promo_code' in request.session:
+                        del request.session['applied_promo_code']
+                    if 'promo_discount' in request.session:
+                        del request.session['promo_discount']
+                    messages.warning(request, f"Promo code removed: {message}")
+                    promo_code_id = None
+                    promo_discount = Decimal('0')
+                elif discount_amount != promo_discount:
+                    # Update discount if it changed
+                    promo_discount = discount_amount
+                    request.session['promo_discount'] = float(discount_amount)
+                    
+            except PromoCode.DoesNotExist:
+                # Clear invalid promo from session
+                if 'applied_promo_code' in request.session:
+                    del request.session['applied_promo_code']
+                if 'promo_discount' in request.session:
+                    del request.session['promo_discount']
+                promo_code_id = None
+                promo_discount = Decimal('0')
+        
         # Calculate tax
         tax_config = TaxConfiguration.objects.filter(
             is_active=True,
@@ -404,41 +687,16 @@ def checkout(request):
         ).first()
         
         tax_rate = tax_config.rate if tax_config else Decimal('0')
-        tax_amount = (cart_total + shipping_cost) * (tax_rate / 100)
-        grand_total = cart_total + shipping_cost + tax_amount
+        tax_amount = (cart_total + shipping_cost - promo_discount) * (tax_rate / 100)
+        grand_total = cart_total + shipping_cost + tax_amount - promo_discount
         
-        # Create the order with birth date and month - UPDATED FORMAT
-        # order = Order.objects.create(
-        #     user=request.user,
-        #     first_name=first_name,
-        #     last_name=last_name,
-        #     email=email if email else request.user.email,
-        #     phone_number=phone_number,
-        #     full_address=full_address,
-        #     birth_date=birth_date if birth_date else None,  # Now stores day number
-        #     birth_month=birth_month if birth_month else None,
-        #     country=country,
-        #     district=district,
-        #     thana=thana,
-        #     postal_code=postal_code,
-        #     order_note=order_note,
-        #     order_total=cart_total,
-        #     shipping_cost=shipping_cost,
-        #     tax_rate=tax_rate,
-        #     tax_amount=tax_amount,
-        #     grand_total=grand_total,
-        #     payment_method=payment_method,
-        #     status='pending',
-        #     ip_address=request.META.get('REMOTE_ADDR')
-        # )
-
-        # Create the order with birth date and month - UPDATED FORMAT
+        # Create the order
         order = Order.objects.create(
-            user=request.user,
-            order_number=generate_order_number(),  # Add this line
+            user=request.user if request.user.is_authenticated else None,
+            order_number=generate_order_number(),
             first_name=first_name,
             last_name=last_name,
-            email=email if email else request.user.email,
+            email=email if email else (request.user.email if request.user.is_authenticated else None),
             phone_number=phone_number,
             full_address=full_address,
             birth_date=birth_date if birth_date else None,
@@ -452,11 +710,32 @@ def checkout(request):
             shipping_cost=shipping_cost,
             tax_rate=tax_rate,
             tax_amount=tax_amount,
+            promo_discount=promo_discount,
             grand_total=grand_total,
             payment_method=payment_method,
             status='pending',
-            ip_address=request.META.get('REMOTE_ADDR')
+            ip_address=request.META.get('REMOTE_ADDR'),
+            promo_code_id=promo_code_id if promo_code_id else None,
         )
+        
+        # Record promo code usage if applied
+        if promo_code_id:
+            from offer_management.models import PromoCode, PromoCodeUsage
+            promo_code = PromoCode.objects.get(id=promo_code_id)
+            PromoCodeUsage.objects.create(
+                promo_code=promo_code,
+                order=order,
+                user=request.user if request.user.is_authenticated else None,
+                discount_amount=promo_discount
+            )
+            promo_code.used_count += 1
+            promo_code.save()
+            
+            # Clear promo code from session
+            if 'applied_promo_code' in request.session:
+                del request.session['applied_promo_code']
+            if 'promo_discount' in request.session:
+                del request.session['promo_discount']
         
         # Create order items
         for cart_key, item_data in cart.items():
@@ -479,7 +758,6 @@ def checkout(request):
         request.session.modified = True
         
         messages.success(request, f"Order #{order.order_number} placed successfully!")
-        print(f"Order #{order.order_number} placed successfully!")
         return redirect('order_confirmation', order_number=order.order_number)
     
     # GET request - show checkout form
@@ -487,6 +765,29 @@ def checkout(request):
     if not cart_context['cart_items']:
         messages.warning(request, "Your cart is empty")
         return redirect('cart_detail')
+    
+    # Check if promo code is applied in session
+    applied_promo = None
+    promo_discount = Decimal('0')
+    
+    if request.session.get('applied_promo_code'):
+        from offer_management.models import PromoCode
+        try:
+            applied_promo = PromoCode.objects.get(
+                id=request.session['applied_promo_code']
+            )
+            # Convert promo_discount from session to Decimal
+            session_discount = request.session.get('promo_discount', 0)
+            if isinstance(session_discount, float):
+                promo_discount = Decimal(str(session_discount))
+            else:
+                promo_discount = Decimal(session_discount)
+        except PromoCode.DoesNotExist:
+            # Clear invalid promo from session
+            if 'applied_promo_code' in request.session:
+                del request.session['applied_promo_code']
+            if 'promo_discount' in request.session:
+                del request.session['promo_discount']
     
     # Pre-fill form with user data if available
     initial_data = {}
@@ -498,19 +799,25 @@ def checkout(request):
             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
         }
     
-    # Generate days range for birth date dropdown
-    days_range = range(1, 32)  # 1 to 31
+    # Calculate cart total with promo discount for display
+    # Both are now Decimal objects
+    display_cart_total = cart_context['cart_total'] - promo_discount
     
     context = {
         'countries': Country.objects.filter(is_active=True).order_by('name'),
         'payment_methods': PaymentMethod.objects.filter(is_active=True),
         'cart_items': cart_context['cart_items'],
         'cart_total': cart_context['cart_total'],
+        'display_cart_total': display_cart_total,
         'cart_item_count': cart_context['cart_item_count'],
         'initial_data': initial_data,
-        'days_range': days_range,  # Add days range for dropdown
+        'days_range': range(1, 32),
+        'applied_promo': applied_promo,
+        'promo_discount': promo_discount,
+        'currency_symbol': '৳',  # Add your currency symbol
     }
     return render(request, 'orders/checkout.html', context)
+
 
 # @login_required
 # def checkout(request):
