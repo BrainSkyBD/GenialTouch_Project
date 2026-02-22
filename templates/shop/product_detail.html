@@ -833,6 +833,14 @@ function initAddToCart() {
     $('.ps-product__variations').submit(function(e) {
         e.preventDefault();
         var form = $(this);
+
+        // Get selected variants
+        var selectedVariants = {};
+        $('.variant-value input[type="radio"]:checked').each(function() {
+            var attr = $(this).data('attribute');
+            var val = $(this).val();
+            selectedVariants[attr] = val;
+        });
         
         $.ajax({
             url: form.attr('action'),
@@ -845,7 +853,52 @@ function initAddToCart() {
             success: function(response) {
                 if(response.status === 'success') {
                     updateCartInfo(response);
-                    showToast('Product added to cart successfully!', 'success');
+                    // showToast('Product added to cart successfully!', 'success');
+                    // Track add_to_cart event in GA4
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        'event': 'add_to_cart',
+                        'ecommerce': {
+                            'currency': '{{ currency_code|default:"BDT" }}',
+                            'value': response.product_price,
+                            'items': [{
+                                'item_id': '{{ product.id }}',
+                                'item_name': '{{ product.name|escapejs }}',
+                                'item_brand': '{{ product.brand.name|default:"Unknown"|escapejs }}',
+                                'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                                'price': response.product_price,
+                                'quantity': $('.quantity-input').val(),
+                                'item_variant': JSON.stringify(selectedVariants)
+                            }]
+                        }
+                    });
+                    
+                    console.log('GA4 add_to_cart tracked');
+                    
+                    // Show success popup
+                    $('#popupProductName').text(response.product_name);
+                    $('#popupProductPrice').text('{{ currency_symbol }} ' + response.product_price);
+                    $('#popupProductImage').attr('src', response.product_image);
+
+                    // Add variant information to popup
+                    var variantHtml = '';
+                    if(response.variation_info) {
+                        for(var attr in response.variation_info) {
+                            if(response.variation_info.hasOwnProperty(attr)) {
+                                variantHtml += '<small>' + attr.charAt(0).toUpperCase() + attr.slice(1) + 
+                                            ': ' + response.variation_info[attr] + '</small><br>';
+                            }
+                        }
+                    }
+                    $('#popupProductVariants').html(variantHtml);
+
+                    
+                    $('#addToCartPopup').fadeIn();
+                    
+                    // Optional: Scroll to top to show the updated cart
+                    $('html, body').animate({
+                        scrollTop: 0
+                    }, 300);
                 } else {
                     showToast(response.message || 'Error adding to cart', 'error');
                 }
@@ -1061,17 +1114,22 @@ function initCarousels() {
     }
 }
 
-function updateCartInfo(response) {
-    // Update cart count in navbar
-    if (response.cart_item_count !== undefined) {
-        $('.cart-count').text(response.cart_item_count);
-    }
-    
-    // Update cart total if available
-    if (response.cart_total !== undefined) {
-        $('.cart-total').text('{{ currency_symbol }}' + response.cart_total);
-    }
-}
+// Function to update cart info in navbar
+        function updateCartInfo(response) {
+            // Update cart count in navbar
+            $('.header__extra .icon-bag2').next('span').find('i').text(response.cart_item_count);
+            
+            // Update cart dropdown content
+            if(response.cart_items_html) {
+                $('.ps-cart__items').html(response.cart_items_html);
+                $('.ps-cart__footer h3 strong').text('{{ currency_symbol }} ' + response.cart_total);
+            }
+            
+            // If cart is empty, update the mini cart display
+            if(response.cart_item_count == 0) {
+                $('.ps-cart__items').html('<p>Your cart is empty</p>');
+            }
+        }
 
 function showToast(message, type) {
     // Create toast element
