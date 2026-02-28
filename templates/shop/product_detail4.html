@@ -323,8 +323,6 @@
             <div class="ps-page__left">
                 <div class="ps-product--detail ps-product--fullwidth">
                     <div class="ps-product__header">
-
-                        {% comment %}
                         <div class="ps-product__thumbnail" data-vertical="true">
                             <figure>
                                 <div class="ps-wrapper">
@@ -355,26 +353,6 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        {% endcomment %}
-
-                        
-                        <div class="ps-product__thumbnail" data-vertical="true">
-                            <figure>
-                                <div class="ps-wrapper">
-                                    <div class="ps-product__gallery" data-arrow="true">
-                                        {% for image in product.images.all|slice:":5" %}
-                                        <div class="item"><a href="{{ image.image.url }}"><img src="{{ image.image.url }}" alt="{{ product.name }}"></a></div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </figure>
-                            <div class="ps-product__variants" data-item="4" data-md="4" data-sm="4" data-arrow="false">
-                                {% for image in product.images.all|slice:":5" %}
-                                <div class="item"><img src="{{ image.image.url }}" alt="{{ product.name }}"></div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
                         
                         <div class="ps-product__info">
                             <h1>{{ product.name }}</h1>
