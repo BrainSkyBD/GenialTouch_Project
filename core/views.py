@@ -187,7 +187,7 @@ def search_suggestions(request):
             'name': product.name,
             'price': str(current_price),
             'image': image_dict.get(product.id, '/static/img/no-image.jpg'),
-            'url': f'/product/{product.slug}/'
+            'url': f'/products/{product.slug}/'
         })
     
     return JsonResponse({
