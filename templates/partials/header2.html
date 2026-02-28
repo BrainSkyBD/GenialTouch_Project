@@ -36,10 +36,10 @@
             </div>
 
             <div class="header__center">
-                <form class="ps-form--quick-search" action="{% url 'product_list' %}" method="get" id="search-form">
+                <form class="ps-form--quick-search" action="{% url 'product_list' %}" method="get">
                     <div class="form-group--icon">
                         <i class="icon-chevron-down"></i>
-                        <select class="form-control" name="category" id="search-category">
+                        <select class="form-control" name="category">
                             <option value="" selected="selected">All</option>
                             {% for category in categories %}
                                 {% if not category.parent %}
@@ -48,20 +48,13 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="search-wrapper" style="position: relative; flex: 1;">
-                        <input class="form-control" type="text" name="q" placeholder="I'm shopping for..." 
-                               id="search-input" autocomplete="off" />
-                        <div id="search-suggestions" class="search-suggestions-dropdown" style="display: none;">
-                            <div class="suggestions-loader" style="display: none;">
-                                <div class="spinner"></div>
-                            </div>
-                            <div class="suggestions-content"></div>
-                        </div>
-                    </div>
+                    <input class="form-control" type="text" name="q" placeholder="I'm shopping for..." id="input-search" />
                     <button type="submit">Search</button>
                 </form>
             </div>
 
+
+            
             <div class="header__right">
                 <div class="header__actions" style="color: #ffffff;">
                     {% comment %}
@@ -106,7 +99,7 @@
                                             <small>{{ item.quantity }} x {{ currency_symbol }} {{ item.price }}</small>
                                         </div>
                                     </div>
-                                {% endfor %}
+                                    {% endfor %}
                             </div>
                             <div class="ps-cart__footer">
                                 <h3>Sub Total:<strong>{{ currency_symbol }} {{ cart_total|default:"0.00" }}</strong></h3>
@@ -181,9 +174,46 @@
                     </li>
                 </ul>
 
+                {% comment %}
+                <ul class="menu">
+                    <li class="menu-item-has-children">
+                        <a href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="{% url 'product_list' %}">Shop</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Pages</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Blogs</a>
+                    </li>
+                    
+                </ul>
+                {% endcomment %}
                 <ul class="navigation__extra">
                     <li><a href="{% url 'product_list' %}">Browse Products</a></li>
                     <li><a href="{% url 'track_order' %}">Track your order</a></li>
+                    {% comment %}
+                    <li>
+                        <div class="ps-dropdown">
+                            <a href="#">US Dollar</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#">US Dollar</a></li>
+                                <li><a href="#">Euro</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="ps-dropdown language">
+                            <a href="#"><img src="{% static 'img/flag/en.png' %}" alt="" />English</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#"><img src="{% static 'img/flag/germany.png' %}" alt="" /> Germany</a></li>
+                                <li><a href="#"><img src="{% static 'img/flag/fr.png' %}" alt="" /> France</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endcomment %}
                 </ul>
             </div>
         </div>
@@ -197,6 +227,7 @@
         </div>
         <div class="header__right">
             <ul class="navigation__extra">
+                
                 <li><a href="{% url 'track_order' %}">Track your order</a></li>
                 <li>
                     <div class="ps-dropdown"><a href="#">US Dollar</a>
@@ -222,10 +253,11 @@
         <div class="navigation__left">
             <a class="ps-logo" href="{% url 'home' %}">
                 <img src="{% static 'png transparent-01.png' %}" alt="" style="width: 64%;display: flex;"/>
+                <!-- <img src="{% static 'genial_logo5.png' %}" alt="" /> -->
             </a>
         </div>
         <div class="navigation__right">
-            <div class="header__actions" style="color: #ffffff;">
+            <div class="header__actions"  style="color: #ffffff;">
                 <div class="ps-cart--mini">
                     <a class="header__extra" href="{% url 'cart_detail' %}">
                         <i class="icon-bag2"></i>
@@ -258,7 +290,7 @@
                                         <small>{{ item.quantity }} x {{ currency_symbol }} {{ item.price }}</small>
                                     </div>
                                 </div>
-                            {% endfor %}
+                                {% endfor %}
                         </div>
                         <div class="ps-cart__footer">
                             <h3>Sub Total:<strong>{{ currency_symbol }} {{ cart_total|default:"0.00" }}</strong></h3>
@@ -300,328 +332,3 @@
         </form>
     </div>
 </header>
-
-<style>
-/* Search Suggestions Dropdown - Optimized for speed */
-.search-wrapper {
-    position: relative;
-    flex: 1;
-}
-
-#search-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border: 1px solid #e1e1e1;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 9999;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.suggestions-loader {
-    padding: 15px;
-    text-align: center;
-}
-
-.suggestions-loader .spinner {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #420707;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.suggestion-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-}
-
-.suggestion-item:hover {
-    background-color: #f9f9f9;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-image {
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
-    flex-shrink: 0;
-}
-
-.suggestion-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.suggestion-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.suggestion-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.suggestion-price {
-    font-size: 13px;
-    font-weight: 600;
-    color: #420707;
-}
-
-.no-results {
-    padding: 20px;
-    text-align: center;
-    color: #999;
-    font-size: 13px;
-}
-
-.no-results i {
-    font-size: 30px;
-    color: #ddd;
-    margin-bottom: 8px;
-    display: block;
-}
-
-.view-all-link {
-    display: block;
-    padding: 8px 12px;
-    text-align: center;
-    background-color: #f5f5f5;
-    color: #420707;
-    font-weight: 500;
-    text-decoration: none;
-    font-size: 13px;
-    border-top: 1px solid #e1e1e1;
-}
-
-.view-all-link:hover {
-    background-color: #eee;
-}
-
-.suggestion-name mark {
-    background-color: #fff3cd;
-    padding: 0;
-    color: #333;
-}
-
-@media (max-width: 768px) {
-    #search-suggestions {
-        position: fixed;
-        top: auto;
-        left: 10px;
-        right: 10px;
-        max-height: 300px;
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Get DOM elements
-    const searchInput = document.getElementById('search-input');
-    const suggestionsDropdown = document.getElementById('search-suggestions');
-    const suggestionsContent = document.querySelector('.suggestions-content');
-    const loader = document.querySelector('.suggestions-loader');
-    const searchForm = document.getElementById('search-form');
-    
-    // Exit if required elements not found
-    if (!searchInput || !suggestionsDropdown || !suggestionsContent || !loader) {
-        console.error('Search elements not found');
-        return;
-    }
-    
-    let searchTimeout;
-    let currentRequest = null;
-    
-    // Input event listener with debounce
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        
-        if (query.length < 2) {
-            suggestionsDropdown.style.display = 'none';
-            return;
-        }
-        
-        // Clear previous timeout
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-        
-        // Set new timeout (150ms for faster response)
-        searchTimeout = setTimeout(() => {
-            fetchSuggestions(query);
-        }, 150);
-    });
-    
-    // Focus event
-    searchInput.addEventListener('focus', function() {
-        const query = this.value.trim();
-        if (query.length >= 2) {
-            suggestionsDropdown.style.display = 'block';
-        }
-    });
-    
-    // Click outside to close
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
-            suggestionsDropdown.style.display = 'none';
-        }
-    });
-    
-    // Fetch suggestions function
-    function fetchSuggestions(query) {
-        // Cancel previous request
-        if (currentRequest) {
-            currentRequest.abort();
-        }
-        
-        // Show loader
-        loader.style.display = 'block';
-        suggestionsContent.innerHTML = '';
-        suggestionsDropdown.style.display = 'block';
-        
-        // Build URL
-        const url = `/search/suggestions/?q=${encodeURIComponent(query)}`;
-        
-        // Create request
-        currentRequest = new XMLHttpRequest();
-        currentRequest.open('GET', url, true);
-        currentRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
-        currentRequest.onload = function() {
-            loader.style.display = 'none';
-            
-            if (this.status === 200) {
-                try {
-                    const data = JSON.parse(this.responseText);
-                    displaySuggestions(data, query);
-                } catch (e) {
-                    console.error('Error parsing response:', e);
-                    showError();
-                }
-            } else {
-                showError();
-            }
-            
-            currentRequest = null;
-        };
-        
-        currentRequest.onerror = function() {
-            loader.style.display = 'none';
-            showError();
-            currentRequest = null;
-        };
-        
-        currentRequest.send();
-    }
-    
-    // Display suggestions
-    function displaySuggestions(data, query) {
-        const products = data.products || [];
-        
-        if (products.length === 0) {
-            suggestionsContent.innerHTML = `
-                <div class="no-results">
-                    <i class="icon-magnifier"></i>
-                    <p>No products found for "${escapeHtml(query)}"</p>
-                </div>
-                <a href="${searchForm.action}?q=${encodeURIComponent(query)}" class="view-all-link">
-                    View all results
-                </a>
-            `;
-            return;
-        }
-        
-        let html = '';
-        products.forEach(product => {
-            const highlightedName = highlightMatch(product.name, query);
-            
-            html += `
-                <a href="${product.url}" class="suggestion-item" onclick="event.stopPropagation()">
-                    <div class="suggestion-image">
-                        <img src="${product.image}" alt="${escapeHtml(product.name)}" 
-                             onerror="this.src='/static/img/no-image.jpg'"
-                             loading="lazy">
-                    </div>
-                    <div class="suggestion-info">
-                        <div class="suggestion-name">${highlightedName}</div>
-                        <div class="suggestion-price">৳ ${product.price}</div>
-                    </div>
-                </a>
-            `;
-        });
-        
-        html += `
-            <a href="${searchForm.action}?q=${encodeURIComponent(query)}" class="view-all-link">
-                See all results
-            </a>
-        `;
-        
-        suggestionsContent.innerHTML = html;
-    }
-    
-    // Helper: Highlight matching text
-    function highlightMatch(text, query) {
-        if (!query) return escapeHtml(text);
-        
-        try {
-            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
-            return escapeHtml(text).replace(regex, '<mark>$1</mark>');
-        } catch (e) {
-            return escapeHtml(text);
-        }
-    }
-    
-    // Helper: Escape HTML
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // Helper: Escape RegExp
-    function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-    
-    // Helper: Show error
-    function showError() {
-        suggestionsContent.innerHTML = `
-            <div class="no-results">
-                <i class="icon-warning"></i>
-                <p>Something went wrong</p>
-            </div>
-        `;
-    }
-});
-</script>

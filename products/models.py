@@ -160,6 +160,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     view_count = models.PositiveIntegerField(default=0)
+
     
     class Meta:
         verbose_name = 'Product'
@@ -173,6 +174,8 @@ class Product(models.Model):
             models.Index(fields=['price']),
             models.Index(fields=['brand']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['is_active', 'name']),  # This helps our search
+            models.Index(fields=['name']),  # Add this if not present
         ]
     
     def save(self, *args, **kwargs):
