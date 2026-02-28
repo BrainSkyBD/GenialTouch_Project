@@ -137,6 +137,70 @@ from django.db.models import Exists, OuterRef
 # views.py - Updated home view with minimal data
 
 
+def search_suggestions(request):
+    """
+    Optimized search suggestions with proper image URLs
+    Uses dictionary lookup for maximum speed
+    """
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'products': []})
+    
+    # Get products first (one query)
+    products = list(Product.objects.filter(
+        Q(name__icontains=query) & 
+        Q(is_active=True)
+    ).only(
+        'id', 'name', 'slug', 'price', 'discount_price'
+    )[:5])
+    
+    if not products:
+        return JsonResponse({'products': []})
+    
+    # Get product IDs
+    product_ids = [p.id for p in products]
+    
+    # Get all images for these products (second query)
+    images = ProductImage.objects.filter(
+        product_id__in=product_ids
+    ).filter(
+        Q(is_featured=True) | Q(is_featured=False)  # Get featured first, then any
+    ).order_by('product_id', '-is_featured', 'display_order').only(
+        'id', 'image', 'product_id', 'is_featured'
+    )
+    
+    # Create a dictionary with the best image for each product
+    image_dict = {}
+    for img in images:
+        if img.product_id not in image_dict:
+            # Take the first image we find for each product
+            # (ordered by is_featured and display_order)
+            image_dict[img.product_id] = img.image.url
+    
+    # Build response
+    products_data = []
+    for product in products:
+        current_price = product.discount_price if product.discount_price else product.price
+        
+        products_data.append({
+            'name': product.name,
+            'price': str(current_price),
+            'image': image_dict.get(product.id, '/static/img/no-image.jpg'),
+            'url': f'/product/{product.slug}/'
+        })
+    
+    return JsonResponse({
+        'products': products_data
+    })
+
+
+
+    
+    return JsonResponse({
+        'products': products_data
+    })
+
 def get_featured_categories(limit=8):
     from django.db import connection
     

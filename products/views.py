@@ -1460,3 +1460,7 @@ def load_more_reviews(request):
     except Exception as e:
         print(f"Error in load_more_reviews: {e}")
         return JsonResponse({'html': '', 'has_more': False})
+
+
+
+

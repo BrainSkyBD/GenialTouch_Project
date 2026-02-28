@@ -181,9 +181,46 @@
                     </li>
                 </ul>
 
+                {% comment %}
+                <ul class="menu">
+                    <li class="menu-item-has-children">
+                        <a href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="{% url 'product_list' %}">Shop</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Pages</a>
+                    </li>
+                    <li class="menu-item-has-children has-mega-menu">
+                        <a href="#">Blogs</a>
+                    </li>
+                    
+                </ul>
+                {% endcomment %}
                 <ul class="navigation__extra">
                     <li><a href="{% url 'product_list' %}">Browse Products</a></li>
                     <li><a href="{% url 'track_order' %}">Track your order</a></li>
+                    {% comment %}
+                    <li>
+                        <div class="ps-dropdown">
+                            <a href="#">US Dollar</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#">US Dollar</a></li>
+                                <li><a href="#">Euro</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="ps-dropdown language">
+                            <a href="#"><img src="{% static 'img/flag/en.png' %}" alt="" />English</a>
+                            <ul class="ps-dropdown-menu">
+                                <li><a href="#"><img src="{% static 'img/flag/germany.png' %}" alt="" /> Germany</a></li>
+                                <li><a href="#"><img src="{% static 'img/flag/fr.png' %}" alt="" /> France</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endcomment %}
                 </ul>
             </div>
         </div>
@@ -197,6 +234,7 @@
         </div>
         <div class="header__right">
             <ul class="navigation__extra">
+                
                 <li><a href="{% url 'track_order' %}">Track your order</a></li>
                 <li>
                     <div class="ps-dropdown"><a href="#">US Dollar</a>
@@ -222,10 +260,11 @@
         <div class="navigation__left">
             <a class="ps-logo" href="{% url 'home' %}">
                 <img src="{% static 'png transparent-01.png' %}" alt="" style="width: 64%;display: flex;"/>
+                <!-- <img src="{% static 'genial_logo5.png' %}" alt="" /> -->
             </a>
         </div>
         <div class="navigation__right">
-            <div class="header__actions" style="color: #ffffff;">
+            <div class="header__actions"  style="color: #ffffff;">
                 <div class="ps-cart--mini">
                     <a class="header__extra" href="{% url 'cart_detail' %}">
                         <i class="icon-bag2"></i>
@@ -258,7 +297,7 @@
                                         <small>{{ item.quantity }} x {{ currency_symbol }} {{ item.price }}</small>
                                     </div>
                                 </div>
-                            {% endfor %}
+                                {% endfor %}
                         </div>
                         <div class="ps-cart__footer">
                             <h3>Sub Total:<strong>{{ currency_symbol }} {{ cart_total|default:"0.00" }}</strong></h3>
@@ -302,7 +341,7 @@
 </header>
 
 <style>
-/* Search Suggestions Dropdown - Optimized for speed */
+/* Search Suggestions Dropdown */
 .search-wrapper {
     position: relative;
     flex: 1;
@@ -346,7 +385,7 @@
 .suggestion-item {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
+    padding: 10px 15px;
     border-bottom: 1px solid #f0f0f0;
     transition: background-color 0.2s;
     cursor: pointer;
@@ -363,9 +402,9 @@
 }
 
 .suggestion-image {
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
     flex-shrink: 0;
 }
 
@@ -382,44 +421,57 @@
 }
 
 .suggestion-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: #333;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+.suggestion-brand {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+}
+
 .suggestion-price {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: #420707;
+}
+
+.suggestion-price .original-price {
+    font-size: 12px;
+    font-weight: normal;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 8px;
 }
 
 .no-results {
     padding: 20px;
     text-align: center;
     color: #999;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .no-results i {
-    font-size: 30px;
+    font-size: 40px;
     color: #ddd;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: block;
 }
 
 .view-all-link {
     display: block;
-    padding: 8px 12px;
+    padding: 10px 15px;
     text-align: center;
     background-color: #f5f5f5;
     color: #420707;
     font-weight: 500;
     text-decoration: none;
-    font-size: 13px;
     border-top: 1px solid #e1e1e1;
 }
 
@@ -446,28 +498,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Get DOM elements
+    console.log('DOM loaded - search suggestions initializing');
+    
     const searchInput = document.getElementById('search-input');
     const suggestionsDropdown = document.getElementById('search-suggestions');
     const suggestionsContent = document.querySelector('.suggestions-content');
     const loader = document.querySelector('.suggestions-loader');
     const searchForm = document.getElementById('search-form');
     
-    // Exit if required elements not found
+    // Log to check if elements are found
+    console.log('Search input found:', searchInput);
+    console.log('Suggestions dropdown found:', suggestionsDropdown);
+    console.log('Suggestions content found:', suggestionsContent);
+    console.log('Loader found:', loader);
+    
     if (!searchInput || !suggestionsDropdown || !suggestionsContent || !loader) {
-        console.error('Search elements not found');
+        console.error('Required elements not found!');
         return;
     }
     
     let searchTimeout;
     let currentRequest = null;
     
-    // Input event listener with debounce
-    searchInput.addEventListener('input', function() {
+    // Input event listener
+    searchInput.addEventListener('input', function(e) {
         const query = this.value.trim();
+        console.log('Input changed:', query);
         
         if (query.length < 2) {
             suggestionsDropdown.style.display = 'none';
+            console.log('Query too short, hiding dropdown');
             return;
         }
         
@@ -476,17 +536,21 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(searchTimeout);
         }
         
-        // Set new timeout (150ms for faster response)
-        searchTimeout = setTimeout(() => {
+        // Set new timeout
+        searchTimeout = setTimeout(function() {
+            console.log('Fetching suggestions for:', query);
             fetchSuggestions(query);
-        }, 150);
+        }, 300);
     });
     
     // Focus event
     searchInput.addEventListener('focus', function() {
         const query = this.value.trim();
+        console.log('Input focused, query:', query);
+        
         if (query.length >= 2) {
             suggestionsDropdown.style.display = 'block';
+            console.log('Showing dropdown on focus');
         }
     });
     
@@ -494,13 +558,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
             suggestionsDropdown.style.display = 'none';
+            console.log('Clicked outside, hiding dropdown');
         }
     });
     
+    // Prevent form submission when clicking suggestions
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            // Allow normal submission
+            console.log('Form submitting');
+        });
+    }
+    
     // Fetch suggestions function
     function fetchSuggestions(query) {
+        console.log('fetchSuggestions called with:', query);
+        
         // Cancel previous request
         if (currentRequest) {
+            console.log('Aborting previous request');
             currentRequest.abort();
         }
         
@@ -509,8 +585,17 @@ document.addEventListener('DOMContentLoaded', function() {
         suggestionsContent.innerHTML = '';
         suggestionsDropdown.style.display = 'block';
         
+        // Get category
+        const categorySelect = document.getElementById('search-category');
+        const category = categorySelect ? categorySelect.value : '';
+        
         // Build URL
-        const url = `/search/suggestions/?q=${encodeURIComponent(query)}`;
+        let url = `/search/suggestions/?q=${encodeURIComponent(query)}`;
+        if (category) {
+            url += `&category=${encodeURIComponent(category)}`;
+        }
+        
+        console.log('Fetching URL:', url);
         
         // Create request
         currentRequest = new XMLHttpRequest();
@@ -518,17 +603,20 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         
         currentRequest.onload = function() {
+            console.log('Request completed, status:', this.status);
             loader.style.display = 'none';
             
             if (this.status === 200) {
                 try {
                     const data = JSON.parse(this.responseText);
-                    displaySuggestions(data, query);
+                    console.log('Received data:', data);
+                    displaySuggestions(data);
                 } catch (e) {
                     console.error('Error parsing response:', e);
                     showError();
                 }
             } else {
+                console.error('Request failed with status:', this.status);
                 showError();
             }
             
@@ -536,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         currentRequest.onerror = function() {
+            console.error('Request error');
             loader.style.display = 'none';
             showError();
             currentRequest = null;
@@ -545,17 +634,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Display suggestions
-    function displaySuggestions(data, query) {
+    function displaySuggestions(data) {
         const products = data.products || [];
+        const query = data.query || '';
+        
+        console.log('Displaying', products.length, 'products');
         
         if (products.length === 0) {
             suggestionsContent.innerHTML = `
                 <div class="no-results">
                     <i class="icon-magnifier"></i>
-                    <p>No products found for "${escapeHtml(query)}"</p>
+                    <p>No products found for "<strong>${escapeHtml(query)}</strong>"</p>
                 </div>
                 <a href="${searchForm.action}?q=${encodeURIComponent(query)}" class="view-all-link">
-                    View all results
+                    View all search results
                 </a>
             `;
             return;
@@ -569,12 +661,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 <a href="${product.url}" class="suggestion-item" onclick="event.stopPropagation()">
                     <div class="suggestion-image">
                         <img src="${product.image}" alt="${escapeHtml(product.name)}" 
-                             onerror="this.src='/static/img/no-image.jpg'"
-                             loading="lazy">
+                             onerror="this.src='/static/img/no-image.jpg'">
                     </div>
                     <div class="suggestion-info">
                         <div class="suggestion-name">${highlightedName}</div>
-                        <div class="suggestion-price">৳ ${product.price}</div>
+                        ${product.brand ? `<div class="suggestion-brand">${escapeHtml(product.brand)}</div>` : ''}
+                        <div class="suggestion-price">
+                            ${product.original_price ? `
+                                ৳ ${product.price}
+                                <span class="original-price">৳ ${product.original_price}</span>
+                            ` : `৳ ${product.price}`}
+                        </div>
                     </div>
                 </a>
             `;
@@ -582,14 +679,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         html += `
             <a href="${searchForm.action}?q=${encodeURIComponent(query)}" class="view-all-link">
-                See all results
+                See all ${data.count} results for "${escapeHtml(query)}"
             </a>
         `;
         
         suggestionsContent.innerHTML = html;
     }
     
-    // Helper: Highlight matching text
+    // Helper functions
     function highlightMatch(text, query) {
         if (!query) return escapeHtml(text);
         
@@ -601,7 +698,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Helper: Escape HTML
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -609,17 +705,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
     }
     
-    // Helper: Escape RegExp
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
     
-    // Helper: Show error
     function showError() {
         suggestionsContent.innerHTML = `
             <div class="no-results">
                 <i class="icon-warning"></i>
-                <p>Something went wrong</p>
+                <p>Something went wrong. Please try again.</p>
             </div>
         `;
     }
