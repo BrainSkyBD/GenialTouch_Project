@@ -1,7 +1,7 @@
 from decimal import Decimal
 import json
 import time
-
+from django.db import connection
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Q, Count, Avg, Min, Max, Prefetch
@@ -24,6 +24,7 @@ from orders.models import (
     PaymentMethod, Order, OrderItem,
     Country, District, TaxConfiguration
 )
+
 
 
 
@@ -624,185 +625,489 @@ def load_more_products(request):
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 
-def product_detail(request, slug):
-    # Try to get from cache first
-    cache_key = f'product_detail_{slug}'
-    context = cache.get(cache_key)
+# def product_detail(request, slug):
+#     # Try to get from cache first
+#     cache_key = f'product_detail_{slug}'
+#     context = cache.get(cache_key)
     
-    if not context:
-        # SIMPLIFIED QUERYSET - Avoid complex prefetches that cause errors
+#     if not context:
+#         # SIMPLIFIED QUERYSET - Avoid complex prefetches that cause errors
+#         product = get_object_or_404(
+#             Product.objects.select_related('brand'),
+#             slug=slug,
+#             is_active=True
+#         )
+        
+#         # Get variations separately
+#         variations_data = {}
+#         try:
+#             product_variations = ProductVariation.objects.filter(
+#                 product=product,
+#                 is_active=True,
+#                 stock__gt=0
+#             ).prefetch_related(
+#                 'attributes__attribute'  # FIXED: attributes -> attribute_value -> attribute
+#             )
+            
+#             for variation in product_variations:
+#                 for attr in variation.attributes.all():
+#                     attr_name = attr.attribute.name  # Correct: attr is AttributeValue
+#                     if attr_name not in variations_data:
+#                         variations_data[attr_name] = set()
+#                     variations_data[attr_name].add(attr.value)
+#         except Exception as e:
+#             print(f"Error loading variations: {e}")
+#             variations_data = {}
+        
+#         variations = {k: list(v) for k, v in variations_data.items()}
+        
+#         # Get related products
+#         related_products = []
+#         try:
+#             # Get category IDs as a list first
+#             category_ids = list(product.categories.filter(
+#                 is_active=True
+#             ).values_list('id', flat=True))
+            
+#             if category_ids:
+#                 related_products = Product.objects.filter(
+#                     categories__id__in=category_ids,
+#                     is_active=True
+#                 ).exclude(id=product.id).select_related('brand').distinct()[:8]
+#         except Exception as e:
+#             print(f"Error loading related products: {e}")
+        
+#         # Get frequently bought together
+#         frequently_bought = []
+#         try:
+#             from orders.models import OrderItem
+#             frequently_bought = Product.objects.filter(
+#                 orderitem__order__items__product=product
+#             ).exclude(id=product.id).distinct()[:4]
+#         except (ImportError, Exception) as e:
+#             print(f"Error loading frequently bought: {e}")
+        
+#         # Same brand products
+#         same_brand_products = []
+#         if product.brand:
+#             try:
+#                 same_brand_products = Product.objects.filter(
+#                     brand=product.brand,
+#                     is_active=True
+#                 ).exclude(id=product.id)[:2]
+#             except Exception as e:
+#                 print(f"Error loading same brand products: {e}")
+        
+#         # Get payment methods
+#         try:
+#             payment_methods = PaymentMethod.objects.filter(is_active=True)
+#         except:
+#             payment_methods = []
+
+#         context = {
+#             'product': product,
+#             'variations': variations,
+#             'related_products': related_products,
+#             'frequently_bought_together': frequently_bought,
+#             'same_brand_products': same_brand_products,
+#             'payment_methods': payment_methods,
+#             'currency_symbol': '৳',
+#         }
+        
+#         # Cache the context
+#         try:
+#             cache.set(cache_key, context, 60 * 15)
+#         except:
+#             pass  # Continue even if caching fails
+    
+#     return render(request, 'shop/product_detail.html', context)
+
+
+# def get_frequently_bought(request):
+#     """AJAX view to load frequently bought together products"""
+#     product_id = request.GET.get('product_id')
+    
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         # Get frequently bought together products
+#         try:
+#             from orders.models import OrderItem
+#             # CORRECT: Apply all operations first, then slice
+#             frequently_bought = Product.objects.filter(
+#                 orderitem__order__items__product=product
+#             ).exclude(id=product.id).distinct()[:4]  # Slice LAST
+#         except:
+#             frequently_bought = Product.objects.none()
+        
+#         context = {
+#             'products': frequently_bought,
+#             'currency_symbol': '৳',
+#         }
+        
+#         html = render_to_string('shop/partials/frequently_bought.html', context)
+#         return JsonResponse({'html': html})
+        
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': '<div class="col-12"><p>No frequently bought items found.</p></div>'})
+#     except Exception as e:
+#         print(f"Error in get_frequently_bought: {e}")
+#         return JsonResponse({
+#             'html': '''
+#             <div class="text-center py-4">
+#                 <i class="fa fa-shopping-basket fa-3x text-muted mb-3"></i>
+#                 <p class="text-muted">Unable to load frequently bought items.</p>
+#             </div>
+#             '''
+#         })
+
+
+# def get_related_products(request):
+#     """AJAX view to load related products"""
+#     product_id = request.GET.get('product_id')
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         # Get first category - DON'T slice the queryset before filtering
+#         first_category = product.categories.filter(is_active=True).first()
+        
+#         if first_category:
+#             # CORRECT: Apply all filters first, then slice at the end
+#             related_products = Product.objects.filter(
+#                 categories=first_category,
+#                 is_active=True
+#             ).exclude(id=product.id).select_related('brand')[:8]  # Slice LAST
+        
+#         else:
+#             related_products = Product.objects.none()
+        
+#         context = {
+#             'products': related_products,
+#             'currency_symbol': '৳',
+#         }
+        
+#         html = render_to_string('shop/partials/related_products.html', context)
+#         return JsonResponse({'html': html})
+        
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': '<p>Product not found.</p>'})
+#     except Exception as e:
+#         print(f"Error in get_related_products: {e}")
+#         # Return a simpler version without carousel
+#         return JsonResponse({
+#             'html': '''
+#             <div class="text-center py-4">
+#                 <i class="fa fa-cubes fa-3x text-muted mb-3"></i>
+#                 <p class="text-muted">No related products found.</p>
+#             </div>
+#             '''
+#         })
+
+
+# def get_tab_content(request):
+#     """AJAX view to load tab content"""
+#     product_id = request.GET.get('product_id')
+#     tab_type = request.GET.get('tab_type')
+    
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         if tab_type == 'specifications':
+#             # CORRECT: ProductAttribute -> attribute_value -> attribute
+#             specifications = ProductAttribute.objects.filter(
+#                 product=product
+#             ).select_related(
+#                 'attribute_value__attribute'  # FIXED: This is the correct relationship
+#             )
+            
+#             html = render_to_string('shop/partials/specifications.html', {
+#                 'product': product,
+#                 'specifications': specifications
+#             })
+#         elif tab_type == 'reviews':
+#             # Get reviews
+#             reviews = product.reviews.filter(is_approved=True)[:5] if hasattr(product, 'reviews') else []
+            
+#             html = render_to_string('shop/partials/reviews.html', {
+#                 'product': product,
+#                 'reviews': reviews,
+#                 'review_count': len(reviews)
+#             })
+#         else:
+#             html = '<p>Content not available.</p>'
+        
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': '<p>Product not found.</p>'})
+#     except Exception as e:
+#         print(f"Error in get_tab_content: {e}")
+#         return JsonResponse({'html': f'<p>Error loading content: {str(e)}</p>'})
+
+
+
+
+# def get_product_variation_price(request):
+#     """AJAX view to get variation price"""
+#     if request.method == 'POST':
+#         try:
+#             product_id = request.POST.get('product_id')
+#             attributes = json.loads(request.POST.get('attributes', '{}'))
+            
+#             product = Product.objects.get(id=product_id)
+            
+#             # Find matching variation
+#             variations = ProductVariation.objects.filter(
+#                 product=product,
+#                 is_active=True
+#             ).prefetch_related('attributes__attribute')  # FIXED
+            
+#             matching_variation = None
+#             for variation in variations:
+#                 variation_attrs = {}
+#                 for attr in variation.attributes.all():
+#                     variation_attrs[attr.attribute.name] = attr.value
+                
+#                 if variation_attrs == attributes:
+#                     matching_variation = variation
+#                     break
+            
+#             if matching_variation:
+#                 return JsonResponse({
+#                     'price': str(matching_variation.get_price()),
+#                     'original_price': str(product.price) if product.discount_price else None,
+#                     'stock': matching_variation.stock
+#                 })
+#             else:
+#                 # Return base product price
+#                 return JsonResponse({
+#                     'price': str(product.get_price()),
+#                     'original_price': str(product.price) if product.discount_price else None,
+#                     'stock': product.get_total_stock()
+#                 })
+                
+#         except Exception as e:
+#             print(f"Error in get_product_variation_price: {e}")
+#             return JsonResponse({'error': str(e)}, status=400)
+    
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
+
+
+
+
+
+def product_detail(request, slug):
+    """
+    Optimized product detail view with minimal queries
+    Uses select_related, prefetch_related and caching strategically
+    """
+    start_time = time.time()
+    
+    # Try to get product from cache first (cache by slug)
+    cache_key = f'product_detail_{slug}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        # Cache hit - return cached context
+        context = cached_data
+    else:
+        # Cache miss - query database with optimized joins
+        
+        # 1. Get product with all necessary related data in minimal queries
+        # IMPORTANT: Don't slice in Prefetch - do it after retrieving
         product = get_object_or_404(
-            Product.objects.select_related('brand'),
+            Product.objects.select_related('brand')
+                          .prefetch_related(
+                              # Images - only needed fields
+                              Prefetch(
+                                  'images',
+                                  queryset=ProductImage.objects.only(
+                                      'id', 'image', 'product_id', 'is_featured', 'alt_text', 'display_order'
+                                  ).order_by('display_order', 'id')
+                              ),
+                              # Categories - only for breadcrumbs
+                              Prefetch(
+                                  'categories',
+                                  queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
+                              ),
+                              # Variations with attributes - for variant selection
+                              Prefetch(
+                                  'variations',
+                                  queryset=ProductVariation.objects.filter(
+                                      is_active=True, stock__gt=0
+                                  ).prefetch_related(
+                                      Prefetch(
+                                          'attributes',
+                                          queryset=AttributeValue.objects.select_related('attribute').only(
+                                              'id', 'value', 'attribute__name'
+                                          )
+                                      )
+                                  ).only('id', 'product_id', 'price', 'stock', 'sku')
+                              ),
+                              # Specifications - for tab content
+                              Prefetch(
+                                  'productattribute_set',
+                                  queryset=ProductAttribute.objects.select_related(
+                                      'attribute_value__attribute'
+                                  ).only(
+                                      'id', 'product_id', 
+                                      'attribute_value__value', 
+                                      'attribute_value__attribute__name'
+                                  )
+                              ),
+                              # Approved reviews - DON'T slice here, get all and slice in template or view
+                              Prefetch(
+                                  'reviews',
+                                  queryset=Review.objects.filter(is_approved=True)
+                                                .select_related('user')
+                                                .only(
+                                                    'id', 'product_id', 'user_id', 'rating', 
+                                                    'title', 'comment', 'created_at',
+                                                    'user__username', 'user__first_name', 'user__last_name'
+                                                ).order_by('-created_at')  # Order but don't slice
+                              )
+                          ),
             slug=slug,
             is_active=True
         )
         
-        # Get variations separately
-        variations_data = {}
-        try:
-            product_variations = ProductVariation.objects.filter(
-                product=product,
-                is_active=True,
-                stock__gt=0
-            ).prefetch_related(
-                'attributes__attribute'  # FIXED: attributes -> attribute_value -> attribute
-            )
-            
-            for variation in product_variations:
-                for attr in variation.attributes.all():
-                    attr_name = attr.attribute.name  # Correct: attr is AttributeValue
-                    if attr_name not in variations_data:
-                        variations_data[attr_name] = set()
-                    variations_data[attr_name].add(attr.value)
-        except Exception as e:
-            print(f"Error loading variations: {e}")
-            variations_data = {}
+        # 2. Process variations into template-friendly format
+        variations_dict = {}
+        for variation in product.variations.all():
+            for attr in variation.attributes.all():
+                attr_name = attr.attribute.name
+                if attr_name not in variations_dict:
+                    variations_dict[attr_name] = set()
+                variations_dict[attr_name].add(attr.value)
         
-        variations = {k: list(v) for k, v in variations_data.items()}
+        # Convert sets to lists and sort
+        variations = {
+            attr_name: sorted(list(values)) 
+            for attr_name, values in variations_dict.items()
+        }
         
-        # Get related products
-        related_products = []
-        try:
-            # Get category IDs as a list first
-            category_ids = list(product.categories.filter(
-                is_active=True
-            ).values_list('id', flat=True))
-            
-            if category_ids:
-                related_products = Product.objects.filter(
-                    categories__id__in=category_ids,
-                    is_active=True
-                ).exclude(id=product.id).select_related('brand').distinct()[:8]
-        except Exception as e:
-            print(f"Error loading related products: {e}")
+        # 3. Get payment methods (cached separately)
+        payment_methods = cache.get('payment_methods')
+        if not payment_methods:
+            payment_methods = list(PaymentMethod.objects.filter(is_active=True).only('id', 'name', 'icon', 'description'))
+            cache.set('payment_methods', payment_methods, 3600)  # Cache for 1 hour
         
-        # Get frequently bought together
-        frequently_bought = []
-        try:
-            from orders.models import OrderItem
-            frequently_bought = Product.objects.filter(
-                orderitem__order__items__product=product
-            ).exclude(id=product.id).distinct()[:4]
-        except (ImportError, Exception) as e:
-            print(f"Error loading frequently bought: {e}")
-        
-        # Same brand products
-        same_brand_products = []
-        if product.brand:
-            try:
-                same_brand_products = Product.objects.filter(
-                    brand=product.brand,
-                    is_active=True
-                ).exclude(id=product.id)[:2]
-            except Exception as e:
-                print(f"Error loading same brand products: {e}")
-        
-        # Get payment methods
-        try:
-            payment_methods = PaymentMethod.objects.filter(is_active=True)
-        except:
-            payment_methods = []
-
+        # 4. Build context with all data
         context = {
             'product': product,
             'variations': variations,
-            'related_products': related_products,
-            'frequently_bought_together': frequently_bought,
-            'same_brand_products': same_brand_products,
             'payment_methods': payment_methods,
-            'currency_symbol': '৳',
+            'currency_code': 'BDT',  # Default fallback
         }
         
-        # Cache the context
-        try:
-            cache.set(cache_key, context, 60 * 15)
-        except:
-            pass  # Continue even if caching fails
+        # Cache the complete context
+        cache.set(cache_key, context, 300)  # Cache for 5 minutes
+    
+    load_time = time.time() - start_time
+    print(f"Product detail page loaded in {load_time:.2f} seconds")
     
     return render(request, 'shop/product_detail.html', context)
 
 
 def get_frequently_bought(request):
-    """AJAX view to load frequently bought together products"""
+    """Optimized AJAX endpoint for frequently bought together"""
     product_id = request.GET.get('product_id')
     
-    try:
-        product = Product.objects.get(id=product_id)
-        
-        # Get frequently bought together products
+    if not product_id:
+        return JsonResponse({'html': ''})
+    
+    cache_key = f'frequently_bought_{product_id}'
+    html = cache.get(cache_key)
+    
+    if not html:
         try:
+            # Optimized query with only needed fields
             from orders.models import OrderItem
-            # CORRECT: Apply all operations first, then slice
-            frequently_bought = Product.objects.filter(
-                orderitem__order__items__product=product
-            ).exclude(id=product.id).distinct()[:4]  # Slice LAST
-        except:
-            frequently_bought = Product.objects.none()
-        
-        context = {
-            'products': frequently_bought,
-            'currency_symbol': '৳',
-        }
-        
-        html = render_to_string('shop/partials/frequently_bought.html', context)
-        return JsonResponse({'html': html})
-        
-    except Product.DoesNotExist:
-        return JsonResponse({'html': '<div class="col-12"><p>No frequently bought items found.</p></div>'})
-    except Exception as e:
-        print(f"Error in get_frequently_bought: {e}")
-        return JsonResponse({
-            'html': '''
-            <div class="text-center py-4">
-                <i class="fa fa-shopping-basket fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Unable to load frequently bought items.</p>
-            </div>
-            '''
-        })
+            
+            frequently_bought = list(Product.objects.filter(
+                orderitem__order__items__product_id=product_id,
+                is_active=True
+            ).exclude(id=product_id).select_related('brand').distinct()[:4])
+            
+            if frequently_bought:
+                # Prefetch images for these products
+                product_ids = [p.id for p in frequently_bought]
+                images = ProductImage.objects.filter(
+                    product_id__in=product_ids, 
+                    is_featured=True
+                ).select_related('product')
+                
+                # Create image lookup dict
+                image_dict = {img.product_id: img for img in images}
+                
+                context = {
+                    'products': frequently_bought,
+                    'image_dict': image_dict,
+                }
+            else:
+                context = {'products': []}
+            
+            html = render_to_string('shop/partials/frequently_bought.html', context)
+            cache.set(cache_key, html, 300)  # Cache for 5 minutes
+            
+        except Exception as e:
+            print(f"Error in get_frequently_bought: {e}")
+            html = render_to_string('shop/partials/frequently_bought_empty.html')
+    
+    return JsonResponse({'html': html})
 
 
 def get_related_products(request):
-    """AJAX view to load related products"""
+    """Optimized AJAX endpoint for related products"""
     product_id = request.GET.get('product_id')
     
-    try:
-        product = Product.objects.get(id=product_id)
-        
-        # Get first category - DON'T slice the queryset before filtering
-        first_category = product.categories.filter(is_active=True).first()
-        
-        if first_category:
-            # CORRECT: Apply all filters first, then slice at the end
-            related_products = Product.objects.filter(
-                categories=first_category,
-                is_active=True
-            ).exclude(id=product.id).select_related('brand')[:8]  # Slice LAST
-        
-        else:
-            related_products = Product.objects.none()
-        
-        context = {
-            'products': related_products,
-            'currency_symbol': '৳',
-        }
-        
-        html = render_to_string('shop/partials/related_products.html', context)
-        return JsonResponse({'html': html})
-        
-    except Product.DoesNotExist:
-        return JsonResponse({'html': '<p>Product not found.</p>'})
-    except Exception as e:
-        print(f"Error in get_related_products: {e}")
-        # Return a simpler version without carousel
-        return JsonResponse({
-            'html': '''
-            <div class="text-center py-4">
-                <i class="fa fa-cubes fa-3x text-muted mb-3"></i>
-                <p class="text-muted">No related products found.</p>
-            </div>
-            '''
-        })
-
+    if not product_id:
+        return JsonResponse({'html': ''})
+    
+    cache_key = f'related_products_{product_id}'
+    html = cache.get(cache_key)
+    
+    if not html:
+        try:
+            # Get product's first category efficiently
+            product = Product.objects.only('id').get(id=product_id)
+            category = product.categories.filter(is_active=True).first()
+            
+            if category:
+                related_products = list(Product.objects.filter(
+                    categories=category,
+                    is_active=True
+                ).exclude(id=product_id).select_related('brand')[:8])
+                
+                if related_products:
+                    # Prefetch images
+                    product_ids = [p.id for p in related_products]
+                    images = ProductImage.objects.filter(
+                        product_id__in=product_ids,
+                        is_featured=True
+                    ).select_related('product')
+                    
+                    image_dict = {img.product_id: img for img in images}
+                    
+                    context = {
+                        'products': related_products,
+                        'image_dict': image_dict,
+                    }
+                else:
+                    context = {'products': []}
+            else:
+                context = {'products': []}
+            
+            html = render_to_string('shop/partials/related_products.html', context)
+            cache.set(cache_key, html, 300)
+            
+        except Exception as e:
+            print(f"Error in get_related_products: {e}")
+            html = render_to_string('shop/partials/related_products_empty.html')
+    
+    return JsonResponse({'html': html})
 
 
 def get_tab_content(request):
@@ -845,6 +1150,67 @@ def get_tab_content(request):
         return JsonResponse({'html': f'<p>Error loading content: {str(e)}</p>'})
 
 
+
+def get_product_variation_price(request):
+    """Optimized AJAX endpoint for variation price updates"""
+    if request.method == 'POST':
+        try:
+            product_id = request.POST.get('product_id')
+            attributes = json.loads(request.POST.get('attributes', '{}'))
+            
+            # Get variations with attributes in one query
+            variations = ProductVariation.objects.filter(
+                product_id=product_id,
+                is_active=True,
+                stock__gt=0
+            ).prefetch_related(
+                Prefetch(
+                    'attributes',
+                    queryset=AttributeValue.objects.select_related('attribute').only(
+                        'id', 'value', 'attribute__name'
+                    )
+                )
+            ).only('id', 'price', 'stock', 'sku')
+            
+            # Find matching variation
+            matching_variation = None
+            for variation in variations:
+                variation_attrs = {
+                    attr.attribute.name: attr.value 
+                    for attr in variation.attributes.all()
+                }
+                if variation_attrs == attributes:
+                    matching_variation = variation
+                    break
+            
+            if matching_variation:
+                return JsonResponse({
+                    'price': str(matching_variation.get_price()),
+                    'original_price': None,  # Variation doesn't have separate original price
+                    'stock': matching_variation.stock
+                })
+            else:
+                # Get base product price
+                product = Product.objects.only('price', 'discount_price').get(id=product_id)
+                total_stock = ProductVariation.objects.filter(
+                    product_id=product_id,
+                    is_active=True
+                ).aggregate(total=Sum('stock'))['total'] or 0
+                
+                return JsonResponse({
+                    'price': str(product.get_price()),
+                    'original_price': str(product.price) if product.discount_price else None,
+                    'stock': total_stock
+                })
+                
+        except Exception as e:
+            print(f"Error in get_product_variation_price: {e}")
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
 def quick_add_to_cart(request):
     """Quick add to cart for sidebar products"""
     if request.method == 'POST' and request.is_ajax():
@@ -879,51 +1245,6 @@ def quick_add_to_cart(request):
         'status': 'error',
         'message': 'Invalid request'
     }, status=400)
-
-def get_product_variation_price(request):
-    """AJAX view to get variation price"""
-    if request.method == 'POST':
-        try:
-            product_id = request.POST.get('product_id')
-            attributes = json.loads(request.POST.get('attributes', '{}'))
-            
-            product = Product.objects.get(id=product_id)
-            
-            # Find matching variation
-            variations = ProductVariation.objects.filter(
-                product=product,
-                is_active=True
-            ).prefetch_related('attributes__attribute')  # FIXED
-            
-            matching_variation = None
-            for variation in variations:
-                variation_attrs = {}
-                for attr in variation.attributes.all():
-                    variation_attrs[attr.attribute.name] = attr.value
-                
-                if variation_attrs == attributes:
-                    matching_variation = variation
-                    break
-            
-            if matching_variation:
-                return JsonResponse({
-                    'price': str(matching_variation.get_price()),
-                    'original_price': str(product.price) if product.discount_price else None,
-                    'stock': matching_variation.stock
-                })
-            else:
-                # Return base product price
-                return JsonResponse({
-                    'price': str(product.get_price()),
-                    'original_price': str(product.price) if product.discount_price else None,
-                    'stock': product.get_total_stock()
-                })
-                
-        except Exception as e:
-            print(f"Error in get_product_variation_price: {e}")
-            return JsonResponse({'error': str(e)}, status=400)
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 def add_to_cart(request, product_id):
