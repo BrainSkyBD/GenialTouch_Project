@@ -13,11 +13,21 @@
     .loading-spinner {
         display: none;
         text-align: center;
-        padding: 40px 0;
+        padding: 30px 0;
+        background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 100%);
+        width: 100%;
+        z-index: 10;
+        margin: 20px 0;
     }
     
     .loading-spinner.active {
         display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     
     .spinner {
@@ -27,7 +37,7 @@
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
-        margin: 0 auto;
+        margin: 0 auto 10px;
     }
     
     @keyframes spin {
@@ -35,27 +45,13 @@
         100% { transform: rotate(360deg); }
     }
     
-    .load-more-btn {
-        display: block;
-        width: 200px;
-        margin: 30px auto;
-        padding: 12px 24px;
-        background: #ff6b6b;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.3s;
-    }
-    
-    .load-more-btn:hover {
-        background: #ff5252;
-    }
-    
-    .load-more-btn:disabled {
-        background: #cccccc;
-        cursor: not-allowed;
+    /* Scroll Trigger - invisible element that triggers loading when visible */
+    .infinite-scroll-trigger {
+        width: 100%;
+        height: 20px;
+        margin: 10px 0;
+        visibility: hidden;
+        pointer-events: none;
     }
     
     .end-message {
@@ -65,6 +61,8 @@
         font-style: italic;
         border-top: 1px solid #eee;
         margin-top: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
     }
     
     /* Lazy loading for product images */
@@ -253,38 +251,6 @@
 {% endblock %}
 
 {% block content %}
-
-
-{% comment %}
-<!-- Special Banner -->
-{% if is_featured_filter %}
-<div class="ps-container">
-    <div class="special-banner">
-        <h1>🔥 Deals of the Day</h1>
-        <p>Don't miss out on these amazing discounts! Limited time offers.</p>
-        <div class="product-count">{{ total_products }} Amazing Deals</div>
-    </div>
-</div>
-{% elif is_new_arrivals %}
-<div class="ps-container">
-    <div class="special-banner" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-        <h1>🎉 New Arrivals</h1>
-        <p>Check out our latest products just added to the store!</p>
-        <div class="product-count">{{ total_products }} New Products</div>
-    </div>
-</div>
-{% elif category %}
-<div class="ps-container">
-    <div class="special-banner" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-        <h1>{{ category.name }}</h1>
-        <p>Browse our amazing collection of {{ category.name|lower }}</p>
-        <div class="product-count">{{ total_products }} Products</div>
-    </div>
-</div>
-{% endif %}
-{% endcomment %}
-
-
 
 <!-- Subcategories Banner -->
 {% if subcategory_list %}
@@ -517,7 +483,6 @@
                     {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
                     {% if featured %}<input type="hidden" name="featured" value="{{ featured }}">{% endif %}
                     {% if sort_option %}<input type="hidden" name="sort" value="{{ sort_option }}">{% endif %}
-                    <!-- Brands and attributes will be added dynamically -->
                 </form>
             </div>
             
@@ -556,16 +521,16 @@
                             <div class="ps-shopping-product infinite-scroll-container">
                                 <div class="row" id="products-grid">
                                     {% for product in products %}
-                                    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
+                                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
                                         <div class="ps-product">
                                             <div class="ps-product__thumbnail">
                                                 <a href="{{ product.get_absolute_url }}">
                                                     {% with product.images.all|first as first_image %}
                                                     {% if first_image %}
                                                     <img class="lazy-product-image" 
-                                                         data-src="{{ first_image.image.url }}" 
-                                                         src="{% static 'img/placeholder.webp' %}"
-                                                         alt="{{ product.name }}">
+                                                        data-src="{{ first_image.image.url }}" 
+                                                        src="{% static 'img/placeholder.webp' %}"
+                                                        alt="{{ product.name }}">
                                                     {% else %}
                                                     <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
                                                     {% endif %}
@@ -574,45 +539,45 @@
                                                 {% if product.discount_price %}
                                                 <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
                                                 {% endif %}
-                                                {% comment %}
-                                                <ul class="ps-product__actions">
-                                                    <li>
-                                                        <a href="#" data-toggle="tooltip" data-placement="top" title="Add To Cart" 
-                                                           data-product-id="{{ product.id }}" class="add-to-cart">
-                                                            <i class="icon-bag2"></i>
-                                                        </a>
-                                                    </li>
-                                                    <li><a href="#" data-placement="top" title="Quick View" data-toggle="modal" data-target="#product-quickview" data-product-id="{{ product.id }}"><i class="icon-eye"></i></a></li>
-                                                    <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to Wishlist"><i class="icon-heart"></i></a></li>
-                                                    <li><a href="#" data-toggle="tooltip" data-placement="top" title="Compare"><i class="icon-chart-bars"></i></a></li>
-                                                </ul>
-                                                {% endcomment %}
+                                                {% if product.is_new %}
+                                                <div class="ps-product__badge hot">hot</div>
+                                                {% endif %}
+                                                
                                             </div>
                                             <div class="ps-product__container">
                                                 {% if product.brand %}
-                                                <a class="ps-product__vendor" href="{% url 'products_by_brand' product.brand.slug %}">{{ product.brand.name }}</a>
+                                                <a class="ps-product__vendor" href="{% url 'products_by_brand' product.brand.slug %}">
+                                                    {{ product.brand.name|upper }}
+                                                </a>
                                                 {% endif %}
                                                 <div class="ps-product__content">
                                                     <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
-                                                    <div class="ps-product__rating">
                                                     {% with avg_rating=product.average_rating review_count=product.review_count %}
                                                     {% if review_count > 0 %}
-                                                    <div class="br-wrapper br-theme-fontawesome-stars">
+                                                    <div class="ps-product__rating">
                                                         <select class="ps-rating" data-read-only="true">
                                                             {% for i in "12345" %}
-                                                            <option value="{{ i }}" {% if i == avg_rating|floatformat:"0" %}selected{% endif %}>{{ i }}</option>
+                                                            <option value="{{ i }}" {% if i|add:"0" <= avg_rating %}selected{% endif %}>{{ i }}</option>
                                                             {% endfor %}
                                                         </select>
+                                                        <span>{% if review_count < 10 %}0{% endif %}{{ review_count }}</span>
                                                     </div>
-                                                    <span>({{ review_count }})</span>
-                                                    {% else %}
-                                                    <!-- <span>No reviews yet</span> -->
                                                     {% endif %}
                                                     {% endwith %}
-                                                </div>
-                                                    <p class="ps-product__price">
+                                                    <p class="ps-product__price {% if product.discount_price %}sale{% endif %}">
                                                         {% if product.discount_price %}
-                                                        <span class="sale">{{ currency_symbol }}{{ product.discount_price }}</span>
+                                                        {{ currency_symbol }}{{ product.discount_price }}
+                                                        <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                        {% else %}
+                                                        {{ currency_symbol }}{{ product.price }}
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="ps-product__content hover">
+                                                    <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                                    <p class="ps-product__price {% if product.discount_price %}sale{% endif %}">
+                                                        {% if product.discount_price %}
+                                                        {{ currency_symbol }}{{ product.discount_price }}
                                                         <del>{{ currency_symbol }}{{ product.price }}</del>
                                                         {% else %}
                                                         {{ currency_symbol }}{{ product.price }}
@@ -632,20 +597,14 @@
                                     {% endfor %}
                                 </div>
                                 
+                                <!-- Infinite Scroll Trigger -->
+                                <div class="infinite-scroll-trigger" id="infinite-scroll-trigger"></div>
+                                
                                 <!-- Loading Spinner -->
                                 <div class="loading-spinner" id="products-loading">
                                     <div class="spinner"></div>
                                     <p>Loading more products...</p>
                                 </div>
-                                
-                                <!-- Load More Button -->
-                                {% if products.has_next %}
-                                <div class="text-center mt-4">
-                                    <button class="load-more-btn" id="load-more-products" data-page="2">
-                                        Load More Products ({{ total_products|add:"-12" }} remaining)
-                                    </button>
-                                </div>
-                                {% endif %}
                                 
                                 <!-- End Message -->
                                 <div class="end-message" id="products-end" style="display: none;">
@@ -654,7 +613,75 @@
                             </div>
                         </div>
                         
-                        <!-- List view tab would go here -->
+                        <div class="ps-tab" id="tab-2">
+                            <div class="ps-shopping-product">
+                                {% for product in products %}
+                                <div class="ps-product ps-product--wide">
+                                    <div class="ps-product__thumbnail">
+                                        <a href="{{ product.get_absolute_url }}">
+                                            {% with product.images.all|first as first_image %}
+                                            {% if first_image %}
+                                            <img src="{{ first_image.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                            <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
+                                            {% endif %}
+                                            {% endwith %}
+                                        </a>
+                                        {% if product.discount_price %}
+                                        <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ps-product__container">
+                                        <div class="ps-product__content">
+                                            <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                            {% if product.brand %}
+                                            <p class="ps-product__vendor">Sold by: 
+                                                <a href="{% url 'products_by_brand' product.brand.slug %}">{{ product.brand.name|upper }}</a>
+                                            </p>
+                                            {% endif %}
+                                            {% with avg_rating=product.average_rating review_count=product.review_count %}
+                                            {% if review_count > 0 %}
+                                            <div class="ps-product__rating">
+                                                <select class="ps-rating" data-read-only="true">
+                                                    {% for i in "12345" %}
+                                                    <option value="{{ i }}" {% if i|add:"0" <= avg_rating %}selected{% endif %}>{{ i }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <span>{% if review_count < 10 %}0{% endif %}{{ review_count }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endwith %}
+                                            <ul class="ps-product__desc">
+                                                {% if product.short_description %}
+                                                <li>{{ product.short_description }}</li>
+                                                {% else %}
+                                                <li>{{ product.description|truncatewords:20 }}</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        <div class="ps-product__shopping">
+                                            <p class="ps-product__price {% if product.discount_price %}sale{% endif %}">
+                                                {% if product.discount_price %}
+                                                {{ currency_symbol }}{{ product.discount_price }}
+                                                <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                {% else %}
+                                                {{ currency_symbol }}{{ product.price }}
+                                                {% endif %}
+                                            </p>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-5">
+                                    <i class="icon-cart-remove" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                                    <h4>No products found</h4>
+                                    <p>Try adjusting your filters or search terms</p>
+                                    <button class="ps-btn" onclick="clearAllFilters()">Clear All Filters</button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -669,6 +696,7 @@
 let isLoading = false;
 let hasMore = {{ products.has_next|yesno:"true,false" }};
 let currentPage = {{ products.number }};
+let observer = null;
 
 // Initialize when page loads
 $(document).ready(function() {
@@ -678,7 +706,7 @@ $(document).ready(function() {
     // Initialize lazy image loader
     initLazyImages();
     
-    // Initialize infinite scroll
+    // Initialize infinite scroll with Intersection Observer
     initInfiniteScroll();
     
     // Initialize brand search
@@ -736,10 +764,13 @@ function initLazyImages() {
                     imageObserver.unobserve(img);
                 }
             });
+        }, {
+            rootMargin: '50px' // Start loading images 50px before they enter viewport
         });
         
         lazyImages.forEach(img => imageObserver.observe(img));
     } else {
+        // Fallback for older browsers
         lazyImages.forEach(img => loadImage(img));
     }
 }
@@ -761,39 +792,30 @@ function loadImage(img) {
 }
 
 function initInfiniteScroll() {
-    const loadMoreBtn = document.getElementById('load-more-products');
-    const loadingSpinner = document.getElementById('products-loading');
+    if (!hasMore) return;
     
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadMoreProducts);
-    }
+    const trigger = document.getElementById('infinite-scroll-trigger');
+    if (!trigger) return;
     
-    // Auto load on scroll
-    window.addEventListener('scroll', throttle(() => {
-        if (isLoading || !hasMore) return;
-        
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        // Load when 500px from bottom
-        if (scrollTop + windowHeight >= documentHeight - 500) {
-            loadMoreProducts();
-        }
-    }, 200));
-}
-
-function throttle(func, limit) {
-    let inThrottle;
-    return function() {
-        const args = arguments;
-        const context = this;
-        if (!inThrottle) {
-            func.apply(context, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    }
+    // Create Intersection Observer
+    observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // When trigger element becomes visible and we're not already loading
+            if (entry.isIntersecting && !isLoading && hasMore) {
+                console.log('Trigger visible, loading more products...');
+                loadMoreProducts();
+            }
+        });
+    }, {
+        root: null, // viewport
+        rootMargin: '100px', // Trigger when element is 100px from entering viewport
+        threshold: 0 // Trigger as soon as even 1px is visible
+    });
+    
+    // Start observing the trigger element
+    observer.observe(trigger);
+    
+    console.log('Infinite scroll initialized with Intersection Observer');
 }
 
 function initBrandSearch() {
@@ -958,15 +980,17 @@ function clearAllFilters() {
 }
 
 async function loadMoreProducts() {
-    if (isLoading || !hasMore) return;
+    if (isLoading || !hasMore) {
+        console.log('Cannot load more:', { isLoading, hasMore });
+        return;
+    }
     
     isLoading = true;
     currentPage++;
     
-    const loadMoreBtn = document.getElementById('load-more-products');
-    const loadingSpinner = document.getElementById('products-loading');
+    console.log('Loading page:', currentPage);
     
-    if (loadMoreBtn) loadMoreBtn.disabled = true;
+    const loadingSpinner = document.getElementById('products-loading');
     if (loadingSpinner) loadingSpinner.classList.add('active');
     
     try {
@@ -997,41 +1021,43 @@ async function loadMoreProducts() {
             // Update state
             hasMore = data.has_next;
             
+            console.log('Products loaded. Has more:', hasMore);
+            
             if (!hasMore) {
-                if (loadMoreBtn) {
-                    loadMoreBtn.style.display = 'none';
-                }
                 const endMessage = document.getElementById('products-end');
                 if (endMessage) {
                     endMessage.style.display = 'block';
                 }
+                // Disconnect observer if no more products
+                if (observer) {
+                    observer.disconnect();
+                }
             }
             
-            // Update load more button text if there are more products
-            if (loadMoreBtn && hasMore) {
-                const remaining = data.total_products - (currentPage * 12);
-                loadMoreBtn.innerHTML = `Load More Products (${remaining > 0 ? remaining : 0} remaining)`;
-            }
-            
-            // Reinitialize lazy images
+            // Reinitialize lazy images for newly added products
             setTimeout(initLazyImages, 100);
+            
         } else {
             hasMore = false;
-            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
             const endMessage = document.getElementById('products-end');
             if (endMessage) endMessage.style.display = 'block';
+            if (observer) {
+                observer.disconnect();
+            }
         }
     } catch (error) {
         console.error('Error loading more products:', error);
         hasMore = false;
-        if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        const endMessage = document.getElementById('products-end');
+        if (endMessage) endMessage.style.display = 'block';
+        if (observer) {
+            observer.disconnect();
+        }
     } finally {
         isLoading = false;
-        if (loadMoreBtn) loadMoreBtn.disabled = false;
         if (loadingSpinner) loadingSpinner.classList.remove('active');
     }
 }
-
 function appendProducts(products) {
     const productsGrid = document.getElementById('products-grid');
     if (!productsGrid) return;
@@ -1039,36 +1065,47 @@ function appendProducts(products) {
     const currencySymbol = '{{ currency_symbol }}';
     
     products.forEach(product => {
+        // Discount badge
         const discountBadge = product.discount_percentage > 0 
             ? `<div class="ps-product__badge">-${product.discount_percentage}%</div>` 
             : '';
         
+        // Hot badge (you can add logic for new products)
+        const hotBadge = product.is_new ? `<div class="ps-product__badge hot">hot</div>` : '';
+        
+        // Combine badges
+        const badges = discountBadge + hotBadge;
+        
+        // Price HTML with sale class if discounted
+        const priceClass = product.discount_price ? 'sale' : '';
         const priceHTML = product.discount_price 
-            ? `<p class="ps-product__price">
-                    <span class="sale">${currencySymbol}${product.discount_price}</span>
+            ? `<p class="ps-product__price ${priceClass}">
+                    ${currencySymbol}${product.discount_price}
                     <del>${currencySymbol}${product.price}</del>
                </p>`
             : `<p class="ps-product__price">${currencySymbol}${product.price}</p>`;
         
+        // Rating HTML with formatted review count (01, 02, etc.)
         const ratingHTML = product.avg_rating > 0
             ? `<div class="ps-product__rating">
-                   <div class="br-wrapper br-theme-fontawesome-stars">
-                       <select class="ps-rating" data-read-only="true">
-                           ${Array.from({length: 5}, (_, i) => 
-                               `<option value="${i+1}" ${Math.round(product.avg_rating) === i+1 ? 'selected' : ''}>${i+1}</option>`
-                           ).join('')}
-                       </select>
-                   </div>
-                   <span>(${product.review_count})</span>
+                   <select class="ps-rating" data-read-only="true">
+                       ${Array.from({length: 5}, (_, i) => {
+                           const starValue = i + 1;
+                           const selected = Math.round(product.avg_rating) >= starValue ? 'selected' : '';
+                           return `<option value="${starValue}" ${selected}>${starValue}</option>`;
+                       }).join('')}
+                   </select>
+                   <span>${product.review_count < 10 ? '0' + product.review_count : product.review_count}</span>
                </div>`
-            : `<div class="ps-product__rating"><span>No reviews yet</span></div>`;
+            : '';
         
+        // Brand HTML with uppercase like static
         const brandHTML = product.brand_name 
-            ? `<a class="ps-product__vendor" href="/brand/${product.brand_name.toLowerCase()}/">${product.brand_name}</a>`
+            ? `<a class="ps-product__vendor" href="/brand/${product.brand_slug}/">${product.brand_name.toUpperCase()}</a>`
             : '';
         
         const productHTML = `
-            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
+            <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6 product-item">
                 <div class="ps-product">
                     <div class="ps-product__thumbnail">
                         <a href="${product.url}">
@@ -1077,16 +1114,18 @@ function appendProducts(products) {
                                  src="{% static 'img/placeholder.webp' %}"
                                  alt="${product.name}">
                         </a>
-                        ${discountBadge}
-                        <ul class="ps-product__actions">
-                            
-                        </ul>
+                        ${badges}
+                        
                     </div>
                     <div class="ps-product__container">
                         ${brandHTML}
                         <div class="ps-product__content">
                             <a class="ps-product__title" href="${product.url}">${product.name}</a>
                             ${ratingHTML}
+                            ${priceHTML}
+                        </div>
+                        <div class="ps-product__content hover">
+                            <a class="ps-product__title" href="${product.url}">${product.name}</a>
                             ${priceHTML}
                         </div>
                     </div>
@@ -1096,6 +1135,32 @@ function appendProducts(products) {
         
         productsGrid.insertAdjacentHTML('beforeend', productHTML);
     });
+    
+    // Reinitialize tooltips for newly added products
+    if (typeof $ !== 'undefined' && $.fn.tooltip) {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    
+    // Reinitialize rating stars for newly added products
+    if (typeof $ !== 'undefined' && $.fn.barrating) {
+        $('.ps-rating').each(function() {
+            if (!$(this).data('barrating')) {
+                $(this).barrating({
+                    theme: 'fontawesome-stars',
+                    readonly: true
+                });
+            }
+        });
+    }
 }
+// Re-initialize infinite scroll when switching tabs
+$(document).on('click', '.ps-tab-list a', function() {
+    setTimeout(() => {
+        if (observer) {
+            observer.disconnect();
+        }
+        initInfiniteScroll();
+    }, 300);
+});
 </script>
 {% endblock %}
