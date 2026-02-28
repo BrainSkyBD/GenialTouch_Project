@@ -254,6 +254,8 @@
 
 {% block content %}
 
+
+{% comment %}
 <!-- Special Banner -->
 {% if is_featured_filter %}
 <div class="ps-container">
@@ -280,6 +282,9 @@
     </div>
 </div>
 {% endif %}
+{% endcomment %}
+
+
 
 <!-- Subcategories Banner -->
 {% if subcategory_list %}
