@@ -324,8 +324,6 @@ def process_buy_now(request):
         }, status=500)
 
 
-
-
 def order_confirmation(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number)
@@ -335,7 +333,6 @@ def order_confirmation(request, order_number):
         return render(request, 'orders/order_confirmation.html', context)
     except Order.DoesNotExist:
         raise Http404("Order not found")
-
 
 
 def checkout(request):
@@ -608,14 +605,27 @@ def checkout(request):
             'items': order_items_data
         }
         
+        # if is_ajax:
+        #     # Return JSON response for AJAX checkout
+        #     return JsonResponse({
+        #         'status': 'success',
+        #         'message': f"Order #{order.order_number} placed successfully!",
+        #         'order_number': order.order_number,
+        #         'redirect_url': reverse('order_confirmation', args=[order.order_number]),
+        #         'tracking_data': tracking_data  # Include tracking data for GA4
+        #     })
+        
         if is_ajax:
-            # Return JSON response for AJAX checkout
             return JsonResponse({
                 'status': 'success',
                 'message': f"Order #{order.order_number} placed successfully!",
                 'order_number': order.order_number,
                 'redirect_url': reverse('order_confirmation', args=[order.order_number]),
-                'tracking_data': tracking_data  # Include tracking data for GA4
+                'tracking_data': tracking_data,
+                'debug_info': {
+                    'order_created_at': order.created_at.isoformat(),
+                    'grand_total': float(order.grand_total),
+                } if settings.DEBUG else None  # Only in debug mode
             })
         
         # Regular form submission
