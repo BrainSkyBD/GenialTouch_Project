@@ -7,7 +7,7 @@ from orders.views import admin_download_invoice
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.sitemaps.views import index as sitemap_index
 from .sitemaps import ProductSitemap, CategorySitemap, StaticViewSitemap
-
+from django.views.generic.base import TemplateView
 
 sitemaps = {
     'products': ProductSitemap,
@@ -32,6 +32,12 @@ urlpatterns = [
     # Sitemap URLs
     path('sitemap.xml', sitemap_index, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.index'),
     path('sitemap-<section>.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+
+    # Add robots.txt - Method A: Using TemplateView
+    path('robots.txt', TemplateView.as_view(
+        template_name='robots.txt', 
+        content_type='text/plain'
+    ), name='robots'),
 ]
 
 if settings.DEBUG:

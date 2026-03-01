@@ -1,0 +1,18 @@
+# robots.txt for Your E-commerce Website
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://genialtouch.com/sitemap.xml
+
+# Optional: Disallow certain paths
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /accounts/
+Disallow: /search/
+Disallow: /api/
+Disallow: /*?*  # Disallow URLs with query parameters
+
+# Crawl delay for heavy bots (optional)
+Crawl-delay: 10
