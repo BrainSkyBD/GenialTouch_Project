@@ -752,337 +752,399 @@
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Set max date for birth date field
-        var today = new Date().toISOString().split('T')[0];
-        $('#birth_date').attr('max', today);
+$(document).ready(function() {
+    // Set max date for birth date field
+    var today = new Date().toISOString().split('T')[0];
+    $('#birth_date').attr('max', today);
+    
+    // Country change handler
+    $('#country').change(function() {
+        const countryId = $(this).val();
         
-        // Country change handler
-        $('#country').change(function() {
-            const countryId = $(this).val();
-            
-            // Reset district and thana
-            $('#district').html('<option value="">Select District</option>');
-            $('#thana').html('<option value="">Select Thana</option>');
-            
-            // Load districts for selected country
-            if (countryId) {
-                $.get('{% url "get_districts" %}', {country_id: countryId}, function(data) {
-                    $.each(data, function(i, district) {
-                        $('#district').append($('<option>', {
-                            value: district.id,
-                            text: district.name,
-                            'data-shipping-cost': district.shipping_cost
-                        }));
-                    });
-                }).fail(function() {
-                    alert('Error loading districts. Please try again.');
+        // Reset district and thana
+        $('#district').html('<option value="">Select District</option>');
+        $('#thana').html('<option value="">Select Thana</option>');
+        
+        // Load districts for selected country
+        if (countryId) {
+            $.get('{% url "get_districts" %}', {country_id: countryId}, function(data) {
+                $.each(data, function(i, district) {
+                    $('#district').append($('<option>', {
+                        value: district.id,
+                        text: district.name,
+                        'data-shipping-cost': district.shipping_cost
+                    }));
                 });
-            }
-            
-            // Reset shipping and tax display
-            resetOrderSummary();
-        });
-        
-        // District change handler
-        $('#district').change(function() {
-            const districtId = $(this).val();
-            const selectedOption = $(this).find('option:selected');
-            const shippingCost = selectedOption.data('shipping-cost') || 0;
-            
-            // Reset thana
-            $('#thana').html('<option value="">Select Thana</option>');
-            
-            // Load thanas for selected district
-            if (districtId) {
-                $.get('{% url "get_thanas" %}', {district_id: districtId}, function(data) {
-                    $.each(data, function(i, thana) {
-                        $('#thana').append($('<option>', {
-                            value: thana.id,
-                            text: thana.name
-                        }));
-                    });
-                }).fail(function() {
-                    alert('Error loading thanas. Please try again.');
-                });
-            }
-            
-            // Update shipping display
-            updateShippingDisplay(districtId, shippingCost);
-            
-            // Calculate tax if we have both country and district
-            const countryId = $('#country').val();
-            if (countryId && districtId) {
-                calculateTaxAndTotal(countryId, districtId, shippingCost);
-            } else {
-                resetOrderSummary();
-            }
-        });
-        
-        // Function to reset order summary
-        function resetOrderSummary() {
-            const cartTotal = parseFloat('{{ cart_total }}');
-            const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
-            const displayTotal = cartTotal - promoDiscount;
-            
-            $('#shipping-cost').text('(Select district to calculate shipping)');
-            $('#tax-display').hide();
-            $('#grand-total').text('{{ currency_symbol }}' + displayTotal.toFixed(2));
-        }
-        
-        // Function to update shipping display
-        function updateShippingDisplay(districtId, shippingCost) {
-            if (districtId) {
-                $('#shipping-cost').text('{{ currency_symbol }}' + parseFloat(shippingCost).toFixed(2));
-            } else {
-                $('#shipping-cost').text('(Select district to calculate shipping)');
-            }
-        }
-        
-        // Function to calculate tax and total
-        function calculateTaxAndTotal(countryId, districtId, shippingCost) {
-            const cartTotal = parseFloat('{{ cart_total }}');
-            const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
-            const subtotalAfterPromo = cartTotal - promoDiscount;
-            
-            $.get('{% url "calculate_tax" %}', {
-                country_id: countryId,
-                district_id: districtId,
-                subtotal: subtotalAfterPromo,
-                shipping: shippingCost
-            }, function(data) {
-                if (data.status === 'success') {
-                    // Update shipping cost
-                    $('#shipping-cost').text('{{ currency_symbol }}' + data.shipping_cost);
-                    
-                    // Update tax display
-                    if (parseFloat(data.tax_rate) > 0) {
-                        $('#tax-name').text(data.tax_name + ' (' + data.tax_rate + '%)');
-                        $('#tax-amount').text('{{ currency_symbol }}' + data.tax_amount);
-                        $('#tax-display').show();
-                    } else {
-                        $('#tax-display').hide();
-                    }
-                    
-                    // Update grand total
-                    $('#grand-total').text('{{ currency_symbol }}' + data.grand_total);
-                }
             }).fail(function() {
-                alert('Error calculating tax. Please try again.');
+                alert('Error loading districts. Please try again.');
             });
         }
         
-        // Validate promo code without applying (check button)
-        $('#validate-promo-btn').click(function() {
-            const promoCode = $('#promo-code-input').val().trim().toUpperCase();
-            
-            if (!promoCode) {
-                showPromoMessage('Please enter a promo code', 'error');
-                return;
-            }
-            
-            // Show loading
-            $(this).html('<i class="fas fa-spinner fa-spin"></i>');
-            
-            $.ajax({
-                url: '{% url "offer_management:validate_promo" %}',
-                method: 'GET',
-                data: {
-                    code: promoCode
-                },
-                success: function(response) {
-                    if (response.valid) {
-                        // Show success message with minimum purchase info
-                        let message = response.message;
-                        if (!response.meets_minimum) {
-                            message = `⚠️ ${response.message}`;
-                            showPromoRequirements(response);
-                        } else {
-                            $('#promo-requirements').hide();
-                            showPromoMessage(message, 'success');
-                        }
-                    } else {
-                        $('#promo-requirements').hide();
-                        showPromoMessage(response.message, 'error');
-                    }
-                },
-                error: function() {
-                    $('#promo-requirements').hide();
-                    showPromoMessage('Error validating promo code', 'error');
-                },
-                complete: function() {
-                    $('#validate-promo-btn').html('Check');
-                }
-            });
-        });
+        // Reset shipping and tax display
+        resetOrderSummary();
+    });
+    
+    // District change handler
+    $('#district').change(function() {
+        const districtId = $(this).val();
+        const selectedOption = $(this).find('option:selected');
+        const shippingCost = selectedOption.data('shipping-cost') || 0;
         
-        // Show minimum purchase requirements
-        function showPromoRequirements(response) {
-            const percentage = (response.cart_total / response.minimum_purchase) * 100;
-            const remaining = response.remaining_amount;
-            
-            $('#promo-requirements-message').html(`
-                <strong>${response.message}</strong><br>
-                <small>Current cart: {{ currency_symbol }}${response.cart_total.toFixed(2)} | 
-                Required: {{ currency_symbol }}${response.minimum_purchase.toFixed(2)}</small>
-            `);
-            
-            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-            $('#promo-requirements').show();
+        // Reset thana
+        $('#thana').html('<option value="">Select Thana</option>');
+        
+        // Load thanas for selected district
+        if (districtId) {
+            $.get('{% url "get_thanas" %}', {district_id: districtId}, function(data) {
+                $.each(data, function(i, thana) {
+                    $('#thana').append($('<option>', {
+                        value: thana.id,
+                        text: thana.name
+                    }));
+                });
+            }).fail(function() {
+                alert('Error loading thanas. Please try again.');
+            });
         }
         
-        // Apply promo code with minimum purchase validation
-        $('#apply-promo-btn').click(function() {
-            const promoCode = $('#promo-code-input').val().trim().toUpperCase();
-            
-            if (!promoCode) {
-                showPromoMessage('Please enter a promo code', 'error');
-                return;
-            }
-            
-            // Disable button and show loading
-            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-            
-            $.ajax({
-                url: '{% url "offer_management:apply_promo" %}',
-                method: 'POST',
-                data: {
-                    promo_code: promoCode,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        showPromoMessage(response.message, 'success');
-                        
-                        // Reload page to reflect changes
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                        
-                    } else {
-                        showPromoMessage(response.message, 'error');
-                        
-                        // If minimum purchase not met, show requirements
-                        if (response.message.includes('minimum purchase')) {
-                            const cartTotal = response.cart_total || {{ cart_total }};
-                            const minPurchase = response.minimum_purchase || 0;
-                            const remaining = minPurchase - cartTotal;
-                            
-                            $('#promo-requirements-message').html(`
-                                <strong>${response.message}</strong><br>
-                                <small>Add {{ currency_symbol }}${remaining.toFixed(2)} more to your cart</small>
-                            `);
-                            
-                            const percentage = (cartTotal / minPurchase) * 100;
-                            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-                            $('#promo-requirements').show();
-                        }
-                    }
-                },
-                error: function(xhr) {
-                    let errorMsg = 'Error applying promo code. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
-                    showPromoMessage(errorMsg, 'error');
-                },
-                complete: function() {
-                    $('#apply-promo-btn').prop('disabled', false).html('Apply');
-                }
-            });
-        });
+        // Update shipping display
+        updateShippingDisplay(districtId, shippingCost);
         
-        // Show promo message function
-        function showPromoMessage(message, type) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            $('#promo-status').html(`
-                <div class="alert ${alertClass}">
-                    ${message}
-                </div>
-            `).show();
-            
-            // Auto-hide after 5 seconds for success, keep errors visible longer
-            if (type === 'success') {
-                setTimeout(function() {
-                    $('#promo-status').fadeOut();
-                }, 5000);
-            }
-        }
-        
-        // Remove promo code
-        $('#remove-promo-btn').click(function() {
-            $.ajax({
-                url: '{% url "offer_management:remove_promo" %}',
-                method: 'POST',
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        // Reload page to reflect changes
-                        location.reload();
-                    }
-                },
-                error: function() {
-                    alert('Error removing promo code. Please try again.');
-                }
-            });
-        });
-        
-        // Check if applied promo meets minimum purchase on page load
-        {% if applied_promo %}
-        const cartTotal = {{ cart_total }};
-        const minPurchase = {{ applied_promo.minimum_purchase_amount|default:0 }};
-        
-        if (cartTotal < minPurchase) {
-            $('#promo-requirements').show();
-            $('#promo-requirements-message').html(`
-                <strong>⚠️ Warning: Your cart total ({{ currency_symbol }}${cartTotal.toFixed(2)}) 
-                is below the minimum purchase requirement ({{ currency_symbol }}${minPurchase.toFixed(2)}) 
-                for promo code {{ applied_promo.code }}</strong><br>
-                <small>The promo code may not be applied at checkout</small>
-            `);
-            
-            const percentage = (cartTotal / minPurchase) * 100;
-            $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
-        }
-        {% endif %}
-        
-        // Form validation
-        $('#checkout-form').submit(function(e) {
-            // Basic validation
-            const country = $('#country').val();
-            const district = $('#district').val();
-            
-            if (!country || !district) {
-                e.preventDefault();
-                alert('Please select both country and district.');
-                return false;
-            }
-            
-            // Disable submit button
-            $('#submit-order').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Placing Order...');
-        });
-        
-        // Real-time form validation
-        $('input[required], select[required]').on('blur', function() {
-            if (!$(this).val()) {
-                $(this).addClass('is-invalid');
-            } else {
-                $(this).removeClass('is-invalid');
-            }
-        });
-        
-        // Trigger district change on page load if district is pre-selected (for form validation errors)
-        if ($('#district').val()) {
-            $('#district').trigger('change');
+        // Calculate tax if we have both country and district
+        const countryId = $('#country').val();
+        if (countryId && districtId) {
+            calculateTaxAndTotal(countryId, districtId, shippingCost);
+        } else {
+            resetOrderSummary();
         }
     });
+    
+    // Function to reset order summary
+    function resetOrderSummary() {
+        const cartTotal = parseFloat('{{ cart_total }}');
+        const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
+        const displayTotal = cartTotal - promoDiscount;
+        
+        $('#shipping-cost').text('(Select district to calculate shipping)');
+        $('#tax-display').hide();
+        $('#grand-total').text('{{ currency_symbol }}' + displayTotal.toFixed(2));
+    }
+    
+    // Function to update shipping display
+    function updateShippingDisplay(districtId, shippingCost) {
+        if (districtId) {
+            $('#shipping-cost').text('{{ currency_symbol }}' + parseFloat(shippingCost).toFixed(2));
+        } else {
+            $('#shipping-cost').text('(Select district to calculate shipping)');
+        }
+    }
+    
+    // Function to calculate tax and total
+    function calculateTaxAndTotal(countryId, districtId, shippingCost) {
+        const cartTotal = parseFloat('{{ cart_total }}');
+        const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
+        const subtotalAfterPromo = cartTotal - promoDiscount;
+        
+        $.get('{% url "calculate_tax" %}', {
+            country_id: countryId,
+            district_id: districtId,
+            subtotal: subtotalAfterPromo,
+            shipping: shippingCost
+        }, function(data) {
+            if (data.status === 'success') {
+                // Update shipping cost
+                $('#shipping-cost').text('{{ currency_symbol }}' + data.shipping_cost);
+                
+                // Update tax display
+                if (parseFloat(data.tax_rate) > 0) {
+                    $('#tax-name').text(data.tax_name + ' (' + data.tax_rate + '%)');
+                    $('#tax-amount').text('{{ currency_symbol }}' + data.tax_amount);
+                    $('#tax-display').show();
+                } else {
+                    $('#tax-display').hide();
+                }
+                
+                // Update grand total
+                $('#grand-total').text('{{ currency_symbol }}' + data.grand_total);
+            }
+        }).fail(function() {
+            alert('Error calculating tax. Please try again.');
+        });
+    }
+    
+    // Validate promo code without applying (check button)
+    $('#validate-promo-btn').click(function() {
+        const promoCode = $('#promo-code-input').val().trim().toUpperCase();
+        
+        if (!promoCode) {
+            showPromoMessage('Please enter a promo code', 'error');
+            return;
+        }
+        
+        // Show loading
+        $(this).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '{% url "offer_management:validate_promo" %}',
+            method: 'GET',
+            data: {
+                code: promoCode
+            },
+            success: function(response) {
+                if (response.valid) {
+                    // Show success message with minimum purchase info
+                    let message = response.message;
+                    if (!response.meets_minimum) {
+                        message = `⚠️ ${response.message}`;
+                        showPromoRequirements(response);
+                    } else {
+                        $('#promo-requirements').hide();
+                        showPromoMessage(message, 'success');
+                    }
+                } else {
+                    $('#promo-requirements').hide();
+                    showPromoMessage(response.message, 'error');
+                }
+            },
+            error: function() {
+                $('#promo-requirements').hide();
+                showPromoMessage('Error validating promo code', 'error');
+            },
+            complete: function() {
+                $('#validate-promo-btn').html('Check');
+            }
+        });
+    });
+    
+    // Show minimum purchase requirements
+    function showPromoRequirements(response) {
+        const percentage = (response.cart_total / response.minimum_purchase) * 100;
+        const remaining = response.remaining_amount;
+        
+        $('#promo-requirements-message').html(`
+            <strong>${response.message}</strong><br>
+            <small>Current cart: {{ currency_symbol }}${response.cart_total.toFixed(2)} | 
+            Required: {{ currency_symbol }}${response.minimum_purchase.toFixed(2)}</small>
+        `);
+        
+        $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
+        $('#promo-requirements').show();
+    }
+    
+    // Apply promo code with minimum purchase validation
+    $('#apply-promo-btn').click(function() {
+        const promoCode = $('#promo-code-input').val().trim().toUpperCase();
+        
+        if (!promoCode) {
+            showPromoMessage('Please enter a promo code', 'error');
+            return;
+        }
+        
+        // Disable button and show loading
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '{% url "offer_management:apply_promo" %}',
+            method: 'POST',
+            data: {
+                promo_code: promoCode,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    showPromoMessage(response.message, 'success');
+                    
+                    // Reload page to reflect changes
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                    
+                } else {
+                    showPromoMessage(response.message, 'error');
+                    
+                    // If minimum purchase not met, show requirements
+                    if (response.message.includes('minimum purchase')) {
+                        const cartTotal = response.cart_total || {{ cart_total }};
+                        const minPurchase = response.minimum_purchase || 0;
+                        const remaining = minPurchase - cartTotal;
+                        
+                        $('#promo-requirements-message').html(`
+                            <strong>${response.message}</strong><br>
+                            <small>Add {{ currency_symbol }}${remaining.toFixed(2)} more to your cart</small>
+                        `);
+                        
+                        const percentage = (cartTotal / minPurchase) * 100;
+                        $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
+                        $('#promo-requirements').show();
+                    }
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'Error applying promo code. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                showPromoMessage(errorMsg, 'error');
+            },
+            complete: function() {
+                $('#apply-promo-btn').prop('disabled', false).html('Apply');
+            }
+        });
+    });
+    
+    // Show promo message function
+    function showPromoMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        $('#promo-status').html(`
+            <div class="alert ${alertClass}">
+                ${message}
+            </div>
+        `).show();
+        
+        // Auto-hide after 5 seconds for success, keep errors visible longer
+        if (type === 'success') {
+            setTimeout(function() {
+                $('#promo-status').fadeOut();
+            }, 5000);
+        }
+    }
+    
+    // Remove promo code
+    $('#remove-promo-btn').click(function() {
+        $.ajax({
+            url: '{% url "offer_management:remove_promo" %}',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Reload page to reflect changes
+                    location.reload();
+                }
+            },
+            error: function() {
+                alert('Error removing promo code. Please try again.');
+            }
+        });
+    });
+    
+    // Check if applied promo meets minimum purchase on page load
+    {% if applied_promo %}
+    const cartTotal = {{ cart_total }};
+    const minPurchase = {{ applied_promo.minimum_purchase_amount|default:0 }};
+    
+    if (cartTotal < minPurchase) {
+        $('#promo-requirements').show();
+        $('#promo-requirements-message').html(`
+            <strong>⚠️ Warning: Your cart total ({{ currency_symbol }}${cartTotal.toFixed(2)}) 
+            is below the minimum purchase requirement ({{ currency_symbol }}${minPurchase.toFixed(2)}) 
+            for promo code {{ applied_promo.code }}</strong><br>
+            <small>The promo code may not be applied at checkout</small>
+        `);
+        
+        const percentage = (cartTotal / minPurchase) * 100;
+        $('#promo-progress-bar').css('width', Math.min(percentage, 100) + '%');
+    }
+    {% endif %}
+    
+    // Prepare cart items for tracking
+    var cartItems = [
+        {% for item in cart_items %}
+        {
+            'item_id': '{{ item.product.id }}',
+            'item_name': '{{ item.product.name|escapejs }}',
+            'item_brand': '{{ item.product.brand.name|default:"Unknown"|escapejs }}',
+            'item_category': '{{ item.product.categories.first.name|default:"Uncategorized"|escapejs }}',
+            'price': {{ item.product.get_price|default:item.product.price }},
+            'quantity': {{ item.quantity }},
+            {% if item.variation %}
+            'item_variant': '{{ item.variation.get_variation_name|escapejs }}',
+            {% endif %}
+            'currency': 'BDT'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Push begin_checkout event
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+        'event': 'begin_checkout',
+        'ecommerce': {
+            'currency': 'BDT',
+            'value': {{ cart_total|default:0 }} - {{ promo_discount|default:0 }},
+            'coupon': '{{ applied_promo.code|default:"" }}',
+            'items': cartItems
+        }
+    });
+    
+    // Form submission - store tracking data in sessionStorage
+    $('#checkout-form').submit(function(e) {
+        // Basic validation
+        const country = $('#country').val();
+        const district = $('#district').val();
+        
+        if (!country || !district) {
+            e.preventDefault();
+            alert('Please select both country and district.');
+            return false;
+        }
+        
+        // Calculate total values
+        var subtotal = {{ cart_total|default:0 }};
+        var promoDiscount = {{ promo_discount|default:0 }};
+        var promoCode = '{{ applied_promo.code|default:"" }}';
+        
+        // Get current shipping and tax from displayed values
+        var shippingCost = 0;
+        var shippingText = $('#shipping-cost').text();
+        if (shippingText.includes('৳')) {
+            shippingCost = parseFloat(shippingText.replace('৳', '').trim()) || 0;
+        }
+        
+        var taxAmount = 0;
+        var taxText = $('#tax-amount').text();
+        if (taxText.includes('৳')) {
+            taxAmount = parseFloat(taxText.replace('৳', '').trim()) || 0;
+        }
+        
+        var grandTotal = parseFloat($('#grand-total').text().replace('৳', '').trim()) || (subtotal - promoDiscount + shippingCost + taxAmount);
+        
+        // Store tracking data in session storage for the confirmation page
+        sessionStorage.setItem('purchase_tracking', JSON.stringify({
+            items: cartItems,
+            subtotal: subtotal,
+            promo_discount: promoDiscount,
+            promo_code: promoCode,
+            shipping_cost: shippingCost,
+            tax_amount: taxAmount,
+            grand_total: grandTotal
+        }));
+        
+        // Disable submit button
+        $('#submit-order').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Placing Order...');
+        
+        // Allow form to submit normally
+        return true;
+    });
+    
+    // Real-time form validation
+    $('input[required], select[required]').on('blur', function() {
+        if (!$(this).val()) {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    // Trigger district change on page load if district is pre-selected
+    if ($('#district').val()) {
+        $('#district').trigger('change');
+    }
+});
 </script>
 
 <script>
-// GA4 Checkout Tracking
-// Remove the DOMContentLoaded wrapper and fix the dataLayer structure
 var cartItems = [
     {% for item in cart_items %}
     {

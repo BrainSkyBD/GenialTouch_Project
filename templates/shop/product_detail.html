@@ -1172,6 +1172,94 @@ function initQuickAddToCart() {
     });
 }
 
+// function initBuyNow() {
+//     $('#buy-now-trigger').click(function(e) {
+//         e.preventDefault();
+        
+//         // Get selected variations
+//         var variations = {};
+//         $('.variant-value input[type="radio"]:checked').each(function() {
+//             var attr = $(this).data('attribute');
+//             var val = $(this).val();
+//             variations[attr] = val;
+            
+//             // Set hidden fields
+//             $('#modal_' + attr.toLowerCase().replace(' ', '_')).val(val);
+//         });
+        
+//         // Get quantity
+//         var quantity = $('.quantity-input').val();
+//         $('#modal_quantity').val(quantity);
+//         $('#modal_quantity_display').text(quantity);
+        
+//         // Update variants display
+//         var variantsHtml = '';
+//         for(var attr in variations) {
+//             if(variations.hasOwnProperty(attr)) {
+//                 variantsHtml += '<small>' + attr + ': ' + variations[attr] + '</small><br>';
+//             }
+//         }
+//         $('#modal_variants_display').html(variantsHtml);
+        
+//         // Show modal
+//         $('#buyNowModal').modal('show');
+//     });
+    
+//     // Handle buy now form submission
+//     $('#buyNowForm').submit(function(e) {
+//         e.preventDefault();
+//         var form = $(this);
+//         var submitBtn = form.find('button[type="submit"]');
+        
+//         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Processing...');
+        
+//         $.ajax({
+//             url: form.attr('action'),
+//             method: 'POST',
+//             data: form.serialize(),
+//             headers: {
+//                 'X-Requested-With': 'XMLHttpRequest',
+//                 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+//             },
+//             success: function(response) {
+//                 if(response.status === 'success') {
+//                     // Track purchase event
+//                     window.dataLayer = window.dataLayer || [];
+//                     window.dataLayer.push({
+//                         'event': 'purchase',
+//                         'ecommerce': {
+//                             'transaction_id': response.order_id,
+//                             'value': response.order_total,
+//                             'currency': '{{ currency_code|default:"BDT" }}',
+//                             'items': [{
+//                                 'item_id': '{{ product.id }}',
+//                                 'item_name': '{{ product.name|escapejs }}',
+//                                 'price': '{{ product.get_price }}',
+//                                 'quantity': $('#modal_quantity').val()
+//                             }]
+//                         }
+//                     });
+                    
+//                     // Redirect to order confirmation
+//                     window.location.href = response.redirect_url;
+//                 } else {
+//                     showToast(response.message || 'Error processing order', 'error');
+//                     submitBtn.prop('disabled', false).html('Place Order');
+//                 }
+//             },
+//             error: function(xhr) {
+//                 var message = 'Error processing your order';
+//                 if(xhr.responseJSON && xhr.responseJSON.message) {
+//                     message = xhr.responseJSON.message;
+//                 }
+//                 showToast(message, 'error');
+//                 submitBtn.prop('disabled', false).html('Place Order');
+//             }
+//         });
+//     });
+// }
+
+
 function initBuyNow() {
     $('#buy-now-trigger').click(function(e) {
         e.preventDefault();
@@ -1213,6 +1301,40 @@ function initBuyNow() {
         
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Processing...');
         
+        // Get selected variants for tracking
+        var selectedVariants = {};
+        $('.variant-value input[type="radio"]:checked').each(function() {
+            var attr = $(this).data('attribute');
+            var val = $(this).val();
+            selectedVariants[attr] = val;
+        });
+        
+        // Create variation string for tracking
+        var variationText = '';
+        for(var attr in selectedVariants) {
+            if(variationText) variationText += ', ';
+            variationText += attr + ': ' + selectedVariants[attr];
+        }
+        
+        // Prepare Buy Now item for tracking
+        var quantity = parseInt($('#modal_quantity').val());
+        var price = {{ product.get_price }};
+        var totalPrice = price * quantity;
+        
+        var buyNowItem = [{
+            'item_id': '{{ product.id }}',
+            'item_name': '{{ product.name|escapejs }}',
+            'item_brand': '{{ product.brand.name|default:"GenialTouch"|escapejs }}',
+            'item_category': '{{ product.categories.first.name|default:"Uncategorized"|escapejs }}',
+            'price': price,
+            'quantity': quantity,
+            'currency': 'BDT'
+        }];
+        
+        if (variationText) {
+            buyNowItem[0]['item_variant'] = variationText;
+        }
+        
         $.ajax({
             url: form.attr('action'),
             method: 'POST',
@@ -1223,22 +1345,18 @@ function initBuyNow() {
             },
             success: function(response) {
                 if(response.status === 'success') {
-                    // Track purchase event
-                    window.dataLayer = window.dataLayer || [];
-                    window.dataLayer.push({
-                        'event': 'purchase',
-                        'ecommerce': {
-                            'transaction_id': response.order_id,
-                            'value': response.order_total,
-                            'currency': '{{ currency_code|default:"BDT" }}',
-                            'items': [{
-                                'item_id': '{{ product.id }}',
-                                'item_name': '{{ product.name|escapejs }}',
-                                'price': '{{ product.get_price }}',
-                                'quantity': $('#modal_quantity').val()
-                            }]
-                        }
-                    });
+                    // Store tracking data in sessionStorage BEFORE redirect
+                    var trackingData = {
+                        items: buyNowItem,
+                        subtotal: totalPrice,
+                        promo_discount: 0,
+                        promo_code: null,
+                        shipping_cost: response.shipping_cost || 0,
+                        tax_amount: response.tax_amount || 0,
+                        grand_total: response.grand_total || totalPrice
+                    };
+                    
+                    sessionStorage.setItem('purchase_tracking', JSON.stringify(trackingData));
                     
                     // Redirect to order confirmation
                     window.location.href = response.redirect_url;
