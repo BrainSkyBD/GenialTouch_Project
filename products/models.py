@@ -446,3 +446,10 @@ class ProductVariation(models.Model):
     
     def get_price(self):
         return self.price if self.price else self.product.get_price()
+
+    
+    def get_variation_name(self):
+        """Return a formatted string of all attribute values for this variation"""
+        return ", ".join([str(attr) for attr in self.attributes.all()])
+
+    
