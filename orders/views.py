@@ -162,168 +162,6 @@ def generate_order_number():
 
 
 
-# @require_POST
-# def process_buy_now(request):
-#     print('check buy now function...')
-#     try:
-#         # Get product and quantity
-#         product_id = request.POST.get('product_id')
-#         quantity = int(request.POST.get('quantity', 1))
-#         product = Product.objects.get(id=product_id)
-        
-#         # Get selected variations
-#         variation_attributes = {}
-#         for key, value in request.POST.items():
-#             if key.startswith('attribute_'):
-#                 attr_name = key.replace('attribute_', '')
-#                 variation_attributes[attr_name] = value
-        
-#         # Find the matching variation
-#         variation = None
-#         if variation_attributes:
-#             variations = product.variations.all()
-#             for v in variations:
-#                 if all(attr.value == variation_attributes.get(attr.attribute.name.lower().replace(' ', '_')) 
-#                        for attr in v.attributes.all()):
-#                     variation = v
-#                     break
-        
-#         # Calculate price
-#         price = variation.get_price() if variation else product.get_price()
-#         total_price = price * quantity
-
-#         # Get payment method
-#         get_payment_method_value = request.POST.get('payment_method')
-#         get_payment_method_row = None
-#         if get_payment_method_value:
-#             get_payment_method_row = PaymentMethod.objects.get(id=get_payment_method_value, is_active=True)
-#         else:
-#             return JsonResponse({
-#                 'status': 'error',
-#                 'message': 'Payment method is required'
-#             }, status=400)
-
-#         # Get simplified form data
-#         full_name = request.POST.get('full_name')
-#         phone_number = request.POST.get('phone_number')
-#         email = request.POST.get('email')
-#         full_address = request.POST.get('full_address')
-
-#         # Validate required fields
-#         required_fields = {
-#             'Full Name': full_name,
-#             'Phone Number': phone_number,
-#             'Full Address': full_address,
-#         }
-        
-#         for field, value in required_fields.items():
-#             if not value:
-#                 return JsonResponse({
-#                     'status': 'error',
-#                     'message': f'{field} is required'
-#                 }, status=400)
-
-#         # If email is not provided, set to None
-#         if not email:
-#             email = None
-
-#         # Split full name into first and last name (optional)
-#         first_name = full_name
-#         last_name = ""
-#         name_parts = full_name.strip().split(' ', 1)
-#         if len(name_parts) > 1:
-#             first_name = name_parts[0]
-#             last_name = name_parts[1]
-
-#         # Set default values for removed fields
-#         default_country = Country.objects.filter(name='Bangladesh').first()
-#         default_district = None
-#         if default_country:
-#             default_district = District.objects.filter(country=default_country).first()
-
-#         # Calculate shipping cost (use default district's shipping cost or 0)
-#         shipping_cost = default_district.shipping_cost if default_district else Decimal('0')
-        
-#         # Calculate tax (simplified - you might want to adjust this)
-#         tax_rate = Decimal('0')  # Default 0% tax
-#         tax_amount = Decimal('0')
-        
-#         # If you have a default tax configuration
-#         tax_config = TaxConfiguration.objects.filter(is_active=True).first()
-#         if tax_config:
-#             tax_rate = tax_config.rate
-#             tax_amount = (total_price + shipping_cost) * (tax_rate / 100)
-        
-#         grand_total = total_price + shipping_cost + tax_amount
-
-#         # Create order with simplified data
-#         order = Order(
-#             order_number=uuid.uuid4().hex[:10].upper(),
-#             first_name=first_name,
-#             last_name=last_name,
-#             email=email,
-#             phone_number=phone_number,
-#             full_address=full_address,
-            
-#             # Set removed fields to None
-#             birth_date=None,
-#             birth_month=None,
-#             country=default_country,
-#             district=default_district,
-#             thana=None,
-#             postal_code="",
-#             order_note="",
-            
-#             order_total=total_price,
-#             shipping_cost=shipping_cost,
-#             tax_rate=tax_rate,
-#             tax_amount=tax_amount,
-#             grand_total=grand_total,
-#             status='pending',
-#             ip_address=request.META.get('REMOTE_ADDR'),
-#             is_ordered=True,
-#             payment_method=get_payment_method_row,
-#         )
-        
-#         if request.user.is_authenticated:
-#             order.user = request.user
-        
-#         order.save()
-        
-#         # Create order item
-#         OrderItem.objects.create(
-#             order=order,
-#             product=product,
-#             variation=variation,
-#             quantity=quantity,
-#             price=price
-#         )
-        
-#         return JsonResponse({
-#             'status': 'success',
-#             'redirect_url': reverse('order_confirmation', args=[order.order_number])
-#         })
-        
-#     except Product.DoesNotExist:
-#         return JsonResponse({
-#             'status': 'error',
-#             'message': 'Product not found'
-#         }, status=404)
-#     except PaymentMethod.DoesNotExist:
-#         return JsonResponse({
-#             'status': 'error',
-#             'message': 'Invalid payment method'
-#         }, status=400)
-#     except Exception as e:
-#         import traceback
-#         print(f"Error in process_buy_now: {str(e)}")
-#         print(traceback.format_exc())
-#         return JsonResponse({
-#             'status': 'error',
-#             'message': f'An error occurred: {str(e)}'
-#         }, status=500)
-
-
 @require_POST
 def process_buy_now(request):
     print('check buy now function...')
@@ -463,11 +301,7 @@ def process_buy_now(request):
         
         return JsonResponse({
             'status': 'success',
-            'redirect_url': reverse('order_confirmation', args=[order.order_number]),
-            'order_id': order.order_number,
-            'shipping_cost': float(shipping_cost),
-            'tax_amount': float(tax_amount),
-            'grand_total': float(grand_total)
+            'redirect_url': reverse('order_confirmation', args=[order.order_number])
         })
         
     except Product.DoesNotExist:
@@ -490,415 +324,18 @@ def process_buy_now(request):
         }, status=500)
 
 
-# def order_confirmation(request, order_number):
-#     try:
-#         order = Order.objects.get(order_number=order_number)
-#         context = {
-#             'order': order,
-#         }
-#         return render(request, 'orders/order_confirmation.html', context)
-#     except Order.DoesNotExist:
-#         raise Http404("Order not found")
 
 
 def order_confirmation(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number)
-        
-        # Check if we have tracking data in session (from non-AJAX checkout)
-        tracking_data = request.session.pop('order_tracking_data', None)
-        
-        # If no tracking data in session, prepare from order
-        if not tracking_data:
-            order_items = []
-            for item in order.items.all():
-                # Build variation string manually
-                variation_text = ""
-                if item.variation:
-                    # Method 1: If you have attributes relation
-                    attributes = item.variation.attributes.all()
-                    if attributes.exists():
-                        variation_parts = [f"{attr.attribute.name}: {attr.value}" for attr in attributes]
-                        variation_text = ", ".join(variation_parts)
-                    else:
-                        # Method 2: Use a fallback
-                        variation_text = str(item.variation)
-                
-                item_data = {
-                    'item_id': str(item.product.id),
-                    'item_name': item.product.name,
-                    'item_brand': item.product.brand.name if item.product.brand else 'GenialTouch',
-                    'item_category': item.product.categories.first().name if item.product.categories.exists() else 'Uncategorized',
-                    'price': float(item.price),
-                    'quantity': item.quantity,
-                    'item_variant': variation_text,  # Add the variation text
-                    'currency': 'BDT'
-                }
-                order_items.append(item_data)
-            
-            tracking_data = {
-                'items': order_items,
-                'subtotal': float(order.order_total),
-                'promo_discount': float(order.promo_discount) if order.promo_discount else 0,
-                'promo_code': order.promo_code.code if order.promo_code else None,
-                'shipping_cost': float(order.shipping_cost),
-                'tax_amount': float(order.tax_amount),
-                'grand_total': float(order.grand_total)
-            }
-        
-        # Convert tracking data to JSON for template
-        import json
         context = {
             'order': order,
-            'tracking_data_json': json.dumps(tracking_data)
         }
         return render(request, 'orders/order_confirmation.html', context)
-        
     except Order.DoesNotExist:
         raise Http404("Order not found")
 
-
-# def checkout(request):
-#     if request.method == 'POST':
-#         # Check if this is an AJAX request
-#         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
-#         # Get form data
-#         first_name = request.POST.get('first_name')
-#         last_name = request.POST.get('last_name')
-#         email = request.POST.get('email')
-#         phone_number = request.POST.get('phone_number')
-#         full_address = request.POST.get('full_address')
-#         country_id = request.POST.get('country')
-#         district_id = request.POST.get('district')
-#         thana_id = request.POST.get('thana')
-#         postal_code = request.POST.get('postal_code', '')
-#         order_note = request.POST.get('order_note', '')
-#         payment_method_id = request.POST.get('payment_method')
-        
-#         # Get birth date and month (optional)
-#         birth_date = request.POST.get('birth_date', '')
-#         birth_month = request.POST.get('birth_month', '')
-        
-#         # Validate birth date if provided
-#         if birth_date:
-#             try:
-#                 birth_date_int = int(birth_date)
-#                 if not (1 <= birth_date_int <= 31):
-#                     if is_ajax:
-#                         return JsonResponse({
-#                             'status': 'error',
-#                             'message': "Birth date must be between 1 and 31"
-#                         }, status=400)
-#                     messages.error(request, "Birth date must be between 1 and 31")
-#                     return redirect('checkout')
-#             except (ValueError, TypeError):
-#                 birth_date = None
-        
-#         # Validate birth month if provided
-#         if birth_month and birth_month not in [
-#             'January', 'February', 'March', 'April', 'May', 'June',
-#             'July', 'August', 'September', 'October', 'November', 'December'
-#         ]:
-#             if is_ajax:
-#                 return JsonResponse({
-#                     'status': 'error',
-#                     'message': "Invalid birth month selected"
-#                 }, status=400)
-#             messages.error(request, "Invalid birth month selected")
-#             return redirect('checkout')
-        
-#         # Validate required fields
-#         required_fields = {
-#             'First Name': first_name,
-#             'Last Name': last_name,
-#             'Phone Number': phone_number,
-#             'Full Address': full_address,
-#             'Country': country_id,
-#             'District': district_id,
-#             'Payment Method': payment_method_id
-#         }
-        
-#         for field, value in required_fields.items():
-#             if not value:
-#                 if is_ajax:
-#                     return JsonResponse({
-#                         'status': 'error',
-#                         'message': f"{field} is required"
-#                     }, status=400)
-#                 messages.error(request, f"{field} is required")
-#                 return redirect('checkout')
-        
-#         try:
-#             country = Country.objects.get(id=country_id)
-#             district = District.objects.get(id=district_id)
-#             thana = None
-#             if thana_id:
-#                 thana = Thana.objects.get(id=thana_id, district=district)
-#             payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
-#         except (Country.DoesNotExist, District.DoesNotExist, 
-#                 Thana.DoesNotExist, PaymentMethod.DoesNotExist) as e:
-#             if is_ajax:
-#                 return JsonResponse({
-#                     'status': 'error',
-#                     'message': "Invalid selection"
-#                 }, status=400)
-#             messages.error(request, "Invalid selection")
-#             return redirect('checkout')
-        
-#         # Get cart data
-#         cart = request.session.get('cart', {})
-#         if not cart:
-#             if is_ajax:
-#                 return JsonResponse({
-#                     'status': 'error',
-#                     'message': "Your cart is empty"
-#                 }, status=400)
-#             messages.error(request, "Your cart is empty")
-#             return redirect('cart_detail')
-        
-#         # Calculate totals
-#         cart_context = get_cart_context(request)
-#         cart_total = cart_context['cart_total']
-#         shipping_cost = district.shipping_cost
-        
-#         # Validate promo code if applied
-#         promo_code_id = request.session.get('applied_promo_code')
-#         promo_discount = request.session.get('promo_discount', 0)
-        
-#         # Convert promo_discount to Decimal if it's a float
-#         if isinstance(promo_discount, float):
-#             promo_discount = Decimal(str(promo_discount))
-#         else:
-#             promo_discount = Decimal(promo_discount)
-        
-#         if promo_code_id:
-#             from offer_management.models import PromoCode
-#             try:
-#                 promo_code = PromoCode.objects.get(id=promo_code_id)
-#                 user = request.user if request.user.is_authenticated else None
-                
-#                 # Re-validate the promo code with current cart total
-#                 discount_amount, is_valid, message = promo_code.calculate_discount(
-#                     cart_total, 
-#                     user=user
-#                 )
-                
-#                 if not is_valid:
-#                     # Clear invalid promo from session
-#                     if 'applied_promo_code' in request.session:
-#                         del request.session['applied_promo_code']
-#                     if 'promo_discount' in request.session:
-#                         del request.session['promo_discount']
-                    
-#                     if is_ajax:
-#                         return JsonResponse({
-#                             'status': 'error',
-#                             'message': f"Promo code removed: {message}"
-#                         }, status=400)
-                    
-#                     messages.warning(request, f"Promo code removed: {message}")
-#                     promo_code_id = None
-#                     promo_discount = Decimal('0')
-#                 elif discount_amount != promo_discount:
-#                     # Update discount if it changed
-#                     promo_discount = discount_amount
-#                     request.session['promo_discount'] = float(discount_amount)
-                    
-#             except PromoCode.DoesNotExist:
-#                 # Clear invalid promo from session
-#                 if 'applied_promo_code' in request.session:
-#                     del request.session['applied_promo_code']
-#                 if 'promo_discount' in request.session:
-#                     del request.session['promo_discount']
-#                 promo_code_id = None
-#                 promo_discount = Decimal('0')
-        
-#         # Calculate tax
-#         tax_config = TaxConfiguration.objects.filter(
-#             is_active=True,
-#         ).filter(
-#             Q(applies_to_all=True) | 
-#             Q(countries=country)
-#         ).first()
-        
-#         tax_rate = tax_config.rate if tax_config else Decimal('0')
-#         tax_amount = (cart_total + shipping_cost - promo_discount) * (tax_rate / 100)
-#         grand_total = cart_total + shipping_cost + tax_amount - promo_discount
-        
-#         # Create the order
-#         order = Order.objects.create(
-#             user=request.user if request.user.is_authenticated else None,
-#             order_number=generate_order_number(),
-#             first_name=first_name,
-#             last_name=last_name,
-#             email=email if email else (request.user.email if request.user.is_authenticated else None),
-#             phone_number=phone_number,
-#             full_address=full_address,
-#             birth_date=birth_date if birth_date else None,
-#             birth_month=birth_month if birth_month else None,
-#             country=country,
-#             district=district,
-#             thana=thana,
-#             postal_code=postal_code,
-#             order_note=order_note,
-#             order_total=cart_total,
-#             shipping_cost=shipping_cost,
-#             tax_rate=tax_rate,
-#             tax_amount=tax_amount,
-#             promo_discount=promo_discount,
-#             grand_total=grand_total,
-#             payment_method=payment_method,
-#             status='pending',
-#             ip_address=request.META.get('REMOTE_ADDR'),
-#             promo_code_id=promo_code_id if promo_code_id else None,
-#         )
-        
-#         # Prepare order items data for GA4 tracking
-#         order_items_data = []
-        
-#         # Create order items and prepare tracking data
-#         for cart_key, item_data in cart.items():
-#             product_id = int(cart_key.split('-')[0])
-#             product = Product.objects.get(id=product_id)
-#             variation = None
-#             variation_name = None
-            
-#             if 'variation_id' in item_data:
-#                 variation = ProductVariation.objects.get(id=item_data['variation_id'])
-#                 variation_name = variation.get_variation_name()
-            
-#             OrderItem.objects.create(
-#                 order=order,
-#                 product=product,
-#                 variation=variation,
-#                 quantity=item_data['quantity'],
-#                 price=item_data['price']
-#             )
-            
-#             # Prepare item data for GA4 tracking
-#             item_data_tracking = {
-#                 'item_id': str(product.id),
-#                 'item_name': product.name,
-#                 'item_brand': product.brand.name if product.brand else 'GenialTouch',
-#                 'item_category': product.categories.first().name if product.categories.exists() else 'Uncategorized',
-#                 'price': float(item_data['price']),
-#                 'quantity': item_data['quantity'],
-#                 'currency': 'BDT'
-#             }
-            
-#             if variation_name:
-#                 item_data_tracking['item_variant'] = variation_name
-                
-#             order_items_data.append(item_data_tracking)
-        
-#         # Record promo code usage if applied
-#         if promo_code_id:
-#             from offer_management.models import PromoCode, PromoCodeUsage
-#             promo_code = PromoCode.objects.get(id=promo_code_id)
-#             PromoCodeUsage.objects.create(
-#                 promo_code=promo_code,
-#                 order=order,
-#                 user=request.user if request.user.is_authenticated else None,
-#                 discount_amount=promo_discount
-#             )
-#             promo_code.used_count += 1
-#             promo_code.save()
-            
-#             # Clear promo code from session
-#             if 'applied_promo_code' in request.session:
-#                 del request.session['applied_promo_code']
-#             if 'promo_discount' in request.session:
-#                 del request.session['promo_discount']
-        
-#         # Clear the cart
-#         request.session['cart'] = {}
-#         request.session.modified = True
-        
-#         # Prepare tracking data for GA4
-#         tracking_data = {
-#             'order_number': order.order_number,
-#             'grand_total': float(grand_total),
-#             'shipping_cost': float(shipping_cost),
-#             'tax_amount': float(tax_amount),
-#             'order_total': float(cart_total),
-#             'promo_discount': float(promo_discount),
-#             'promo_code': promo_code.code if promo_code_id and 'promo_code' in locals() else None,
-#             'payment_method': payment_method.name,
-#             'items': order_items_data
-#         }
-        
-#         if is_ajax:
-#             # Return JSON response for AJAX checkout
-#             return JsonResponse({
-#                 'status': 'success',
-#                 'message': f"Order #{order.order_number} placed successfully!",
-#                 'order_number': order.order_number,
-#                 'redirect_url': reverse('order_confirmation', args=[order.order_number]),
-#                 'tracking_data': tracking_data  # Include tracking data for GA4
-#             })
-        
-#         # Regular form submission
-#         messages.success(request, f"Order #{order.order_number} placed successfully!")
-#         return redirect('order_confirmation', order_number=order.order_number)
-    
-#         # GET request - show checkout form
-#     cart_context = get_cart_context(request)
-#     if not cart_context['cart_items']:
-#         messages.warning(request, "Your cart is empty")
-#         return redirect('cart_detail')
-    
-#     # Check if promo code is applied in session
-#     applied_promo = None
-#     promo_discount = Decimal('0')
-    
-#     if request.session.get('applied_promo_code'):
-#         from offer_management.models import PromoCode
-#         try:
-#             applied_promo = PromoCode.objects.get(
-#                 id=request.session['applied_promo_code']
-#             )
-#             # Convert promo_discount from session to Decimal
-#             session_discount = request.session.get('promo_discount', 0)
-#             if isinstance(session_discount, float):
-#                 promo_discount = Decimal(str(session_discount))
-#             else:
-#                 promo_discount = Decimal(session_discount)
-#         except PromoCode.DoesNotExist:
-#             # Clear invalid promo from session
-#             if 'applied_promo_code' in request.session:
-#                 del request.session['applied_promo_code']
-#             if 'promo_discount' in request.session:
-#                 del request.session['promo_discount']
-    
-#     # Pre-fill form with user data if available
-#     initial_data = {}
-#     if request.user.is_authenticated:
-#         initial_data = {
-#             'first_name': request.user.first_name or '',
-#             'last_name': request.user.last_name or '',
-#             'email': request.user.email,
-#             'phone_number': request.user.phone_number if hasattr(request.user, 'phone_number') else '',
-#         }
-    
-#     # Calculate cart total with promo discount for display
-#     # Both are now Decimal objects
-#     display_cart_total = cart_context['cart_total'] - promo_discount
-    
-#     context = {
-#         'countries': Country.objects.filter(is_active=True).order_by('name'),
-#         'payment_methods': PaymentMethod.objects.filter(is_active=True),
-#         'cart_items': cart_context['cart_items'],
-#         'cart_total': cart_context['cart_total'],
-#         'display_cart_total': display_cart_total,
-#         'cart_item_count': cart_context['cart_item_count'],
-#         'initial_data': initial_data,
-#         'days_range': range(1, 32),
-#         'applied_promo': applied_promo,
-#         'promo_discount': promo_discount,
-#         'currency_symbol': '৳',  # Add your currency symbol
-#     }
-#     return render(request, 'orders/checkout.html', context)
 
 
 def checkout(request):
@@ -1015,7 +452,6 @@ def checkout(request):
         else:
             promo_discount = Decimal(promo_discount)
         
-        promo_code = None
         if promo_code_id:
             from offer_management.models import PromoCode
             try:
@@ -1098,42 +534,6 @@ def checkout(request):
             promo_code_id=promo_code_id if promo_code_id else None,
         )
         
-        # Helper function to get variation display text
-        def get_variation_display(variation_obj):
-            """Get variation display text safely"""
-            if not variation_obj:
-                return None
-            
-            # Try different methods that might exist
-            if hasattr(variation_obj, 'get_variation_name'):
-                try:
-                    return variation_obj.get_variation_name()
-                except:
-                    pass
-            
-            if hasattr(variation_obj, 'get_display_text'):
-                try:
-                    return variation_obj.get_display_text()
-                except:
-                    pass
-            
-            if hasattr(variation_obj, 'get_name'):
-                try:
-                    return variation_obj.get_name()
-                except:
-                    pass
-            
-            # Try to build from attributes
-            try:
-                if hasattr(variation_obj, 'attributes') and variation_obj.attributes.exists():
-                    attributes = variation_obj.attributes.all()
-                    return ", ".join([f"{attr.attribute.name}: {attr.value}" for attr in attributes])
-            except:
-                pass
-            
-            # Ultimate fallback
-            return str(variation_obj)
-        
         # Prepare order items data for GA4 tracking
         order_items_data = []
         
@@ -1146,7 +546,7 @@ def checkout(request):
             
             if 'variation_id' in item_data:
                 variation = ProductVariation.objects.get(id=item_data['variation_id'])
-                variation_name = get_variation_display(variation)
+                variation_name = variation.get_variation_name()
             
             OrderItem.objects.create(
                 order=order,
@@ -1173,8 +573,9 @@ def checkout(request):
             order_items_data.append(item_data_tracking)
         
         # Record promo code usage if applied
-        if promo_code_id and promo_code:
-            from offer_management.models import PromoCodeUsage
+        if promo_code_id:
+            from offer_management.models import PromoCode, PromoCodeUsage
+            promo_code = PromoCode.objects.get(id=promo_code_id)
             PromoCodeUsage.objects.create(
                 promo_code=promo_code,
                 order=order,
@@ -1202,7 +603,7 @@ def checkout(request):
             'tax_amount': float(tax_amount),
             'order_total': float(cart_total),
             'promo_discount': float(promo_discount),
-            'promo_code': promo_code.code if promo_code_id and promo_code else None,
+            'promo_code': promo_code.code if promo_code_id and 'promo_code' in locals() else None,
             'payment_method': payment_method.name,
             'items': order_items_data
         }
@@ -1217,14 +618,11 @@ def checkout(request):
                 'tracking_data': tracking_data  # Include tracking data for GA4
             })
         
-        # For regular form submission, store tracking data in session
-        request.session['order_tracking_data'] = tracking_data
-        request.session.modified = True
-        
+        # Regular form submission
         messages.success(request, f"Order #{order.order_number} placed successfully!")
         return redirect('order_confirmation', order_number=order.order_number)
     
-    # GET request - show checkout form
+        # GET request - show checkout form
     cart_context = get_cart_context(request)
     if not cart_context['cart_items']:
         messages.warning(request, "Your cart is empty")
@@ -1264,6 +662,7 @@ def checkout(request):
         }
     
     # Calculate cart total with promo discount for display
+    # Both are now Decimal objects
     display_cart_total = cart_context['cart_total'] - promo_discount
     
     context = {
@@ -1277,9 +676,11 @@ def checkout(request):
         'days_range': range(1, 32),
         'applied_promo': applied_promo,
         'promo_discount': promo_discount,
-        'currency_symbol': '৳',
+        'currency_symbol': '৳',  # Add your currency symbol
     }
     return render(request, 'orders/checkout.html', context)
+
+
 
 
 @login_required
