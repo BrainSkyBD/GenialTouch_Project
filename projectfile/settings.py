@@ -34,6 +34,9 @@ INSTALLED_APPS = [
     # jazzmin
     'jazzmin',
 
+    'django.contrib.sites',  
+    'django.contrib.sitemaps',  
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +59,10 @@ INSTALLED_APPS = [
     'offer_management',
 
 ]
+
+
+SITE_ID = 1
+
 
 MIDDLEWARE = [
 
