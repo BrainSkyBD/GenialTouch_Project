@@ -307,18 +307,163 @@ admin.site.site_title = "E-commerce Admin Portal"
 admin.site.index_title = "Welcome to E-commerce Admin"
 
 
-
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ['product', 'variation', 'quantity', 'price', 'get_total']
+    fields = ['product_with_variation', 'quantity', 'price', 'get_total']
+    readonly_fields = ['product_with_variation', 'quantity', 'price', 'get_total']
+    can_delete = False
+    
+    def product_with_variation(self, obj):
+        if obj.product:
+            # Get the admin change URL for the product
+            from django.urls import reverse
+            product_admin_url = reverse('admin:products_product_change', args=[obj.product.id])
+            
+            # Get the main product image
+            main_image = obj.product.get_main_image()
+            
+            # Product name
+            product_name = obj.product.name
+            if len(product_name) > 35:
+                product_name = product_name[:32] + "..."
+            
+            # Image HTML with link
+            if main_image and main_image.image:
+                image_html = format_html(
+                    '<a href="{}" target="_blank" style="text-decoration: none;">'
+                    '<img src="{}" width="60" height="60" style="object-fit: cover; border-radius: 8px; border: 1px solid #e9ecef; cursor: pointer; transition: opacity 0.2s;" '
+                    'onmouseover="this.style.opacity=\'0.8\'" onmouseout="this.style.opacity=\'1\'" />'
+                    '</a>',
+                    product_admin_url,
+                    main_image.thumbnail.url
+                )
+            else:
+                image_html = format_html(
+                    '<a href="{}" target="_blank" style="text-decoration: none;">'
+                    '<div style="width:60px;height:60px;background:#f1f3f5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#868e96;font-size:10px;cursor:pointer;">📷</div>'
+                    '</a>',
+                    product_admin_url
+                )
+            
+            # Variation details
+            variation_html = ""
+            if obj.variation:
+                attributes = obj.variation.attributes.all()
+                if attributes:
+                    attr_list = [f"{attr.attribute.name}: {attr.value}" for attr in attributes]
+                    variation_html = format_html(
+                        '<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e9ecef;">'
+                        '<div style="font-size: 11px; color: #495057; display: flex; flex-wrap: wrap; gap: 8px;">'
+                        '{}'
+                        '</div>'
+                        '</div>',
+                        ' • '.join(attr_list)
+                    )
+            
+            # Return complete info with clickable product name
+            return format_html(
+                '<div style="display: flex; gap: 12px; padding: 8px 0;">'
+                '<div style="flex-shrink: 0;">{}</div>'
+                '<div style="flex-grow: 1;">'
+                '<div style="display: flex; justify-content: space-between; align-items: start;">'
+                '<div><a href="{}" target="_blank" style="text-decoration: none; color: inherit;" '
+                'onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'
+                '<strong>{}</strong></a> <span style="color: #6c757d; font-size: 11px;">(#{})</span></div>'
+                '<div style="font-size: 11px; background: #e9ecef; padding: 2px 8px; border-radius: 12px; color: #495057;">{}</div>'
+                '</div>'
+                '<div style="font-size: 11px; color: #6c757d; margin-top: 4px;">SKU: {}</div>'
+                '{}</div>'
+                '</div>',
+                image_html,
+                product_admin_url,
+                product_name,
+                obj.product.id,
+                obj.variation.sku if obj.variation else 'Base Product',
+                obj.product.sku,
+                variation_html
+            )
+        return format_html(
+            '<div style="color: #dc3545; padding: 8px;">Product deleted</div>'
+        )
+    product_with_variation.short_description = 'Product Details'
+    
+    def get_total(self, obj):
+        total = obj.get_total()
+        if total:
+            return format_html(
+                '<span style="font-weight: 600; color: #28a745; background: #f0f9f0; padding: 4px 10px; border-radius: 20px; display: inline-block;">${}</span>',
+                total
+            )
+        return format_html(
+            '<span style="color: #6c757d;">-</span>'
+        )
+    get_total.short_description = 'Total' 
+
+# @admin.register(Order)
+# class OrderAdmin(admin.ModelAdmin):
+#     list_display = ['order_number', 'get_full_name', 'grand_total', 'status', 'created_at', 'download_invoice_button']
+#     list_filter = ['status', 'created_at', 'country', 'payment_method']
+#     search_fields = ['order_number', 'first_name', 'last_name', 'email', 'phone_number']
+#     readonly_fields = ['order_number', 'created_at', 'updated_at', 'status_updated_at']
+#     inlines = [OrderItemInline]
+#     actions = ['download_invoice_action', 'mark_as_delivered', 'mark_as_shipped']
+    
+#     fieldsets = (
+#         ('Order Information', {
+#             'fields': ('order_number', 'user', 'status', 'created_at', 'updated_at')
+#         }),
+#         ('Customer Information', {
+#             'fields': ('first_name', 'last_name', 'email', 'phone_number', 
+#                       'birth_date', 'birth_month')
+#         }),
+#         ('Shipping Address', {
+#             'fields': ('full_address', 'country', 'district', 'thana', 'postal_code')
+#         }),
+#         ('Order Details', {
+#             'fields': ('order_note', 'order_total', 'tax_rate', 'tax_amount', 
+#                       'shipping_cost', 'grand_total')
+#         }),
+#         ('Payment Information', {
+#             'fields': ('payment_method', 'payment_details')
+#         }),
+#         ('Tracking Information', {
+#             'fields': ('status_updated_at', 'estimated_delivery_date', 'carrier')
+#         }),
+#         ('Status Timestamps', {
+#             'fields': ('pending_at', 'processing_at', 'confirmed_at', 'packed_at',
+#                       'shipped_at', 'out_for_delivery_at', 'delivered_at',
+#                       'cancelled_at', 'refunded_at'),
+#             'classes': ('collapse',)
+#         }),
+#     )
+    
+#     def download_invoice_button(self, obj):
+#         try:
+#             return format_html(
+#                 '<a class="button" href="{}" target="_blank">Download Invoice</a>',
+#                 reverse('admin_download_invoice', args=[obj.order_number])
+#             )
+#         except:
+#             return None
+#     download_invoice_button.short_description = 'Invoice'
+#     download_invoice_button.allow_tags = True
+    
+#     def download_invoice_action(self, request, queryset):
+#         if len(queryset) == 1:
+#             order = queryset.first()
+#             return generate_pdf_invoice(order)
+#         else:
+#             self.message_user(request, "Please select only one order to download invoice.")
+#     download_invoice_action.short_description = "Download invoice for selected order"
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['order_number', 'get_full_name', 'grand_total', 'status', 'created_at', 'download_invoice_button']
     list_filter = ['status', 'created_at', 'country', 'payment_method']
     search_fields = ['order_number', 'first_name', 'last_name', 'email', 'phone_number']
-    readonly_fields = ['order_number', 'created_at', 'updated_at', 'status_updated_at']
+    readonly_fields = ['order_number', 'created_at', 'updated_at', 'status_updated_at', 'order_items_summary']
     inlines = [OrderItemInline]
     actions = ['download_invoice_action', 'mark_as_delivered', 'mark_as_shipped']
     
@@ -334,7 +479,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('full_address', 'country', 'district', 'thana', 'postal_code')
         }),
         ('Order Details', {
-            'fields': ('order_note', 'order_total', 'tax_rate', 'tax_amount', 
+            'fields': ('order_note', 'order_items_summary', 'order_total', 'tax_rate', 'tax_amount', 
                       'shipping_cost', 'grand_total')
         }),
         ('Payment Information', {
@@ -351,16 +496,33 @@ class OrderAdmin(admin.ModelAdmin):
         }),
     )
     
+    def order_items_summary(self, obj):
+        items = obj.items.all()
+        if not items:
+            return "No items in this order"
+        
+        total_items = sum(item.quantity for item in items)
+        unique_products = items.values('product').distinct().count()
+        
+        return format_html(
+            '<div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">'
+            '<strong>Summary:</strong> {} items from {} unique products<br>'
+            '<small>See table below for details</small>'
+            '</div>',
+            total_items,
+            unique_products
+        )
+    order_items_summary.short_description = 'Order Items Summary'
+    
     def download_invoice_button(self, obj):
         try:
             return format_html(
-                '<a class="button" href="{}" target="_blank">Download Invoice</a>',
+                '<a class="button" href="{}" target="_blank" style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none;">Download Invoice</a>',
                 reverse('admin_download_invoice', args=[obj.order_number])
             )
         except:
             return None
     download_invoice_button.short_description = 'Invoice'
-    download_invoice_button.allow_tags = True
     
     def download_invoice_action(self, request, queryset):
         if len(queryset) == 1:
@@ -369,3 +531,25 @@ class OrderAdmin(admin.ModelAdmin):
         else:
             self.message_user(request, "Please select only one order to download invoice.")
     download_invoice_action.short_description = "Download invoice for selected order"
+    
+    def mark_as_delivered(self, request, queryset):
+        queryset.update(status='delivered')
+        for order in queryset:
+            OrderTrackingTableNew.objects.create(
+                order=order, 
+                status='delivered', 
+                note='Status changed by admin'
+            )
+        self.message_user(request, f"{queryset.count()} orders marked as delivered.")
+    mark_as_delivered.short_description = "Mark selected orders as Delivered"
+    
+    def mark_as_shipped(self, request, queryset):
+        queryset.update(status='shipped')
+        for order in queryset:
+            OrderTrackingTableNew.objects.create(
+                order=order, 
+                status='shipped', 
+                note='Status changed by admin'
+            )
+        self.message_user(request, f"{queryset.count()} orders marked as shipped.")
+    mark_as_shipped.short_description = "Mark selected orders as Shipped"
