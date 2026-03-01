@@ -395,5 +395,55 @@ function downloadInvoice() {
 }
 </script>
 
+<script>
+// Parse tracking data from Django
+var trackingDataFromServer = {{ tracking_data_json|safe }};
 
+$(document).ready(function() {
+    // First check sessionStorage (for Buy Now and AJAX checkout)
+    var trackingData = sessionStorage.getItem('purchase_tracking');
+    
+    if (trackingData) {
+        var data = JSON.parse(trackingData);
+        
+        // Use tracking data from session
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'purchase',
+            'ecommerce': {
+                'transaction_id': '{{ order.order_number }}',
+                'affiliation': 'GenialTouch',
+                'value': data.grand_total,
+                'tax': data.tax_amount,
+                'shipping': data.shipping_cost,
+                'currency': 'BDT',
+                'coupon': data.promo_code || '',
+                'items': data.items
+            }
+        });
+        
+        console.log('GA4 purchase tracked from session');
+        sessionStorage.removeItem('purchase_tracking');
+    } 
+    // If no session data, use tracking data from server (non-AJAX checkout)
+    else if (trackingDataFromServer) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'purchase',
+            'ecommerce': {
+                'transaction_id': '{{ order.order_number }}',
+                'affiliation': 'GenialTouch',
+                'value': trackingDataFromServer.grand_total,
+                'tax': trackingDataFromServer.tax_amount,
+                'shipping': trackingDataFromServer.shipping_cost,
+                'currency': 'BDT',
+                'coupon': trackingDataFromServer.promo_code || '',
+                'items': trackingDataFromServer.items
+            }
+        });
+        
+        console.log('GA4 purchase tracked from server');
+    }
+});
+</script>
 {% endblock %}
