@@ -395,97 +395,65 @@ function downloadInvoice() {
 }
 </script>
 
-
-{{ block.super }}
-<!-- GA4 Purchase Event Tracking with Duplicate Prevention -->
+{% if fire_ga4_event %}
 <script>
     (function() {
         'use strict';
         
-        // Wait for DOM to be fully loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPurchaseTracking);
-        } else {
-            initPurchaseTracking();
-        }
+        console.log('📤 Firing GA4 purchase event for order {{ order.order_number }}');
         
-        function initPurchaseTracking() {
-            // Use a unique key for this order
-            const orderNumber = '{{ order.order_number }}';
-            const eventKey = `ga4_purchase_${orderNumber}`;
-            const lastFired = localStorage.getItem(eventKey);
-            const now = new Date().getTime();
+        try {
+            // Prepare order items for purchase event
+            var orderItems = [
+                {% for item in order.items.all %}
+                {
+                    'item_id': '{{ item.product.id }}',
+                    'item_name': '{{ item.product.name|escapejs }}',
+                    'item_brand': '{{ item.product.brand.name|default:"GenialTouch"|escapejs }}',
+                    'item_category': '{{ item.product.categories.first.name|default:"Uncategorized"|escapejs }}',
+                    'price': {{ item.price }},
+                    'quantity': {{ item.quantity }},
+                    {% if item.variation %}
+                    'item_variant': '{{ item.variation.get_variation_name|escapejs }}',
+                    {% endif %}
+                    'currency': 'BDT'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
             
-            // Check if event was fired in the last 24 hours
-            const oneDayInMs = 24 * 60 * 60 * 1000;
+            // Calculate totals
+            const grandTotal = {{ order.grand_total }};
+            const taxAmount = {{ order.tax_amount|default:0 }};
+            const shippingCost = {{ order.shipping_cost|default:0 }};
+            const promoCode = '{{ order.promo_code.code|default:"" }}';
             
-            console.log(`🔍 Checking GA4 purchase event for order ${orderNumber}`);
-            
-            if (!lastFired || (now - parseInt(lastFired)) > oneDayInMs) {
-                
-                console.log(`📤 Firing GA4 purchase event for order ${orderNumber}`);
-                
-                try {
-                    // Prepare order items for purchase event
-                    var orderItems = [
-                        {% for item in order.items.all %}
-                        {
-                            'item_id': '{{ item.product.id }}',
-                            'item_name': '{{ item.product.name|escapejs }}',
-                            'item_brand': '{{ item.product.brand.name|default:"GenialTouch"|escapejs }}',
-                            'item_category': '{{ item.product.categories.first.name|default:"Uncategorized"|escapejs }}',
-                            'price': {{ item.price }},
-                            'quantity': {{ item.quantity }},
-                            {% if item.variation %}
-                            'item_variant': '{{ item.variation.get_variation_name|escapejs }}',
-                            {% endif %}
-                            'currency': 'BDT'
-                        }{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ];
-                    
-                    // Calculate totals
-                    const grandTotal = {{ order.grand_total }};
-                    const taxAmount = {{ order.tax_amount|default:0 }};
-                    const shippingCost = {{ order.shipping_cost|default:0 }};
-                    const promoCode = '{{ order.promo_code.code|default:"" }}';
-                    
-                    // Push purchase event to dataLayer
-                    window.dataLayer = window.dataLayer || [];
-                    window.dataLayer.push({
-                        'event': 'purchase',
-                        'ecommerce': {
-                            'transaction_id': orderNumber,
-                            'affiliation': 'GenialTouch',
-                            'value': grandTotal,
-                            'tax': taxAmount,
-                            'shipping': shippingCost,
-                            'currency': 'BDT',
-                            'coupon': promoCode,
-                            'items': orderItems
-                        }
-                    });
-                    
-                    // Store timestamp in localStorage
-                    localStorage.setItem(eventKey, now.toString());
-                    
-                    console.log(`✅ GA4 purchase event tracked for order ${orderNumber}`, {
-                        transaction_id: orderNumber,
-                        value: grandTotal,
-                        items: orderItems.length,
-                        timestamp: new Date(now).toLocaleString()
-                    });
-                    
-                } catch (error) {
-                    console.error('❌ Error tracking GA4 purchase event:', error);
+            // Push purchase event to dataLayer
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'purchase',
+                'ecommerce': {
+                    'transaction_id': '{{ order.order_number }}',
+                    'affiliation': 'GenialTouch',
+                    'value': grandTotal,
+                    'tax': taxAmount,
+                    'shipping': shippingCost,
+                    'currency': 'BDT',
+                    'coupon': promoCode,
+                    'items': orderItems
                 }
-                
-            } else {
-                const lastFiredDate = new Date(parseInt(lastFired)).toLocaleString();
-                console.log(`⏭️ GA4 purchase event already fired for order ${orderNumber} at ${lastFiredDate}, skipping...`);
-            }
+            });
+            
+            console.log('✅ GA4 purchase event tracked successfully');
+            
+        } catch (error) {
+            console.error('❌ Error tracking GA4 purchase event:', error);
         }
     })();
 </script>
+{% else %}
+<script>
+    console.log('⏭️ GA4 purchase event already tracked for order {{ order.order_number }}, skipping...');
+</script>
+{% endif %}
 
 {% endblock %}
