@@ -158,6 +158,7 @@ class Order(models.Model):
         help_text="Discount amount from promo code"
     )
 
+    ga4_tracked = models.BooleanField(default=False, help_text="Whether GA4 purchase event has been fired for this order")
 
     
     def __str__(self):

@@ -324,16 +324,36 @@ def process_buy_now(request):
         }, status=500)
 
 
+# def order_confirmation(request, order_number):
+#     try:
+#         order = Order.objects.get(order_number=order_number)
+#         context = {
+#             'order': order,
+#         }
+#         return render(request, 'orders/order_confirmation.html', context)
+#     except Order.DoesNotExist:
+#         raise Http404("Order not found")
+
+
 def order_confirmation(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number)
+        
+        # Check if GA4 event should be fired
+        fire_ga4_event = False
+        if not order.ga4_tracked:
+            fire_ga4_event = True
+            # Mark as tracked immediately to prevent duplicate on refresh
+            order.ga4_tracked = True
+            order.save(update_fields=['ga4_tracked'])
+        
         context = {
             'order': order,
+            'fire_ga4_event': fire_ga4_event,  # Pass to template
         }
         return render(request, 'orders/order_confirmation.html', context)
     except Order.DoesNotExist:
         raise Http404("Order not found")
-
 
 def checkout(request):
     if request.method == 'POST':
