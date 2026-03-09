@@ -335,9 +335,38 @@ def process_buy_now(request):
 #         raise Http404("Order not found")
 
 
+# def order_confirmation(request, order_number):
+#     try:
+#         order = Order.objects.get(order_number=order_number)
+        
+#         # Check if GA4 event should be fired
+#         fire_ga4_event = False
+#         if not order.ga4_tracked:
+#             fire_ga4_event = True
+#             # Mark as tracked immediately to prevent duplicate on refresh
+#             order.ga4_tracked = True
+#             order.save(update_fields=['ga4_tracked'])
+        
+#         context = {
+#             'order': order,
+#             'fire_ga4_event': fire_ga4_event,  # Pass to template
+#         }
+#         return render(request, 'orders/order_confirmation.html', context)
+#     except Order.DoesNotExist:
+#         raise Http404("Order not found")
+
+
+
+
 def order_confirmation(request, order_number):
     try:
-        order = Order.objects.get(order_number=order_number)
+        # Optimize with prefetch_related to reduce database queries
+        order = Order.objects.prefetch_related(
+            'items__product__brand',
+            'items__product__categories',
+            'items__product__images',  # For product images
+            'items__variation__attributes__attribute'  # Deep prefetch for attributes
+        ).get(order_number=order_number)
         
         # Check if GA4 event should be fired
         fire_ga4_event = False
@@ -347,11 +376,39 @@ def order_confirmation(request, order_number):
             order.ga4_tracked = True
             order.save(update_fields=['ga4_tracked'])
         
+        # Prepare JSON data for GA4 items (optional but cleaner)
+        order_items_json = []
+        for item in order.items.all():
+            item_data = {
+                'item_id': str(item.product.id),
+                'item_name': item.product.name,
+                'item_brand': item.product.brand.name if item.product.brand else 'GenialTouch',
+                'item_category': item.product.categories.first().name if item.product.categories.first() else 'Uncategorized',
+                'price': float(item.price),
+                'quantity': item.quantity,
+                'currency': 'BDT',
+            }
+            
+            # Add variation data if exists
+            if item.variation:
+                item_data.update({
+                    'item_variant': item.variation.get_variation_name(),
+                    'item_variant_id': item.variation.id,
+                    'attribute_ids': item.variation.get_attribute_ids(),
+                    'attribute_ids_string': item.variation.get_attribute_ids_string(),
+                    'attribute_data': item.variation.get_attribute_data(),
+                })
+            
+            order_items_json.append(item_data)
+        
         context = {
             'order': order,
-            'fire_ga4_event': fire_ga4_event,  # Pass to template
+            'fire_ga4_event': fire_ga4_event,
+            'order_items_json': json.dumps(order_items_json),  # Pass as JSON string
         }
+        
         return render(request, 'orders/order_confirmation.html', context)
+        
     except Order.DoesNotExist:
         raise Http404("Order not found")
 
