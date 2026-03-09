@@ -452,4 +452,26 @@ class ProductVariation(models.Model):
         """Return a formatted string of all attribute values for this variation"""
         return ", ".join([str(attr) for attr in self.attributes.all()])
 
+    # NEW: Add these helper methods for GA4
+    def get_attribute_ids(self):
+        """Return list of attribute IDs for GA4 tracking"""
+        return [attr.id for attr in self.attributes.all()]
+    
+    def get_attribute_data(self):
+        """Return detailed attribute data for GA4 tracking"""
+        return [
+            {
+                'id': attr.id,
+                'name': str(attr),
+                'attribute_id': attr.attribute.id,
+                'attribute_name': attr.attribute.name,
+                'value': attr.value
+            }
+            for attr in self.attributes.all()
+        ]
+    
+    def get_attribute_ids_string(self):
+        """Return comma-separated string of attribute IDs"""
+        return ','.join([str(attr.id) for attr in self.attributes.all()])
+
     
