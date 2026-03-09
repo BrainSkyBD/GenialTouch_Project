@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         html += `
-            <a href="${form.action}?q=${encodeURIComponent(query)}" class="view-all-link">
+            <a href="/search/by-name/?q=${encodeURIComponent(query)}" class="view-all-link">
                 See all results
             </a>
         `;
@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="icon-warning"></i>
                 <p>Something went wrong</p>
             </div>
-            <a href="${form.action}?q=${encodeURIComponent(query)}" class="view-all-link">
+            <a href="/search/by-name/?q=${encodeURIComponent(query)}" class="view-all-link">
                 View all results
             </a>
         `;
