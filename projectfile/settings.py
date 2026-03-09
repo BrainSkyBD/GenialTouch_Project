@@ -46,6 +46,10 @@ INSTALLED_APPS = [
 
     'django.contrib.humanize', 
 
+
+    'rest_framework',
+    'corsheaders',
+
     # local apps
     'core',
     'accounts',
@@ -65,6 +69,8 @@ SITE_ID = 1
 
 
 MIDDLEWARE = [
+
+    'corsheaders.middleware.CorsMiddleware', 
 
     'django.middleware.gzip.GZipMiddleware',
     'core.middleware.PerformanceMiddleware',
@@ -442,4 +448,32 @@ CACHES = {
             'MAX_ENTRIES': 1000
         }
     }
+}
+
+
+
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React dev server
+    "http://127.0.0.1:8000",
+    "http://localhost:8080",  # Flutter web debug
+]
+
+# JWT settings
+from datetime import timedelta
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Temporarily allow all for development
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 12
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
