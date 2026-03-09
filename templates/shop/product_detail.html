@@ -9,7 +9,8 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta property="og:title" content="{{ product.name }} - GenialTouch">
 <meta property="og:description" content="{{ product.description|striptags|truncatechars:160 }}">
-<meta property="og:image" content="{% if product.images.first %}{{ request.scheme }}://{{ request.get_host }}{{ product.images.first.image.url }}{% else %}{% static 'images/default-social-share.jpg' %}{% endif %}">
+<meta property="og:image" content="{% if product.images.first %}{{ request.build_absolute_uri }}{{ product.images.first.image.url }}{% else %}{{ request.build_absolute_uri }}{% static 'images/default-social-share.jpg' %}{% endif %}">
+<meta property="og:image:secure_url" content="{% if product.images.first %}{{ request.build_absolute_uri }}{{ product.images.first.image.url }}{% else %}{{ request.build_absolute_uri }}{% static 'images/default-social-share.jpg' %}{% endif %}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:site_name" content="GenialTouch">
@@ -25,11 +26,21 @@
 <!-- WhatsApp specific / Additional meta tags -->
 <meta property="product:brand" content="{{ product.brand.name|default:'GenialTouch' }}">
 <meta property="product:availability" content="{% if product.is_in_stock %}in stock{% else %}out of stock{% endif %}">
+<meta property="og:availability" content="{% if product.is_in_stock %}instock{% else %}outofstock{% endif %}">
 <meta property="product:price:amount" content="{% if product.discount_price %}{{ product.discount_price }}{% else %}{{ product.price }}{% endif %}">
 <meta property="product:price:currency" content="BDT">
 
 <!-- Standard meta description (for SEO) -->
 <meta name="description" content="{{ product.description|striptags|truncatechars:160 }}">
+
+
+<!-- Add this after your existing meta tags -->
+<meta property="product:retailer_item_id" content="{{ product.id }}">
+<meta property="product:item_group_id" content="{{ product.id }}">
+<meta property="product:condition" content="new">
+<meta property="og:type" content="product">
+<meta property="og:locale" content="en_US">
+
 {% endblock %}
 
 
@@ -1607,4 +1618,31 @@ $('#imageGalleryModal').on('hidden.bs.modal', function() {
     $('body').removeClass('modal-open');
 });
 </script>
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "image": "{% if product.images.first %}{{ request.build_absolute_uri }}{{ product.images.first.image.url }}{% endif %}",
+  "description": "{{ product.description|striptags|escapejs }}",
+  "sku": "{{ product.sku }}",
+  "mpn": "{{ product.sku }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.brand.name|default:'GenialTouch'|escapejs }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "BDT",
+    "price": "{% if product.discount_price %}{{ product.discount_price|floatformat:2 }}{% else %}{{ product.price|floatformat:2 }}{% endif %}",
+    "availability": "{% if product.is_in_stock %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "itemCondition": "https://schema.org/NewCondition"
+  }
+}
+</script>
+
 {% endblock %}
