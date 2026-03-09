@@ -380,6 +380,7 @@ def order_confirmation(request, order_number):
         order_items_json = []
         for item in order.items.all():
             item_data = {
+                'id': str(item.product.id),
                 'item_id': str(item.product.id),
                 'item_name': item.product.name,
                 'item_brand': item.product.brand.name if item.product.brand else 'GenialTouch',
