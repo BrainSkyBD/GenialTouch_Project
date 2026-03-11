@@ -21,7 +21,7 @@ class ProductListView(generics.ListAPIView):
     
     def get_queryset(self):
         """
-        Optimized queryset with filtering
+        Optimized queryset with filtering - NO annotations that conflict with model fields
         """
         queryset = Product.objects.filter(
             is_active=True
@@ -30,10 +30,7 @@ class ProductListView(generics.ListAPIView):
         ).prefetch_related(
             'images',
             'reviews'
-        ).annotate(
-            average_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
-        )
+        ).distinct()  # Remove duplicates
         
         # Apply filters from query params
         params = self.request.query_params
@@ -77,17 +74,21 @@ class ProductListView(generics.ListAPIView):
             except (ValueError, TypeError):
                 pass
         
-        # Rating filter
+        # Rating filter - using subquery instead of annotation
         rating = params.get('rating')
         if rating:
             try:
                 rating_val = float(rating)
-                queryset = queryset.filter(
-                    reviews__rating__gte=rating_val
-                ).annotate(
-                    avg_rating=Avg('reviews__rating')
-                ).filter(avg_rating__gte=rating_val)
-            except (ValueError, TypeError):
+                from reviews.models import Review
+                # Get product IDs with average rating >= rating_val
+                product_ids = Review.objects.filter(
+                    is_approved=True
+                ).values('product').annotate(
+                    avg_rating=Avg('rating')
+                ).filter(avg_rating__gte=rating_val).values_list('product', flat=True)
+                
+                queryset = queryset.filter(id__in=product_ids)
+            except (ValueError, TypeError, ImportError):
                 pass
         
         # Featured filter
@@ -100,12 +101,9 @@ class ProductListView(generics.ListAPIView):
         if attribute_values:
             queryset = queryset.filter(attributes__id__in=attribute_values).distinct()
         
-        # Remove duplicates that might appear from joins
-        queryset = queryset.distinct()
-        
         return queryset
     
-    @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes
+    @method_decorator(cache_page(60 * 5))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 

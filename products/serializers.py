@@ -49,6 +49,11 @@ class ProductVariationSerializer(serializers.ModelSerializer):
     def get_price_display(self, obj):
         return str(obj.get_price())
 
+
+from rest_framework import serializers
+from .models import Product, Category, Brand, ProductImage, ProductVariation, AttributeValue
+from django.db.models import Avg, Count
+
 class ProductListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for product listings"""
     brand_name = serializers.CharField(source='brand.name', read_only=True)
@@ -58,8 +63,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     price_display = serializers.SerializerMethodField()
     original_price_display = serializers.SerializerMethodField()
     is_in_stock = serializers.SerializerMethodField()
-    average_rating = serializers.FloatField(read_only=True)
-    review_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.SerializerMethodField()  # Changed to MethodField
+    review_count = serializers.SerializerMethodField()     # Changed to MethodField
     
     class Meta:
         model = Product
@@ -88,6 +93,30 @@ class ProductListSerializer(serializers.ModelSerializer):
     
     def get_is_in_stock(self, obj):
         return obj.is_in_stock()
+    
+    def get_average_rating(self, obj):
+        """Calculate average rating on the fly"""
+        try:
+            from reviews.models import Review
+            avg = Review.objects.filter(
+                product=obj, 
+                is_approved=True
+            ).aggregate(avg=Avg('rating'))['avg']
+            return round(avg, 1) if avg else 0
+        except:
+            return 0
+    
+    def get_review_count(self, obj):
+        """Count reviews on the fly"""
+        try:
+            from reviews.models import Review
+            return Review.objects.filter(
+                product=obj, 
+                is_approved=True
+            ).count()
+        except:
+            return 0
+            
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for single product view"""
