@@ -16,14 +16,22 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+import environ
+import os
+env = environ.Env()
+# reading .env file
+environ.Env.read_env(os.path.join(BASE_DIR / 'projectfile', '.env'))
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9$xchsjl143gb2lj#i6is+=h**&g5ncc&y+4l3a8-z64jtqiog'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -482,3 +490,24 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+
+SITE_URL = env("SITE_URL")
+SITE_NAME = env("SITE_NAME")
+
+# Email configuration
+EMAIL_BACKEND = 'core.email_backend.CustomEmailBackend' 
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+SUPPORT_EMAIL = env("SUPPORT_EMAIL")
+ADMIN_EMAIL = env("ADMIN_EMAIL")
+EMAIL_TIMEOUT = 30
+
+admin_emails_string = env('ADMIN_EMAILS')
+ADMIN_EMAILS = [email.strip() for email in admin_emails_string.split(',')]
+ADMIN_EMAIL = ADMIN_EMAILS[0] if ADMIN_EMAILS else ''

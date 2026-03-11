@@ -18,6 +18,9 @@ from django.db.models import Q, Count, Avg, Min, Max, Prefetch
 from django.core.cache import cache
 from django.db.models import Exists, OuterRef
 
+from core.email_send_views import send_email_function
+
+
 # def home(request):
 #     """
 #     Optimized home view keeping your exact frontend

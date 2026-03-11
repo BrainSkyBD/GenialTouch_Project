@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update</title>
+    <style>
+        /* Same styles as order_confirmation.html */
+        body, p, h1, h2, table { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f4f4; line-height: 1.6; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        
+        /* Status-specific colors */
+        .status-header {
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .status-pending { background: linear-gradient(135deg, #f6b23d 0%, #f5a623 100%); }
+        .status-processing { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .status-confirmed { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        .status-packed { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .status-shipped { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+        .status-out_for_delivery { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+        .status-delivered { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .status-cancelled { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .status-refunded { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+        
+        .content { padding: 30px; }
+        .greeting { font-size: 18px; margin-bottom: 20px; color: #333; }
+        .status-icon { font-size: 48px; margin-bottom: 20px; }
+        .status-message { font-size: 24px; font-weight: 600; margin-bottom: 15px; }
+        .update-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; }
+        .button { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 50px; font-weight: 500; margin: 20px 0; }
+        .footer { background-color: #f8f8f8; padding: 30px 20px; text-align: center; border-top: 1px solid #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Dynamic Header based on status -->
+        <div class="status-header status-{{ order.status }}">
+            <div class="status-icon">
+                {% if order.status == 'pending' %}⏳{% endif %}
+                {% if order.status == 'processing' %}⚙️{% endif %}
+                {% if order.status == 'confirmed' %}✅{% endif %}
+                {% if order.status == 'packed' %}📦{% endif %}
+                {% if order.status == 'shipped' %}🚚{% endif %}
+                {% if order.status == 'out_for_delivery' %}🚚{% endif %}
+                {% if order.status == 'delivered' %}🎉{% endif %}
+                {% if order.status == 'cancelled' %}❌{% endif %}
+                {% if order.status == 'refunded' %}💫{% endif %}
+            </div>
+            <div class="status-message">
+                Order {{ order.get_status_display }}
+            </div>
+            <div>Order #{{ order.order_number }}</div>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Hello <strong>{{ order.get_full_name }}</strong>,
+            </div>
+            
+            <div class="update-box">
+                <p style="font-size: 16px; margin-bottom: 10px;">
+                    Your order status has been updated from 
+                    <strong>{{ old_status|title }}</strong> 
+                    to 
+                    <strong>{{ order.get_status_display }}</strong>
+                </p>
+                
+                {% if order.status == 'shipped' and order.carrier %}
+                <p style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
+                    📦 Shipping Carrier: {{ order.carrier }}<br>
+                    {% if order.estimated_delivery_date %}
+                    📅 Estimated Delivery: {{ order.estimated_delivery_date|date:"F j, Y" }}
+                    {% endif %}
+                </p>
+                {% endif %}
+                
+                {% if order.status == 'out_for_delivery' %}
+                <p style="margin-top: 15px; color: #e67e22; font-weight: 500;">
+                    🚚 Your order is out for delivery and will arrive today!
+                </p>
+                {% endif %}
+                
+                {% if order.status == 'delivered' %}
+                <p style="margin-top: 15px; color: #27ae60; font-weight: 500;">
+                    🎉 Your order has been delivered! We hope you love your purchase.
+                </p>
+                {% endif %}
+                
+                {% if order.status == 'cancelled' %}
+                <p style="margin-top: 15px; color: #e74c3c;">
+                    If you didn't request this cancellation, please contact us immediately.
+                </p>
+                {% endif %}
+            </div>
+            
+            <!-- Order Summary -->
+            <h3 style="margin: 30px 0 15px; color: #333;">Order Summary</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                {% for item in order.items.all|slice:":3" %}
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                        <span style="font-weight: 500;">{{ item.product.name }}</span>
+                        {% if item.variation %}
+                        <br><small style="color: #888;">{{ item.variation.title }}</small>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px 0; text-align: right;">x{{ item.quantity }}</td>
+                    <td style="padding: 8px 0; text-align: right;">{{ currency_symbol }}{{ item.get_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                {% if order.items.count > 3 %}
+                <tr>
+                    <td colspan="3" style="padding: 8px 0; text-align: center; color: #888;">
+                        And {{ order.items.count|add:"-3" }} more item(s)
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+            
+            <div style="margin-top: 15px; text-align: right;">
+                <strong>Total: {{ currency_symbol }}{{ order.grand_total|floatformat:2 }}</strong>
+            </div>
+            
+            <!-- Track Order Button -->
+            <div style="text-align: center;">
+                <a href="{{ track_order_url }}" class="button">
+                    Track Order Details
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for shopping with us!</p>
+            <p style="font-size: 12px; color: #888;">
+                Need help? Contact us at support@genialtouch.com
+            </p>
+        </div>
+    </div>
+</body>
+</html>

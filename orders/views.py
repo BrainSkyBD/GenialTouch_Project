@@ -84,6 +84,10 @@ import os
 import random
 import string
 from django.utils import timezone
+from core.email_send_views import send_email_function
+from .utils.email_utils import notify_both_new_order
+from django.conf import settings
+
 
 def generate_order_number():
     """Generate a unique order number"""
@@ -298,7 +302,18 @@ def process_buy_now(request):
             quantity=quantity,
             price=price
         )
+
+
+        try:
+            # Send notifications to both customer and admins
+            notify_both_new_order(order)
+        except Exception as e:
+            print(f"Email sending failed: {str(e)}")
+            # You might want to log this to a database table for retry
+
         
+        
+
         return JsonResponse({
             'status': 'success',
             'redirect_url': reverse('order_confirmation', args=[order.order_number])
@@ -666,6 +681,15 @@ def checkout(request):
             if 'promo_discount' in request.session:
                 del request.session['promo_discount']
         
+
+        try:
+            # Send notifications to both customer and admins
+            notify_both_new_order(order)
+        except Exception as e:
+            print(f"Email sending failed: {str(e)}")
+            # You might want to log this to a database table for retry
+
+            
         # Clear the cart
         request.session['cart'] = {}
         request.session.modified = True
