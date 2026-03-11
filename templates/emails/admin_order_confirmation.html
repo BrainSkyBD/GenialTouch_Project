@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order Notification - Admin</title>
+    <style>
+        /* Reset styles */
+        body, p, h1, h2, h3, h4, h5, h6, table, td {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+            line-height: 1.6;
+        }
+        
+        /* Main container */
+        .email-container {
+            max-width: 650px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
+            padding: 25px 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 3px solid #e74c3c;
+        }
+        
+        .admin-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .admin-header .badge {
+            background-color: #e74c3c;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 14px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Content */
+        .content {
+            padding: 30px;
+        }
+        
+        /* Alert Box */
+        .alert-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-box .icon {
+            font-size: 24px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stat-box .label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .stat-box .sub-value {
+            font-size: 13px;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title .count {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .info-card h3 {
+            font-size: 16px;
+            color: #34495e;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .info-row .label {
+            width: 100px;
+            color: #7f8c8d;
+        }
+        
+        .info-row .value {
+            flex: 1;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        /* Order Table */
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .order-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .order-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .order-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .product-variation {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+        
+        .product-sku {
+            font-size: 11px;
+            color: #95a5a6;
+            font-family: monospace;
+        }
+        
+        /* Price Summary */
+        .price-summary {
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        .price-row.total {
+            border-top: 2px solid #2c3e50;
+            margin-top: 8px;
+            padding-top: 15px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #2c3e50;
+            border-bottom: none;
+        }
+        
+        .price-row.discount {
+            color: #27ae60;
+        }
+        
+        /* Admin Actions */
+        .admin-actions {
+            background-color: #ecf0f1;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .admin-actions h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .admin-button {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: white;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            border: 1px solid #bdc3c7;
+            transition: all 0.3s;
+        }
+        
+        .admin-button:hover {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .admin-button.primary {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        /* Customer Info */
+        .customer-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .customer-details h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .customer-meta {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .customer-meta div {
+            margin-top: 5px;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #2c3e50;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 13px;
+        }
+        
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 480px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .customer-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1>🔔 New Order Received</h1>
+            <div class="badge">Admin Notification</div>
+            <p style="margin-top: 15px; opacity: 0.9;">Order #{{ order.order_number }}</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Alert Box -->
+            <div class="alert-box">
+                <span class="icon">⏰</span>
+                <div>
+                    <strong>Action Required:</strong> New order needs to be processed. 
+                    Please review and confirm the order details.
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="label">Order Value</div>
+                    <div class="value">{{ currency_symbol }}{{ order.grand_total|floatformat:2 }}</div>
+                    <div class="sub-value">Total Items: {{ order.items.count }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Payment</div>
+                    <div class="value">{{ order.payment_method.name|default:"N/A" }}</div>
+                    <div class="sub-value">{{ order.created_at|date:"H:i" }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Status</div>
+                    <div class="value" style="color: #f39c12;">{{ order.get_status_display|upper }}</div>
+                    <div class="sub-value">Pending</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Customer</div>
+                    <div class="value">{{ order.get_full_name|truncatechars:10 }}</div>
+                    <div class="sub-value">{{ order.phone_number }}</div>
+                </div>
+            </div>
+            
+            <!-- Customer Information -->
+            <div class="section-title">
+                👤 Customer Information
+                {% if order.user %}
+                <span class="count">Registered User</span>
+                {% endif %}
+            </div>
+            
+            <div class="customer-card">
+                
+                <div class="customer-details">
+                    <h3>{{ order.get_full_name }}</h3>
+                    <div class="customer-meta">
+                        <div>📧 {{ order.email|default:"No email provided" }}</div>
+                        <div>📞 {{ order.phone_number }}</div>
+                        {% if order.user %}
+                        <div>🆔 User ID: {{ order.user.id }} | Username: {{ order.user.username }}</div>
+                        {% else %}
+                        <div>🆔 Guest Checkout</div>
+                        {% endif %}
+                        {% if order.birth_info %}
+                        <div>🎂 Birthday: {{ order.birth_info }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Details Grid -->
+            <div class="info-grid">
+                <!-- Shipping Address -->
+                <div class="info-card">
+                    <h3>📍 Shipping Address</h3>
+                    <div class="info-row">
+                        <span class="label">Address:</span>
+                        <span class="value">{{ order.full_address }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Area:</span>
+                        <span class="value">
+                            {% if order.thana %}{{ order.thana.name }}, {% endif %}
+                            {{ order.district.name|default:"" }}, 
+                            {{ order.country.name|default:"" }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Postal:</span>
+                        <span class="value">{{ order.postal_code|default:"N/A" }}</span>
+                    </div>
+                </div>
+                
+                <!-- Order Info -->
+                <div class="info-card">
+                    <h3>📋 Order Information</h3>
+                    <div class="info-row">
+                        <span class="label">Order Date:</span>
+                        <span class="value">{{ order.created_at|date:"F j, Y, H:i" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">IP Address:</span>
+                        <span class="value">{{ order.ip_address|default:"N/A" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Payment:</span>
+                        <span class="value">{{ order.payment_method.name|default:"Not specified" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            <div class="section-title">
+                🛍️ Order Items 
+                <span class="count">{{ order.items.count }} items</span>
+            </div>
+            
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>SKU</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>
+                            <div class="product-name">{{ item.product.name }}</div>
+                            {% if item.variation %}
+                            <div class="product-variation">
+                                {% for attr in item.variation.attributes.all %}
+                                    {{ attr.attribute.name }}: {{ attr.value }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="product-sku">{{ item.product.sku|default:"N/A" }}</div>
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ currency_symbol }}{{ item.price|floatformat:2 }}</td>
+                        <td><strong>{{ currency_symbol }}{{ item.get_total|floatformat:2 }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Price Summary -->
+            <div class="price-summary">
+                <div class="price-row">
+                    <span>Subtotal:</span>
+                    <span>{{ currency_symbol }}{{ order.order_total|floatformat:2 }}</span>
+                </div>
+                
+                {% if order.promo_discount > 0 %}
+                <div class="price-row discount">
+                    <span>Promo Discount ({{ order.promo_code.code|default:"" }}):</span>
+                    <span>-{{ currency_symbol }}{{ order.promo_discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="price-row">
+                    <span>Shipping:</span>
+                    <span>{{ currency_symbol }}{{ order.shipping_cost|floatformat:2 }}</span>
+                </div>
+                
+                {% if order.tax_amount > 0 %}
+                <div class="price-row">
+                    <span>Tax ({{ order.tax_rate|floatformat:2 }}%):</span>
+                    <span>{{ currency_symbol }}{{ order.tax_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="price-row total">
+                    <span>GRAND TOTAL:</span>
+                    <span>{{ currency_symbol }}{{ order.grand_total|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            {% if order.order_note %}
+            <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <strong>📝 Customer Note:</strong>
+                <p style="margin-top: 8px; color: #856404;">{{ order.order_note }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Admin Actions -->
+            <div class="admin-actions">
+                <h3>⚡ Quick Actions</h3>
+                <div class="button-grid">
+                    <a href="{{ admin_order_url }}" class="admin-button primary">View in Admin</a>
+                    <a href="{{ admin_edit_url }}" class="admin-button">Edit Order</a>
+                    <a href="mailto:{{ order.email }}" class="admin-button">Email Customer</a>
+                </div>
+                
+                <div style="margin-top: 15px; font-size: 13px; color: #7f8c8d;">
+                    Order placed {{ order.created_at|timesince }} ago
+                </div>
+            </div>
+            
+            <!-- Stock Alert (if applicable) -->
+            {% for item in order.items.all %}
+                {% if item.product.stock_quantity < 10 %}
+                <div style="margin-top: 15px; padding: 10px; background-color: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px; font-size: 13px;">
+                    ⚠️ <strong>Low Stock Alert:</strong> {{ item.product.name }} has only {{ item.product.stock_quantity }} units left!
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>📊 <a href="{{ admin_dashboard_url }}">Go to Admin Dashboard</a> &nbsp; | &nbsp; 
+            📋 <a href="{{ admin_orders_url }}">View All Orders</a></p>
+            <p style="margin-top: 10px; opacity: 0.7;">
+                This is an automated admin notification for order #{{ order.order_number }}<br>
+                {{ site_name }} - Admin Panel
+            </p>
+        </div>
+    </div>
+</body>
+</html>
