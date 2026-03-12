@@ -1,9 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ product.name }} - GenialTouch{% endblock %}
+{% block title %}{{ product.name }} | {{ product.brand.name|default:'GenialTouch' }} - GenialTouch{% endblock %}
 
 
 {% block meta_tags %}
+
+<!-- Standard meta description (for SEO) -->
+<meta name="description" content="{{ product.description|striptags|truncatechars:160 }}">
+<meta name="keywords" content="{{ product.name }}, {{ product.brand.name|default:'' }}, {% for category in product.categories.all %}{{ category.name }}, {% endfor %} {{ product.product_keywords }}">
+<!-- Canonical URL -->
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+
 <!-- Open Graph / Facebook / WhatsApp -->
 <meta property="og:type" content="product">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
@@ -20,6 +27,7 @@
 
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ product.name }} - {{ product.brand.name|default:'Product' }}">
 <meta property="og:site_name" content="GenialTouch">
 <meta property="og:price:amount" content="{% if product.discount_price %}{{ product.discount_price }}{% else %}{{ product.price }}{% endif %}">
 <meta property="og:price:currency" content="BDT">
@@ -42,6 +50,8 @@
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GenialTouch">
+<meta name="twitter:creator" content="@GenialTouch">
 <meta name="twitter:title" content="{{ product.name }} - GenialTouch">
 <meta name="twitter:description" content="{{ product.description|striptags|truncatechars:160 }}">
 <meta name="twitter:image" content="{% if product.images.first %}{{ request.scheme }}://{{ request.get_host }}{{ product.images.first.image.url }}{% else %}{% static 'images/default-social-share.jpg' %}{% endif %}">
@@ -53,8 +63,7 @@
 <meta property="product:price:amount" content="{% if product.discount_price %}{{ product.discount_price }}{% else %}{{ product.price }}{% endif %}">
 <meta property="product:price:currency" content="BDT">
 
-<!-- Standard meta description (for SEO) -->
-<meta name="description" content="{{ product.description|striptags|truncatechars:160 }}">
+<meta property="product:condition" content="new">
 
 
 <!-- Add this after your existing meta tags -->
@@ -401,10 +410,19 @@
                                         <div class="item{% if forloop.first %} active{% endif %}">
                                             <a href="{{ image.image.url }}" class="product-image-link">
                                                 <img src="{{ image.image.url }}" 
-                                                     alt="{{ image.alt_text|default:product.name }}" 
-                                                     class="img-fluid"
+                                                     data-src="{{ image.image.url }}"
+                                                     alt="{{ image.alt_text|default:product.name }} - {{ product.brand.name|default:'GenialTouch' }} Product Image {{ forloop.counter }}" 
+                                                     title="{{ product.name }}"
+                                                     class="img-fluid lazyload"
                                                      loading="lazy"
-                                                     width="600" height="600">
+                                                     width="600" height="600"
+                                                     data-zoom-image="{{ image.image.url }}">
+                                                <noscript>
+                                                    <img src="{{ image.image.url }}" 
+                                                        alt="{{ product.name }} - Product Image" 
+                                                        width="600" 
+                                                        height="600">
+                                                </noscript>
                                             </a>
                                         </div>
                                         {% endfor %}
@@ -1646,12 +1664,13 @@ $('#imageGalleryModal').on('hidden.bs.modal', function() {
 
 
 
+<!-- Replace the existing schema with this comprehensive version -->
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org/",
+  "@context": "https://schema.org",
   "@type": "Product",
+  "@id": "{{ request.build_absolute_uri }}#product",
   "name": "{{ product.name|escapejs }}",
-  "image": "{% if product.images.first %}{{ request.build_absolute_uri }}{{ product.images.first.image.url }}{% endif %}",
   "description": "{{ product.description|striptags|escapejs }}",
   "sku": "{{ product.sku }}",
   "mpn": "{{ product.sku }}",
@@ -1659,14 +1678,119 @@ $('#imageGalleryModal').on('hidden.bs.modal', function() {
     "@type": "Brand",
     "name": "{{ product.brand.name|default:'GenialTouch'|escapejs }}"
   },
+  "category": "{% for category in product.categories.all %}{{ category.name }}{% if not forloop.last %} > {% endif %}{% endfor %}",
+  {% with main_image=product.images.first %}
+  {% if main_image %}
+  "image": [
+    "{{ request.scheme }}://{{ request.get_host }}{{ main_image.image.url }}"
+    {% if product.images.count > 1 %}
+    {% for image in product.images.all|slice:"1:4" %}
+    ,"{{ request.scheme }}://{{ request.get_host }}{{ image.image.url }}"
+    {% endfor %}
+    {% endif %}
+  ],
+  {% endif %}
+  {% endwith %}
+  
   "offers": {
     "@type": "Offer",
     "url": "{{ request.build_absolute_uri }}",
     "priceCurrency": "BDT",
     "price": "{% if product.discount_price %}{{ product.discount_price|floatformat:2 }}{% else %}{{ product.price|floatformat:2 }}{% endif %}",
+    "priceValidUntil": "{{ product.created_at|date:'Y'|add:'1' }}-12-31",
     "availability": "{% if product.is_in_stock %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
-    "itemCondition": "https://schema.org/NewCondition"
-  }
+    "itemCondition": "https://schema.org/NewCondition",
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "60",
+        "currency": "BDT"
+      },
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "BD"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": "1",
+          "maxValue": "2",
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": "1",
+          "maxValue": "3",
+          "unitCode": "DAY"
+        }
+      }
+    },
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "BD",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": "7",
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
+    }
+  },
+  
+  {% with avg_rating=product.avg_rating %}
+  {% if avg_rating > 0 %}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ avg_rating }}",
+    "reviewCount": "{{ product.review_count }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  {% endif %}
+  {% endwith %}
+  
+  "review": [
+    {% for review in product.review_list|slice:":3" %}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating }}",
+        "bestRating": "5"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.user.get_full_name|default:review.user.username|escapejs }}"
+      },
+      "reviewBody": "{{ review.comment|striptags|escapejs }}",
+      "datePublished": "{{ review.created_at|date:'Y-m-d' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<!-- Breadcrumb Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"
+    },
+    {% for category in product.categories.all|slice:":3" %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter|add:"1" }},
+      "name": "{{ category.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ category.get_absolute_url }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
 }
 </script>
 

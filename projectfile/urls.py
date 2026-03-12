@@ -6,12 +6,13 @@ from orders.views import admin_download_invoice
 
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.sitemaps.views import index as sitemap_index
-from .sitemaps import ProductSitemap, CategorySitemap, StaticViewSitemap
+from .sitemaps import ProductSitemap, CategorySitemap, BrandSitemap, StaticViewSitemap
 from django.views.generic.base import TemplateView
 
 sitemaps = {
     'products': ProductSitemap,
     'categories': CategorySitemap,
+    'brands': BrandSitemap,
     'static': StaticViewSitemap,
 }
 
