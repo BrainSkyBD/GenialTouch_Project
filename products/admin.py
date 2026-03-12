@@ -101,7 +101,7 @@ class ProductAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'slug', 'brand', 'categories', 'description')
+            'fields': ('name', 'slug', 'brand', 'categories', 'description', 'product_keywords')
         }),
         ('Pricing', {
             'fields': ('price', 'discount_price')
