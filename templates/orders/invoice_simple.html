@@ -190,7 +190,7 @@
         <!-- Header -->
         <div class="header">
             <div class="logo">
-                <img src="https://www.genialtouch.com/static/png%20transparent-01.png" 
+                <img src="{{logo_url}}" 
                      alt="Company Logo" 
                      style="max-width: 200px; height: auto;">
             </div>
@@ -221,15 +221,35 @@
                 <div class="label">Company</div>
                 <div class="info-box">
                     <div class="customer-name">Genial Touch</div>
-                    <div class="address-line">123 Business Street</div>
-                    <div class="address-line">Commerce City, CC 10001</div>
-                    <div class="address-line">Phone: (123) 456-7890</div>
-                    <div class="address-line">Email: info@genialtouch.com</div>
+                    <div class="address-line">Sector 7, Uttara</div>
+                    <div class="address-line">Dhaka-1230, Bangladesh</div>
+                    <div class="address-line">Phone: +8809610978034</div>
+                    <div class="address-line">Email: genialtouchltd@gmail.com</div>
                     <div class="address-line">www.genialtouch.com</div>
                 </div>
             </div>
         </div>
         
+        <div class="divider"></div>
+        <div class="row" style="margin-top: 100px;">
+            <div class="col">
+                <div class="label">Payment Method</div>
+                <div class="info-box">
+                    <strong>{{ order.payment_method.name|default:"Cash on Delivery" }}</strong>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="label">Order Notes</div>
+                <div class="info-box">
+                    {% if order.order_note %}
+                        {{ order.order_note }}
+                    {% else %}
+                        No additional notes
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         <div class="divider"></div>
         
         <!-- Order Items -->
@@ -292,25 +312,7 @@
         </div>
         
         <!-- Payment Information -->
-        <div class="row" style="margin-top: 100px;">
-            <div class="col">
-                <div class="label">Payment Method</div>
-                <div class="info-box">
-                    <strong>{{ order.payment_method.name|default:"Cash on Delivery" }}</strong>
-                </div>
-            </div>
-            
-            <div class="col">
-                <div class="label">Order Notes</div>
-                <div class="info-box">
-                    {% if order.order_note %}
-                        {{ order.order_note }}
-                    {% else %}
-                        No additional notes
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+        
         
         <!-- Footer -->
         <div class="footer">
