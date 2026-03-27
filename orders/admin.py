@@ -261,7 +261,7 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_per_page = 20
     
     def get_total(self, obj):
-        return f"${obj.get_total()}" if obj.get_total() else "-"
+        return f"৳ {obj.get_total()}" if obj.get_total() else "-"
     get_total.short_description = 'Total'
     
     def has_add_permission(self, request):
@@ -392,7 +392,7 @@ class OrderItemInline(admin.TabularInline):
         total = obj.get_total()
         if total:
             return format_html(
-                '<span style="font-weight: 600; color: #28a745; background: #f0f9f0; padding: 4px 10px; border-radius: 20px; display: inline-block;">${}</span>',
+                '<span style="font-weight: 600; color: #28a745; background: #f0f9f0; padding: 4px 10px; border-radius: 20px; display: inline-block;">BDT {}</span>',
                 total
             )
         return format_html(

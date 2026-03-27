@@ -958,7 +958,7 @@ def generate_pdf_invoice(order, is_admin=False):
     """Generate PDF invoice for an order"""
     try:
         # Download logo and convert to base64
-        logo_url = "https://www.genialtouch.com/static/png%20transparent-01.png"
+        logo_url = "https://www.genialtouch.com/static/genial_unique_logo.png"
         logo_base64 = ""
         
         try:
