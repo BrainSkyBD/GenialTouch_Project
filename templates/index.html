@@ -91,6 +91,52 @@
     }
 </style>
 
+<style>
+    /* Prevent banner splitting */
+.ps-home-banner .owl-carousel .owl-stage-outer {
+    overflow: hidden;
+    position: relative;
+}
+
+.ps-home-banner .owl-carousel .owl-stage {
+    display: flex;
+    transition: all 0s ease !important;
+}
+
+.ps-home-banner .owl-carousel .owl-item {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+
+.ps-home-banner .owl-carousel.owl-loaded {
+    display: block;
+    position: relative;
+}
+
+.ps-home-banner .owl-carousel .owl-item img {
+    transform-style: preserve-3d;
+}
+
+/* Ensure banner container has proper dimensions */
+#home-banner-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+#home-banner-carousel .ps-banner {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+</style>
 
 <div id="homepage-1">
     <!-- Top Categories Slider (Loaded immediately) -->
@@ -131,13 +177,29 @@
     <div class="ps-home-banner ps-home-banner--1">
         <div class="ps-container">
             <div class="ps-section__left">
-                <div class="ps-carousel--nav-inside owl-slider" data-owl-auto="true" data-owl-loop="true" data-owl-speed="5000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="1" data-owl-item-xs="1" data-owl-item-sm="1" data-owl-item-md="1" data-owl-item-lg="1" data-owl-duration="1000" data-owl-mousedrag="on" data-owl-animate-in="fadeIn" data-owl-animate-out="fadeOut">
+                <div class="ps-carousel--nav-inside owl-carousel owl-slider" 
+                    data-owl-auto="true" 
+                    data-owl-loop="true" 
+                    data-owl-speed="5000" 
+                    data-owl-gap="0" 
+                    data-owl-nav="true" 
+                    data-owl-dots="true" 
+                    data-owl-item="1" 
+                    data-owl-item-xs="1" 
+                    data-owl-item-sm="1" 
+                    data-owl-item-md="1" 
+                    data-owl-item-lg="1" 
+                    data-owl-duration="1000" 
+                    data-owl-mousedrag="on" 
+                    data-owl-animate-in="fadeIn" 
+                    data-owl-animate-out="fadeOut"
+                    id="home-banner-carousel">
                     {% for banner in banners %}
-                    <div class="ps-banner bg--cover lazy-placeholder" data-background="{{ banner.image.url }}">
+                    <div class="ps-banner bg--cover" data-background="{{ banner.image.url }}">
                         <img class="lazy-image" 
-                             data-src="{{ banner.image.url }}" 
-                             src="{% static 'img/banner-placeholder.webp' %}"
-                             style="display: none;">
+                            data-src="{{ banner.image.url }}" 
+                            src="{% static 'img/banner-placeholder.webp' %}"
+                            style="display: none;">
                         <a class="ps-banner__overlay" href="{{ banner.url }}"></a>
                     </div>
                     {% endfor %}
@@ -147,9 +209,9 @@
                 {% for promo in promotions %}
                 <a class="ps-collection" href="{{ promo.url }}">
                     <img class="lazy-image" 
-                         data-src="{{ promo.image.url }}" 
-                         src="{% static 'img/ads-placeholder.webp' %}"
-                         alt="{{ promo.title }}">
+                        data-src="{{ promo.image.url }}" 
+                        src="{% static 'img/ads-placeholder.webp' %}"
+                        alt="{{ promo.title }}">
                 </a>
                 {% endfor %}
             </div>
@@ -556,13 +618,17 @@ class ProgressiveLoader {
                     
                     section.loaded = true;
                     
-                    // Reinitialize carousels
+                    // Reinitialize carousels (but don't reinitialize the banner carousel)
                     setTimeout(() => {
                         if (typeof $ !== 'undefined') {
-                            // Destroy and reinitialize the specific carousel
+                            // Reinitialize only product carousels, NOT the banner carousel
                             $('.owl-slider').each(function() {
+                                // Skip the banner carousel - it should never be reinitialized
+                                if ($(this).attr('id') === 'home-banner-carousel') return;
+                                
                                 if ($(this).hasClass('owl-loaded')) {
-                                    $(this).owlCarousel('destroy');
+                                    $(this).trigger('destroy.owl.carousel');
+                                    $(this).removeClass('owl-loaded');
                                 }
                                 $(this).owlCarousel({
                                     loop: $(this).data('owl-loop') || false,
@@ -679,6 +745,7 @@ class ProgressiveLoader {
 }
 
 // Initialize when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize lazy image loader
     window.lazyLoader = new LazyImageLoader();
@@ -689,7 +756,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Owl Carousels for static content (exactly as your original)
     if (typeof $ !== 'undefined') {
         $(document).ready(function() {
+            // Initialize main banner carousel with specific settings to prevent splitting
+            if ($('#home-banner-carousel').length && !$('#home-banner-carousel').hasClass('owl-loaded')) {
+                $('#home-banner-carousel').owlCarousel({
+                    loop: true,
+                    margin: 0,
+                    nav: true,
+                    dots: true,
+                    autoplay: true,
+                    autoplayTimeout: 5000,
+                    autoplayHoverPause: true,
+                    items: 1,
+                    animateIn: 'fadeIn',
+                    animateOut: 'fadeOut',
+                    smartSpeed: 1000,
+                    navText: ['<i class="icon-chevron-left"></i>', '<i class="icon-chevron-right"></i>']
+                });
+            }
+            
+            // Initialize other carousels
             $('.owl-slider').each(function() {
+                // Skip the banner carousel as we already initialized it
+                if ($(this).attr('id') === 'home-banner-carousel') return;
+                
                 if (!$(this).hasClass('owl-loaded')) {
                     $(this).owlCarousel({
                         loop: $(this).data('owl-loop') || false,
