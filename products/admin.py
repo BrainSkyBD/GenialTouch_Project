@@ -109,6 +109,11 @@ class ProductAdmin(admin.ModelAdmin):
         ('Inventory', {
             'fields': ('sku', 'is_active', 'is_featured')
         }),
+        ('Safety & Caution', {  # New section
+            'fields': ('caution',),
+            'classes': ('wide',),
+            'description': 'Add safety warnings, precautions, and usage guidelines for this product.'
+        }),
         ('Statistics', {
             'fields': ('view_count', 'created_at', 'updated_at'),
             'classes': ('collapse',)

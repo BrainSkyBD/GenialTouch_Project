@@ -138,9 +138,109 @@
 
 </style>
 
+<style>
+    /* Loading spinner styles (আগের স্টাইল থাকবে) */
+    
+    /* নতুন ক্যাটাগরি কার্ড স্টাইল - ছোট সাইজের জন্য */
+    .ps-top-categories .ps-block--category {
+        padding: 10px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .ps-top-categories .ps-block--category p {
+        font-size: 13px !important;
+        margin-top: 5px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .ps-top-categories .ps-block--category img {
+        width: 80px !important;
+        height: 80px !important;
+        object-fit: cover !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+    
+    /* ক্যারোজেল আইটেমের মধ্যে স্পেস কমানোর জন্য */
+    .ps-top-categories .owl-carousel .owl-item {
+        padding: 0 5px !important;
+    }
+    
+    .ps-top-categories .owl-slider .owl-nav {
+        display: none !important;
+    }
+    
+    /* মোবাইলের জন্য আরও ছোট */
+    @media (max-width: 767px) {
+        .ps-top-categories .ps-block--category img {
+            width: 60px !important;
+            height: 60px !important;
+        }
+        
+        .ps-top-categories .ps-block--category p {
+            font-size: 11px !important;
+        }
+        
+        .ps-top-categories .ps-block--category {
+            padding: 8px !important;
+        }
+    }
+    
+    /* ছোট ডিভাইসের জন্য */
+    @media (max-width: 480px) {
+        .ps-top-categories .ps-block--category img {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        
+        .ps-top-categories .ps-block--category p {
+            font-size: 10px !important;
+        }
+    }
+</style>
 <div id="homepage-1">
+    <!-- index.html - ক্যাটাগরি সেকশনের জন্য নতুন স্টাইল যোগ করুন -->
+
+
+    <!-- ক্যাটাগরি সেকশনের HTML অংশ আপডেট করুন -->
+    <div class="ps-top-categories" style="padding-bottom: 0px;">
+        <div class="ps-container">
+            <h3 style="font-size: 18px; margin-bottom: 15px;">Top categories of the month</h3>
+            <div class="ps-section__content">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="10" data-owl-nav="false" data-owl-dots="true" data-owl-item="8" data-owl-item-xs="3" data-owl-item-sm="4" data-owl-item-md="5" data-owl-item-lg="6" data-owl-item-xl="7" data-owl-duration="1000" data-owl-mousedrag="on">
+                    {% for category in top_categories %}
+                    <div class="ps-product ps-product--inner" style="margin-bottom: 0;">
+                        <div class="ps-block--category" style="text-align: center;">
+                            <a class="ps-block__overlay" href="{% url 'products_by_category' category.slug %}"></a>
+                            {% if category.image %}
+                            <img class="lazy-image" 
+                                data-src="{{ category.image.url }}" 
+                                src="{% static 'img/placeholder.webp' %}"
+                                alt="{{ category.name }}"
+                                style="width: 85px;
+                                        height: 85px;
+                                        object-fit: cover;
+                                        border-radius: 50%;
+                                        transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                        margin: 0 auto;
+                                        clip-path: polygon(
+                                            25% 6%, 75% 6%,
+                                            100% 50%, 75% 94%,
+                                            25% 94%, 0% 50%
+                                        );">
+                            {% endif %}
+                            <p style="font-size: 13px; margin-top: 8px; margin-bottom: 0; font-weight: 500;">{{ category.name }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Top Categories Slider (Loaded immediately) -->
-    <div class="ps-deal-of-day" style="margin-top: 25px; padding-bottom: 0px;">
+    <!-- <div class="ps-deal-of-day" style="margin-top: 25px; padding-bottom: 0px;">
         <div class="ps-container">
             <h3>Top categories of the month</h3>
             <div class="ps-section__content">
@@ -171,10 +271,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Home Banner (Loaded immediately) -->
-    <div class="ps-home-banner ps-home-banner--1">
+    <div class="ps-home-banner ps-home-banner--1" style="padding-top: 0px;">
         <div class="ps-container">
             <div class="ps-section__left">
                 <div class="ps-carousel--nav-inside owl-carousel owl-slider" 
