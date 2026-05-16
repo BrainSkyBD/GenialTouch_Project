@@ -999,7 +999,8 @@ def product_detail(request, slug):
             'product': product,
             'variations': variations,
             'payment_methods': payment_methods,
-            'currency_code': 'BDT',  # Default fallback
+            
+            'caution_text': product.caution,
         }
         
         # Cache the complete context
@@ -1110,6 +1111,47 @@ def get_related_products(request):
     return JsonResponse({'html': html})
 
 
+# def get_tab_content(request):
+#     """AJAX view to load tab content"""
+#     product_id = request.GET.get('product_id')
+#     tab_type = request.GET.get('tab_type')
+    
+#     try:
+#         product = Product.objects.get(id=product_id)
+        
+#         if tab_type == 'specifications':
+#             # CORRECT: ProductAttribute -> attribute_value -> attribute
+#             specifications = ProductAttribute.objects.filter(
+#                 product=product
+#             ).select_related(
+#                 'attribute_value__attribute'  # FIXED: This is the correct relationship
+#             )
+            
+#             html = render_to_string('shop/partials/specifications.html', {
+#                 'product': product,
+#                 'specifications': specifications
+#             })
+#         elif tab_type == 'reviews':
+#             # Get reviews
+#             reviews = product.reviews.filter(is_approved=True)[:5] if hasattr(product, 'reviews') else []
+            
+#             html = render_to_string('shop/partials/reviews.html', {
+#                 'product': product,
+#                 'reviews': reviews,
+#                 'review_count': len(reviews)
+#             })
+#         else:
+#             html = '<p>Content not available.</p>'
+        
+#         return JsonResponse({'html': html})
+#     except Product.DoesNotExist:
+#         return JsonResponse({'html': '<p>Product not found.</p>'})
+#     except Exception as e:
+#         print(f"Error in get_tab_content: {e}")
+#         return JsonResponse({'html': f'<p>Error loading content: {str(e)}</p>'})
+
+# In products/views.py - Update get_tab_content function
+
 def get_tab_content(request):
     """AJAX view to load tab content"""
     product_id = request.GET.get('product_id')
@@ -1123,7 +1165,7 @@ def get_tab_content(request):
             specifications = ProductAttribute.objects.filter(
                 product=product
             ).select_related(
-                'attribute_value__attribute'  # FIXED: This is the correct relationship
+                'attribute_value__attribute'
             )
             
             html = render_to_string('shop/partials/specifications.html', {
@@ -1138,6 +1180,11 @@ def get_tab_content(request):
                 'product': product,
                 'reviews': reviews,
                 'review_count': len(reviews)
+            })
+        elif tab_type == 'caution':  # New caution tab
+            html = render_to_string('partials/caution.html', {
+                'product': product,
+                'caution_text': product.caution or 'No specific cautions or warnings available for this product.'
             })
         else:
             html = '<p>Content not available.</p>'

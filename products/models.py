@@ -162,6 +162,11 @@ class Product(models.Model):
     view_count = models.PositiveIntegerField(default=0)
     product_keywords = models.TextField(default=None, blank=True, null=True)
 
+    caution = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="Safety warnings, precautions, and usage guidelines for this product"
+    )
     
     class Meta:
         verbose_name = 'Product'

@@ -14571,11 +14571,11 @@ html:not([dir="rtl"]) .noUi-horizontal .noUi-handle {
 }
 
 #homepage-1 .ps-site-features {
-  padding-bottom: 90px;
+  padding-bottom: 14px;
 }
 
 #homepage-1 .ps-deal-of-day {
-  padding-bottom: 80px;
+  padding-bottom: 8px;
 }
 
 #homepage-1 .ps-deal-of-day .ps-product .ps-product__price {
@@ -14595,7 +14595,7 @@ html:not([dir="rtl"]) .noUi-horizontal .noUi-handle {
 }
 
 #homepage-1 .ps-top-categories {
-  padding: 80px 0 50px;
+  padding: 18px 0 50px;
 }
 
 #homepage-1 .ps-top-categories h3 {
