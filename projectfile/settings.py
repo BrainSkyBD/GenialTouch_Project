@@ -511,3 +511,6 @@ EMAIL_TIMEOUT = 30
 admin_emails_string = env('ADMIN_EMAILS')
 ADMIN_EMAILS = [email.strip() for email in admin_emails_string.split(',')]
 ADMIN_EMAIL = ADMIN_EMAILS[0] if ADMIN_EMAILS else ''
+
+
+X_FRAME_OPTIONS = 'ALLOWALL'
