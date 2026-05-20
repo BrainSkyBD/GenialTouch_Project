@@ -550,20 +550,13 @@ def Catalogue(request, category_slug=None, brand_slug=None):
         except:
             pass
     
-    # Get active currency
-    try:
-        from core.models import CurrencySettingsTable
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '$'
-    except:
-        currency_symbol = '$'
+    
     
     context = {
         'products': products_page,
         'category': current_category,
         'total_products': total_products,
         'page_title': page_title,
-        'currency_symbol': currency_symbol,
         'is_ajax': is_ajax,
     }
     
