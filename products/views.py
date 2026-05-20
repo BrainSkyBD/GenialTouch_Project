@@ -27,6 +27,540 @@ from orders.models import (
 
 
 
+# def Catalogue(request, category_slug=None, brand_slug=None):
+#     # Check if it's an AJAX request for infinite scroll
+#     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+#     # Get all filter parameters
+#     query = request.GET.get('q', '')
+#     category_slug_get = request.GET.get('category', '')
+#     brand_slugs = request.GET.getlist('brand')
+#     min_price = request.GET.get('min_price')
+#     max_price = request.GET.get('max_price')
+#     rating = request.GET.get('rating')
+#     attribute_values = request.GET.getlist('attribute')
+#     page = request.GET.get('page', 1)
+#     sort = request.GET.get('sort', '')
+#     featured = request.GET.get('featured', '')
+    
+#     # Base queryset with optimizations
+#     products = Product.objects.filter(is_active=True).select_related('brand').prefetch_related(
+#         Prefetch(
+#             'images',
+#             queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('display_order', 'id')
+#         ),
+#         Prefetch(
+#             'categories',
+#             queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
+#         ),
+#         Prefetch(
+#             'reviews',
+#             queryset=Review.objects.only('product_id', 'rating', 'created_at')
+#         )
+#     ).only(
+#         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
+#         'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
+#     )
+    
+#     # Featured filter (for deals)
+#     if featured.lower() == 'true':
+#         products = products.filter(is_featured=True)
+    
+#     # Category handling
+#     subcategory_list = None
+#     category = None
+#     current_category = None
+    
+#     # Category from URL parameter
+#     if category_slug:
+#         try:
+#             category = get_object_or_404(Category, slug=category_slug, is_active=True)
+#             current_category = category
+#             # Get all descendant category IDs
+#             descendant_ids = category.get_descendant_ids()
+#             products = products.filter(categories__id__in=descendant_ids)
+#             subcategory_list = Category.objects.filter(
+#                 parent=category, 
+#                 is_active=True
+#             ).only('id', 'name', 'slug', 'image').order_by('display_order', 'name')
+#         except Category.DoesNotExist:
+#             pass
+    
+#     # Category from GET parameter
+#     if category_slug_get:
+#         try:
+#             category = get_object_or_404(Category, slug=category_slug_get, is_active=True)
+#             current_category = category
+#             descendant_ids = category.get_descendant_ids()
+#             products = products.filter(categories__id__in=descendant_ids)
+#             subcategory_list = Category.objects.filter(
+#                 parent=category, 
+#                 is_active=True
+#             ).only('id', 'name', 'slug', 'image').order_by('display_order', 'name')
+#         except Category.DoesNotExist:
+#             pass
+    
+#     # Brand from URL parameter
+#     if brand_slug:
+#         try:
+#             brand = get_object_or_404(Brand, slug=brand_slug, is_active=True)
+#             products = products.filter(brand=brand)
+#         except Brand.DoesNotExist:
+#             pass
+    
+#     # Apply filters
+#     if query:
+#         products = products.filter(
+#             Q(name__icontains=query) | 
+#             Q(description__icontains=query) |
+#             Q(sku__icontains=query)
+#         )
+    
+#     if brand_slugs:
+#         products = products.filter(brand__slug__in=brand_slugs)
+    
+#     # Price filter - handle both price and discount_price
+#     if min_price:
+#         try:
+#             min_price_val = float(min_price)
+#             # Complex query to handle both price and discount_price
+#             products = products.filter(
+#                 Q(price__gte=min_price_val) |
+#                 Q(discount_price__gte=min_price_val) |
+#                 Q(price__gte=min_price_val, discount_price__isnull=True)
+#             )
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if max_price:
+#         try:
+#             max_price_val = float(max_price)
+#             # Complex query to handle both price and discount_price
+#             products = products.filter(
+#                 Q(price__lte=max_price_val) |
+#                 Q(discount_price__lte=max_price_val) |
+#                 Q(price__lte=max_price_val, discount_price__isnull=True)
+#             )
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if rating:
+#         try:
+#             rating_val = float(rating)
+#             # Get products with average rating >= selected rating
+#             products_with_rating = Review.objects.values('product').annotate(
+#                 avg_rating=Avg('rating')
+#             ).filter(avg_rating__gte=rating_val).values_list('product', flat=True)
+#             products = products.filter(id__in=products_with_rating)
+#         except (ValueError, TypeError):
+#             pass
+    
+#     if attribute_values:
+#         products = products.filter(attributes__id__in=attribute_values).distinct()
+    
+#     # Get price range for the filter
+#     price_range = products.aggregate(
+#         min_price=Min('price'),
+#         max_price=Max('price')
+#     )
+    
+#     # BASE CONTEXT: Get products for determining available options
+#     # This is the initial filtered set BEFORE brand/attribute/price filters
+#     base_context_products = Product.objects.filter(is_active=True)
+    
+#     # Apply the same category filter to base context
+#     if current_category:
+#         descendant_ids = current_category.get_descendant_ids()
+#         base_context_products = base_context_products.filter(categories__id__in=descendant_ids)
+    
+#     # Apply search query to base context
+#     if query:
+#         base_context_products = base_context_products.filter(
+#             Q(name__icontains=query) | 
+#             Q(description__icontains=query) |
+#             Q(sku__icontains=query)
+#         )
+    
+#     # Apply featured filter to base context
+#     if featured.lower() == 'true':
+#         base_context_products = base_context_products.filter(is_featured=True)
+    
+#     # Get ALL brands for the current context (category + search + featured)
+#     all_context_brands = Brand.objects.filter(
+#         product__in=base_context_products.values('id'),
+#         is_active=True
+#     ).annotate(
+#         product_count=Count('product')
+#     ).filter(product_count__gt=0).order_by('-product_count')
+    
+#     # Get brands for the CURRENT filtered products (to know which are available)
+#     if products.exists():
+#         available_brands = Brand.objects.filter(
+#             product__in=products.values('id')
+#         ).annotate(
+#             product_count=Count('product')
+#         ).filter(product_count__gt=0).order_by('-product_count')
+#         available_brand_slugs = set(available_brands.values_list('slug', flat=True))
+#     else:
+#         available_brand_slugs = set()
+    
+#     # Get ALL attributes for the current context (category + search + featured)
+#     all_context_attributes = AttributeValue.objects.filter(
+#         product__in=base_context_products.values('id')
+#     ).annotate(
+#         product_count=Count('product')
+#     ).filter(product_count__gt=0).select_related('attribute').order_by('attribute__name', 'value')
+    
+#     # Get attributes for the CURRENT filtered products (to know which are available)
+#     if products.exists():
+#         available_attributes = AttributeValue.objects.filter(
+#             product__in=products.values('id')
+#         ).annotate(
+#             product_count=Count('product')
+#         ).filter(product_count__gt=0).select_related('attribute').order_by('attribute__name', 'value')
+#         available_attribute_ids = set(available_attributes.values_list('id', flat=True))
+#     else:
+#         available_attribute_ids = set()
+    
+#     # Group ALL context attributes by their type
+#     attribute_groups = {}
+#     for attr in all_context_attributes:
+#         attr_name = attr.attribute.name
+#         if attr_name not in attribute_groups:
+#             attribute_groups[attr_name] = []
+        
+#         # Add attribute with availability info
+#         attr_dict = {
+#             'id': attr.id,
+#             'value': attr.value,
+#             'product_count': attr.product_count,
+#             'is_available': attr.id in available_attribute_ids
+#         }
+#         attribute_groups[attr_name].append(attr_dict)
+    
+#     # Get categories for sidebar - show subcategories if a category is selected
+#     if current_category:
+#         # Show subcategories of current category
+#         sidebar_categories = Category.objects.filter(
+#             parent=current_category,
+#             is_active=True
+#         ).only('id', 'name', 'slug').order_by('display_order', 'name')
+        
+#         # If no subcategories, show top-level categories with their children
+#         if not sidebar_categories.exists():
+#             # Show all top-level categories with their children
+#             sidebar_categories = Category.objects.filter(
+#                 parent__isnull=True,
+#                 is_active=True
+#             ).only('id', 'name', 'slug').order_by('display_order', 'name')
+#     else:
+#         # Show main categories (no parent)
+#         sidebar_categories = Category.objects.filter(
+#             parent__isnull=True,
+#             is_active=True
+#         ).only('id', 'name', 'slug').order_by('display_order', 'name')
+    
+#     # Determine selected category
+#     selected_category = category_slug or category_slug_get
+    
+#      # Sorting
+#     if sort == 'price_asc':
+#         # Sort by actual price (minimum of price and discount_price)
+#         # Use Case/When to handle null discount_price
+#         from django.db.models import Case, When, F, Value, FloatField
+        
+#         products = products.annotate(
+#             actual_price=Case(
+#                 When(discount_price__isnull=False, discount_price__gt=0, 
+#                      then=F('discount_price')),
+#                 default=F('price'),
+#                 output_field=FloatField()
+#             )
+#         ).order_by('actual_price')
+        
+#     elif sort == 'price_desc':
+#         # Sort by actual price (minimum of price and discount_price) descending
+#         from django.db.models import Case, When, F, Value, FloatField
+        
+#         products = products.annotate(
+#             actual_price=Case(
+#                 When(discount_price__isnull=False, discount_price__gt=0, 
+#                      then=F('discount_price')),
+#                 default=F('price'),
+#                 output_field=FloatField()
+#             )
+#         ).order_by('-actual_price')
+        
+#     elif sort == 'rating':
+#         # Annotate with average rating and review count
+#         products = products.annotate(
+#             avg_rating=Avg('reviews__rating'),
+#             review_count=Count('reviews')
+#         ).order_by('-avg_rating', '-review_count')
+        
+#     elif sort == 'newest':
+#         products = products.order_by('-created_at')
+        
+#     elif sort == 'popular':
+#         products = products.order_by('-view_count')
+        
+#     else:
+#         products = products.order_by('-created_at')
+
+#     # Calculate average ratings for products (if not already done in rating sort)
+#     # if sort != 'rating':
+#     #     products = products.annotate(
+#     #         avg_rating=Avg('reviews__rating'),
+#     #         review_count=Count('reviews')
+#     #     )
+
+#     print('sort--------------------------')
+#     print(sort)
+
+#     # if sort != 'rating':
+#     #     products = products.annotate(
+#     #         avg_rating=Avg('reviews__rating'),
+#     #         review_count=Count('reviews')
+#     #     )
+    
+    
+#     # Pagination for infinite scroll
+#     per_page = 12
+#     paginator = Paginator(products, per_page)
+    
+#     try:
+#         products_page = paginator.page(page)
+#     except:
+#         products_page = paginator.page(1)
+    
+#     # If it's an AJAX request, return JSON
+#     if is_ajax:
+#         products_data = []
+#         for product in products_page:
+#             # Get main image
+#             main_image = product.images.filter(is_featured=True).first()
+#             if not main_image and product.images.exists():
+#                 main_image = product.images.first()
+            
+#             # Calculate discount percentage
+#             discount_percentage = 0
+#             if product.discount_price and product.price and product.price > 0:
+#                 discount_percentage = ((product.price - product.discount_price) / product.price) * 100
+#                 discount_percentage = round(discount_percentage)
+            
+#             # Get average rating
+#             avg_rating = product.avg_rating or 0
+#             review_count = product.review_count or 0
+            
+#             products_data.append({
+#                 'id': product.id,
+#                 'name': product.name,
+#                 'slug': product.slug,
+#                 'price': str(product.price),
+#                 'discount_price': str(product.discount_price) if product.discount_price else None,
+#                 'discount_percentage': discount_percentage,
+#                 'brand_name': product.brand.name if product.brand else '',
+#                 'image_url': main_image.image.url if main_image else '/static/img/no-image.jpg',
+#                 'url': product.get_absolute_url(),
+#                 'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+#                 'review_count': review_count,
+#             })
+        
+#         return JsonResponse({
+#             'success': True,
+#             'products': products_data,
+#             'has_next': products_page.has_next(),
+#             'next_page': products_page.next_page_number() if products_page.has_next() else None,
+#             'total_products': paginator.count,
+#         })
+    
+#     # For normal request, prepare context
+#     total_products = paginator.count
+    
+#     # Page title
+#     page_title = "All Products"
+#     if current_category:
+#         page_title = f"{current_category.name} - Products"
+#     elif featured.lower() == 'true':
+#         page_title = "Deals of the Day"
+#     elif sort == 'newest':
+#         page_title = "New Arrivals"
+#     elif brand_slug:
+#         try:
+#             brand = Brand.objects.get(slug=brand_slug)
+#             page_title = f"{brand.name} - Products"
+#         except:
+#             pass
+    
+#     # Get active currency
+#     try:
+#         from core.models import CurrencySettingsTable
+#         active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
+#         currency_symbol = active_currency.currency_symbol if active_currency else '$'
+#     except:
+#         currency_symbol = '$'
+    
+#     # Count active filters for display
+#     active_filter_count = len(brand_slugs) + len(attribute_values)
+#     if min_price or max_price:
+#         active_filter_count += 1
+#     if rating:
+#         active_filter_count += 1
+    
+#     context = {
+#         'products': products_page,
+#         'query': query,
+#         'sidebar_categories': sidebar_categories,
+#         'selected_category': selected_category,
+#         'selected_brand_slug': brand_slug,
+#         'all_context_brands': all_context_brands,
+#         'available_brand_slugs': list(available_brand_slugs),
+#         'selected_brands': brand_slugs,
+#         'min_price': min_price,
+#         'max_price': max_price,
+#         'price_range': price_range,
+#         'selected_rating': rating,
+#         'attribute_groups': attribute_groups,
+#         'available_attribute_ids': list(available_attribute_ids),
+#         'selected_attributes': attribute_values,
+#         'sort_option': sort,
+#         'subcategory_list': subcategory_list,
+#         'category': current_category,
+#         'total_products': total_products,
+#         'page_title': page_title,
+#         'currency_symbol': currency_symbol,
+#         'is_featured_filter': featured.lower() == 'true',
+#         'is_new_arrivals': sort == 'newest',
+#         'is_ajax': is_ajax,
+#         'active_filter_count': active_filter_count,
+#     }
+    
+#     return render(request, 'shop/catalogue.html', context)
+
+
+
+def Catalogue(request, category_slug=None, brand_slug=None):
+    # Check if it's an AJAX request for infinite scroll
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    # Get only page parameter
+    page = request.GET.get('page', 1)
+    
+    # Base queryset with optimizations
+    products = Product.objects.filter(is_active=True).select_related('brand').prefetch_related(
+        Prefetch(
+            'images',
+            queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('display_order', 'id')
+        ),
+        Prefetch(
+            'categories',
+            queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
+        ),
+        Prefetch(
+            'reviews',
+            queryset=Review.objects.only('product_id', 'rating', 'created_at')
+        )
+    ).only(
+        'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
+        'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
+    )
+    
+    # Category handling
+    category = None
+    current_category = None
+    
+    # Category from URL parameter
+    if category_slug:
+        try:
+            category = get_object_or_404(Category, slug=category_slug, is_active=True)
+            current_category = category
+            # Get all descendant category IDs
+            descendant_ids = category.get_descendant_ids()
+            products = products.filter(categories__id__in=descendant_ids)
+        except Category.DoesNotExist:
+            pass
+    
+    # Brand from URL parameter
+    if brand_slug:
+        try:
+            brand = get_object_or_404(Brand, slug=brand_slug, is_active=True)
+            products = products.filter(brand=brand)
+        except Brand.DoesNotExist:
+            pass
+    
+    # Sort A-Z
+    products = products.order_by('name')
+    
+    # Pagination for infinite scroll
+    per_page = 12
+    paginator = Paginator(products, per_page)
+    
+    try:
+        products_page = paginator.page(page)
+    except:
+        products_page = paginator.page(1)
+    
+    # If it's an AJAX request, return JSON
+    if is_ajax:
+        products_data = []
+        for product in products_page:
+            # Get main image
+            main_image = product.images.filter(is_featured=True).first()
+            if not main_image and product.images.exists():
+                main_image = product.images.first()
+            
+            # Calculate discount percentage
+            discount_percentage = 0
+            if product.discount_price and product.price and product.price > 0:
+                discount_percentage = ((product.price - product.discount_price) / product.price) * 100
+                discount_percentage = round(discount_percentage)
+            
+            products_data.append({
+                'id': product.id,
+                'name': product.name,
+                'slug': product.slug,
+                'price': str(product.price),
+                'discount_price': str(product.discount_price) if product.discount_price else None,
+                'discount_percentage': discount_percentage,
+                'brand_name': product.brand.name if product.brand else '',
+                'brand_slug': product.brand.slug if product.brand else '',
+                'image_url': main_image.image.url if main_image else '/static/img/no-image.jpg',
+                'url': product.get_absolute_url(),
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'products': products_data,
+            'has_next': products_page.has_next(),
+            'next_page': products_page.next_page_number() if products_page.has_next() else None,
+            'total_products': paginator.count,
+        })
+    
+    # For normal request, prepare context
+    total_products = paginator.count
+    
+    # Page title
+    page_title = "All Products"
+    if current_category:
+        page_title = f"{current_category.name} - Products"
+    elif brand_slug:
+        try:
+            brand = Brand.objects.get(slug=brand_slug)
+            page_title = f"{brand.name} - Products"
+        except:
+            pass
+    
+    
+    
+    context = {
+        'products': products_page,
+        'category': current_category,
+        'total_products': total_products,
+        'page_title': page_title,
+        'is_ajax': is_ajax,
+    }
+    
+    return render(request, 'shop/catalogue.html', context)
 
 
 def product_list(request):
