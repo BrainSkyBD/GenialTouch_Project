@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ page_title|default:"Products" }} | Your Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Infinite Scroll Styles */
+    .infinite-scroll-container {
+        position: relative;
+        min-height: 400px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 30px 0;
+        background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 100%);
+        width: 100%;
+        z-index: 10;
+        margin: 20px 0;
+    }
+    
+    .loading-spinner.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Scroll Trigger - invisible element that triggers loading when visible */
+    .infinite-scroll-trigger {
+        width: 100%;
+        height: 20px;
+        margin: 10px 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    
+    .end-message {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    /* Lazy loading for product images */
+    .lazy-product-image {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    
+    .lazy-product-image.loaded {
+        opacity: 1;
+    }
+    
+    .product-count {
+        background: white;
+        color: #333;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="ps-page--shop" style="margin-top: 30px;">
+    <div class="ps-container">
+        <div class="ps-layout--shop">
+            
+            <!-- Main Content Area -->
+            <div class="">
+                {% if category and category.banner %}
+                <div class="ps-page--single" id="about-us">
+                    <img src="{{ category.banner.url }}" alt="{{ category.name }} banner" style="width: 100%; border-radius: 8px;">
+                </div>
+                {% endif %}
+                
+                <div class="ps-shopping ps-tab-root">
+                    <div class="ps-shopping__header">
+                        <span class="" style="margin-left: auto; margin-right: auto;"><b>Product Catalogue ({{ total_products }})</b></span>
+                    </div>
+                    
+                    <div class="ps-tabs">
+                        <div class="ps-tab active" id="tab-1">
+                            <div class="ps-shopping-product infinite-scroll-container">
+                                <div class="row" id="products-grid">
+                                    {% for product in products %}
+                                    <div class="col-xl-2 col-lg-2 col-md-2 col-sm-6 col-6 product-item">
+                                        <div class="ps-product">
+                                            <div class="ps-product__thumbnail">
+                                                <a href="{{ product.get_absolute_url }}">
+                                                    {% with product.images.all|first as first_image %}
+                                                    {% if first_image %}
+                                                    <img class="lazy-product-image" 
+                                                         data-src="{{ first_image.image.url }}"
+                                                         src="{% static 'img/placeholder.webp' %}"
+                                                         alt="{{ product.name }}">
+                                                    {% else %}
+                                                    <img src="{% static 'img/no-image.jpg' %}" alt="{{ product.name }}">
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </a>
+                                                {% if product.discount_price %}
+                                                <div class="ps-product__badge">-{{ product.get_discount_percentage }}%</div>
+                                                {% endif %}
+                                                {% if product.is_new %}
+                                                <div class="ps-product__badge hot">hot</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="ps-product__container">
+                                                {% if product.brand %}
+                                                <a class="ps-product__vendor" href="{% url 'products_by_brand' product.brand.slug %}">
+                                                    {{ product.brand.name|upper }}
+                                                </a>
+                                                {% endif %}
+                                                <div class="ps-product__content">
+                                                    <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                                    
+                                                    <p class="ps-product__price {% if product.discount_price %}sale{% endif %}">
+                                                        {% if product.discount_price %}
+                                                        {{ currency_symbol }}{{ product.discount_price }}
+                                                        <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                        {% else %}
+                                                        {{ currency_symbol }}{{ product.price }}
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="ps-product__content hover">
+                                                    <a class="ps-product__title" href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                                    <p class="ps-product__price {% if product.discount_price %}sale{% endif %}">
+                                                        {% if product.discount_price %}
+                                                        {{ currency_symbol }}{{ product.discount_price }}
+                                                        <del>{{ currency_symbol }}{{ product.price }}</del>
+                                                        {% else %}
+                                                        {{ currency_symbol }}{{ product.price }}
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12 text-center py-5">
+                                        <i class="icon-cart-remove" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                                        <h4>No products found</h4>
+                                        <p>No products available in this category.</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Infinite Scroll Trigger -->
+                                <div class="infinite-scroll-trigger" id="infinite-scroll-trigger"></div>
+                                
+                                <!-- Loading Spinner -->
+                                <div class="loading-spinner" id="products-loading">
+                                    <div class="spinner"></div>
+                                    <p>Loading more products...</p>
+                                </div>
+                                
+                                <!-- End Message -->
+                                <div class="end-message" id="products-end" style="display: none;">
+                                    <p>You've reached the end of the products list.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Current filter state
+let isLoading = false;
+let hasMore = {{ products.has_next|yesno:"true,false" }};
+let currentPage = {{ products.number }};
+let observer = null;
+
+// Initialize when page loads
+$(document).ready(function() {
+    // Initialize lazy image loader
+    initLazyImages();
+    
+    // Initialize infinite scroll with Intersection Observer
+    initInfiniteScroll();
+});
+
+function initLazyImages() {
+    const lazyImages = document.querySelectorAll('.lazy-product-image');
+    if (!lazyImages.length) return;
+    
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    loadImage(img);
+                    imageObserver.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '50px' // Start loading images 50px before they enter viewport
+        });
+        
+        lazyImages.forEach(img => imageObserver.observe(img));
+    } else {
+        // Fallback for older browsers
+        lazyImages.forEach(img => loadImage(img));
+    }
+}
+
+function loadImage(img) {
+    const src = img.dataset.src;
+    if (!src) return;
+    
+    const tempImg = new Image();
+    tempImg.onload = () => {
+        img.src = src;
+        img.classList.add('loaded');
+    };
+    tempImg.onerror = () => {
+        img.src = '/static/img/no-image.jpg';
+        img.classList.add('loaded');
+    };
+    tempImg.src = src;
+}
+
+function initInfiniteScroll() {
+    if (!hasMore) return;
+    
+    const trigger = document.getElementById('infinite-scroll-trigger');
+    if (!trigger) return;
+    
+    // Create Intersection Observer
+    observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // When trigger element becomes visible and we're not already loading
+            if (entry.isIntersecting && !isLoading && hasMore) {
+                console.log('Trigger visible, loading more products...');
+                loadMoreProducts();
+            }
+        });
+    }, {
+        root: null, // viewport
+        rootMargin: '100px', // Trigger when element is 100px from entering viewport
+        threshold: 0 // Trigger as soon as even 1px is visible
+    });
+    
+    // Start observing the trigger element
+    observer.observe(trigger);
+    
+    console.log('Infinite scroll initialized with Intersection Observer');
+}
+
+async function loadMoreProducts() {
+    if (isLoading || !hasMore) {
+        console.log('Cannot load more:', { isLoading, hasMore });
+        return;
+    }
+    
+    isLoading = true;
+    currentPage++;
+    
+    console.log('Loading page:', currentPage);
+    
+    const loadingSpinner = document.getElementById('products-loading');
+    if (loadingSpinner) loadingSpinner.classList.add('active');
+    
+    try {
+        // Get current URL and update page parameter
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('page', currentPage);
+        
+        // Add AJAX header
+        const headers = new Headers({
+            'X-Requested-With': 'XMLHttpRequest'
+        });
+        
+        const response = await fetch(currentUrl, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.products && data.products.length > 0) {
+            // Append new products
+            appendProducts(data.products);
+            
+            // Update state
+            hasMore = data.has_next;
+            
+            console.log('Products loaded. Has more:', hasMore);
+            
+            if (!hasMore) {
+                const endMessage = document.getElementById('products-end');
+                if (endMessage) {
+                    endMessage.style.display = 'block';
+                }
+                // Disconnect observer if no more products
+                if (observer) {
+                    observer.disconnect();
+                }
+            }
+            
+            // Reinitialize lazy images for newly added products
+            setTimeout(initLazyImages, 100);
+            
+        } else {
+            hasMore = false;
+            const endMessage = document.getElementById('products-end');
+            if (endMessage) endMessage.style.display = 'block';
+            if (observer) {
+                observer.disconnect();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading more products:', error);
+        hasMore = false;
+        const endMessage = document.getElementById('products-end');
+        if (endMessage) endMessage.style.display = 'block';
+        if (observer) {
+            observer.disconnect();
+        }
+    } finally {
+        isLoading = false;
+        if (loadingSpinner) loadingSpinner.classList.remove('active');
+    }
+}
+
+function appendProducts(products) {
+    const productsGrid = document.getElementById('products-grid');
+    if (!productsGrid) return;
+    
+    const currencySymbol = '{{ currency_symbol }}';
+    
+    products.forEach(product => {
+        // Discount badge
+        const discountBadge = product.discount_percentage > 0 
+            ? `<div class="ps-product__badge">-${product.discount_percentage}%</div>` 
+            : '';
+        
+        // Hot badge (you can add logic for new products)
+        const hotBadge = product.is_new ? `<div class="ps-product__badge hot">hot</div>` : '';
+        
+        // Combine badges
+        const badges = discountBadge + hotBadge;
+        
+        // Price HTML with sale class if discounted
+        const priceClass = product.discount_price ? 'sale' : '';
+        const priceHTML = product.discount_price 
+            ? `<p class="ps-product__price ${priceClass}">
+                    ${currencySymbol}${product.discount_price}
+                    <del>${currencySymbol}${product.price}</del>
+               </p>`
+            : `<p class="ps-product__price">${currencySymbol}${product.price}</p>`;
+        
+        // Brand HTML with uppercase like static
+        const brandHTML = product.brand_name 
+            ? `<a class="ps-product__vendor" href="/brand/${product.brand_slug}/">${product.brand_name.toUpperCase()}</a>`
+            : '';
+        
+        const productHTML = `
+            <div class="col-xl-2 col-lg-2 col-md-2 col-sm-6 col-6 product-item">
+                <div class="ps-product">
+                    <div class="ps-product__thumbnail">
+                        <a href="${product.url}">
+                            <img class="lazy-product-image" 
+                                 data-src="${product.image_url}" 
+                                 src="{% static 'img/placeholder.webp' %}"
+                                 alt="${product.name}">
+                        </a>
+                        ${badges}
+                    </div>
+                    <div class="ps-product__container">
+                        ${brandHTML}
+                        <div class="ps-product__content">
+                            <a class="ps-product__title" href="${product.url}">${product.name}</a>
+                            ${priceHTML}
+                        </div>
+                        <div class="ps-product__content hover">
+                            <a class="ps-product__title" href="${product.url}">${product.name}</a>
+                            ${priceHTML}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        productsGrid.insertAdjacentHTML('beforeend', productHTML);
+    });
+}
+</script>
+{% endblock %}
