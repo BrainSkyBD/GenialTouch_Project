@@ -1,0 +1,37 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+    <div class="object-tools">
+        <ul class="object-tools" style="display: flex;">
+            <li>
+                <a style="background: #28a745; padding: 10px 15px; border-radius: 4px; color: white; text-decoration: none; display: inline-block; margin-right: 10px;" href="{% url 'admin:products_product_add' %}" class="addlink">Add product</a>
+            </li>
+            <li>
+                <a href="#" onclick="copyCatalogueUrl(); return false;" 
+                   style="background: #28a745; padding: 10px 15px; border-radius: 4px; color: white; text-decoration: none; display: inline-block;">
+                    📋 Copy Product Catalogue Page
+                </a>
+            </li>
+            {% block object-tools-items %}{% endblock %}
+        </ul>
+    </div>
+    
+    <script>
+        function copyCatalogueUrl() {
+            const url = "https://genialtouch.com/products/catalogue/";
+            navigator.clipboard.writeText(url).then(function() {
+                alert('Catalogue URL copied to clipboard: ' + url);
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = url;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Catalogue URL copied to clipboard: ' + url);
+            });
+        }
+    </script>
+{% endblock %}
