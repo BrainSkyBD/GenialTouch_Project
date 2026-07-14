@@ -198,45 +198,232 @@
         }
     }
 </style>
+<style>
+/* Category navigation arrows - positioned on left and right */
+.category-prev-btn,
+.category-next-btn {
+    background: #ff6b6b !important;
+    color: white !important;
+    border: none !important;
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+.category-prev-btn:hover,
+.category-next-btn:hover {
+    background: #ff5252 !important;
+    transform: translateY(-50%) scale(1.1) !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4) !important;
+}
+
+.category-prev-btn:active,
+.category-next-btn:active {
+    transform: translateY(-50%) scale(0.95) !important;
+}
+
+.category-prev-btn:disabled,
+.category-next-btn:disabled {
+    opacity: 0.4 !important;
+    cursor: default !important;
+}
+
+.category-prev-btn:disabled:hover,
+.category-next-btn:disabled:hover {
+    transform: translateY(-50%) scale(1) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure the container has proper padding for arrows */
+.ps-section__content {
+    padding: 0 5px !important;
+    position: relative !important;
+}
+
+/* Hide default owl nav for category slider */
+#category-slider .owl-nav {
+    display: none !important;
+}
+
+/* ===== HIDE ARROWS ON MOBILE ===== */
+@media (max-width: 768px) {
+    .category-prev-btn,
+    .category-next-btn {
+        display: none !important;
+    }
+    
+    /* Optional: Add more padding on mobile since arrows are hidden */
+    .ps-section__content {
+        padding: 0 15px !important;
+    }
+}
+
+/* ===== SHOW ARROWS ON TABLET AND DESKTOP ===== */
+@media (min-width: 769px) {
+    .category-prev-btn,
+    .category-next-btn {
+        display: flex !important;
+    }
+}
+
+/* Responsive adjustments for tablet and desktop */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .category-prev-btn,
+    .category-next-btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 16px !important;
+    }
+    
+    .category-prev-btn {
+        left: -10px !important;
+    }
+    
+    .category-next-btn {
+        right: -10px !important;
+    }
+}
+
+@media (min-width: 1025px) {
+    .category-prev-btn,
+    .category-next-btn {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 18px !important;
+    }
+    
+    .category-prev-btn {
+        left: -15px !important;
+    }
+    
+    .category-next-btn {
+        right: -15px !important;
+    }
+}
+</style>
 <div id="homepage-1">
     <!-- index.html - ক্যাটাগরি সেকশনের জন্য নতুন স্টাইল যোগ করুন -->
 
+    
+<div class="ps-top-categories" style="padding-bottom: 0px; position: relative;">
+    <div class="ps-container">
+        <div class="category-header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-size: 18px; margin: 0;">Top categories of the month</h3>
+        </div>
+        
+        <div class="ps-section__content" style="position: relative;">
+            <!-- Left Arrow -->
+            <button class="category-prev-btn" style="position: absolute; left: -px; top: 46%; transform: translateY(-50%); z-index: 10; background: #ff6b6b; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.3s; display: flex; align-items: center; justify-content: center;">
+                ‹
+            </button>
+            
+            <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="10" data-owl-nav="false" data-owl-dots="true" data-owl-item="8" data-owl-item-xs="3" data-owl-item-sm="4" data-owl-item-md="5" data-owl-item-lg="6" data-owl-item-xl="7" data-owl-duration="1000" data-owl-mousedrag="on" id="category-slider">
+                
+                {% for category in top_categories %}
+                <div class="ps-product ps-product--inner" style="margin-bottom: 0; height: 160px; display: flex; align-items: center; justify-content: center;">
+                    <div class="ps-block--category" style="text-align: center; width: 100%;">
+                        <a class="ps-block__overlay" href="{% url 'products_by_category' category.slug %}"></a>
+                        {% if category.image %}
+                        <img class="lazy-image" 
+                            data-src="{{ category.image.url }}" 
+                            src="{% static 'img/placeholder.webp' %}"
+                            alt="{{ category.name }}"
+                            style="width: 85px;
+                                    height: 85px;
+                                    object-fit: cover;
+                                    border-radius: 50%;
+                                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                    margin: 0 auto;
+                                    display: block;
+                                    clip-path: polygon(
+                                        25% 6%, 75% 6%,
+                                        100% 50%, 75% 94%,
+                                        25% 94%, 0% 50%
+                                    );">
+                        {% endif %}
+                        <p style="font-size: 13px; margin-top: 8px; margin-bottom: 0; font-weight: 500; 
+                                  min-height: 36px; 
+                                  display: flex; 
+                                  align-items: center; 
+                                  justify-content: center; 
+                                  padding: 0 5px;
+                                  text-align: center;
+                                  line-height: 1.3;
+                                  word-break: break-word;">
+                            {{ category.name }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Right Arrow -->
+            <button class="category-next-btn" style="position: absolute; right: -28px; top: 46%; transform: translateY(-50%); z-index: 10; background: #ff6b6b; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.3s; display: flex; align-items: center; justify-content: center;">
+                ›
+            </button>
+        </div>
+    </div>
+</div>
 
-    <!-- ক্যাটাগরি সেকশনের HTML অংশ আপডেট করুন -->
-    <div class="ps-top-categories" style="padding-bottom: 0px;">
+
+    {% comment %}
+    <div class="ps-deal-of-day">
         <div class="ps-container">
-            <h3 style="font-size: 18px; margin-bottom: 15px;">Top categories of the month</h3>
+            <div class="ps-section__header" style="margin-bottom:0px; margin-top:20px;">
+                <div class="ps-block--countdown-deal">
+                    <div class="ps-block__left">
+                        <h3>Top categories of the month</h3>
+                    </div>
+                    
+                </div>
+            </div>
             <div class="ps-section__content">
-                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="10" data-owl-nav="false" data-owl-dots="true" data-owl-item="8" data-owl-item-xs="3" data-owl-item-sm="4" data-owl-item-md="5" data-owl-item-lg="6" data-owl-item-xl="7" data-owl-duration="1000" data-owl-mousedrag="on">
+                <div class="ps-carousel--nav owl-slider" data-owl-auto="false" data-owl-loop="false" data-owl-speed="10000" data-owl-gap="10" data-owl-nav="true" data-owl-dots="true" data-owl-item="8" data-owl-item-xs="3" data-owl-item-sm="4" data-owl-item-md="5" data-owl-item-lg="6" data-owl-item-xl="7" data-owl-duration="1000" data-owl-mousedrag="on">
+                    
                     {% for category in top_categories %}
-                    <div class="ps-product ps-product--inner" style="margin-bottom: 0;">
-                        <div class="ps-block--category" style="text-align: center;">
-                            <a class="ps-block__overlay" href="{% url 'products_by_category' category.slug %}"></a>
-                            {% if category.image %}
-                            <img class="lazy-image" 
-                                data-src="{{ category.image.url }}" 
-                                src="{% static 'img/placeholder.webp' %}"
-                                alt="{{ category.name }}"
-                                style="width: 85px;
-                                        height: 85px;
-                                        object-fit: cover;
-                                        border-radius: 50%;
-                                        transition: transform 0.3s ease, box-shadow 0.3s ease;
-                                        margin: 0 auto;
-                                        clip-path: polygon(
-                                            25% 6%, 75% 6%,
-                                            100% 50%, 75% 94%,
-                                            25% 94%, 0% 50%
-                                        );">
-                            {% endif %}
-                            <p style="font-size: 13px; margin-top: 8px; margin-bottom: 0; font-weight: 500;">{{ category.name }}</p>
+                    <div class="ps-product ps-product--inner">
+                        <div class="ps-product__thumbnail">
+                            <a href="{% url 'products_by_category' category.slug %}">
+                                {% if category.image %}
+                                <img class="lazy-image" 
+                                    data-src="{{ category.image.url }}" 
+                                    src="{% static 'img/placeholder.webp' %}"
+                                    alt="{{ category.name }}"
+                                    style="width: 85px;
+                                            height: 85px;
+                                            object-fit: cover;
+                                            border-radius: 50%;
+                                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                                            margin: 0 auto;
+                                            clip-path: polygon(
+                                                25% 6%, 75% 6%,
+                                                100% 50%, 75% 94%,
+                                                25% 94%, 0% 50%
+                                            );">
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="ps-product__container">
+                            <div class="ps-product__content">
+                                <a class="ps-product__title" href="{% url 'products_by_category' category.slug %}">{{ category.name }}</a>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
+                    
                 </div>
             </div>
         </div>
     </div>
+    {% endcomment %}
 
 
     <!-- Top Categories Slider (Loaded immediately) -->
@@ -844,7 +1031,7 @@ class ProgressiveLoader {
     }
 }
 
-// Initialize when page loads
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize lazy image loader
@@ -926,9 +1113,111 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCountdown.call(this);
                 const countdownInterval = setInterval(updateCountdown.bind(this), 1000);
             });
+            
+            // ---------- Category slider navigation with left and right arrows ----------
+            setTimeout(function() {
+                const categorySlider = $('#category-slider');
+                const prevBtn = document.querySelector('.category-prev-btn');
+                const nextBtn = document.querySelector('.category-next-btn');
+                
+                if (categorySlider.length && prevBtn && nextBtn) {
+                    // Function to update button visibility based on position
+                    function updateButtonVisibility() {
+                        if (!categorySlider.data('owl.carousel')) return;
+                        
+                        const currentItem = categorySlider.data('owl.carousel').current();
+                        const itemCount = categorySlider.data('owl.carousel').items().length;
+                        
+                        // Get responsive items count
+                        let visibleItems = categorySlider.data('owl.carousel').options.items;
+                        
+                        // Check if we're in responsive mode
+                        const windowWidth = window.innerWidth;
+                        if (windowWidth < 576) {
+                            visibleItems = categorySlider.data('owl-carousel-options')?.responsive?.['0']?.items || 3;
+                        } else if (windowWidth < 768) {
+                            visibleItems = categorySlider.data('owl-carousel-options')?.responsive?.['576']?.items || 4;
+                        } else if (windowWidth < 992) {
+                            visibleItems = categorySlider.data('owl-carousel-options')?.responsive?.['768']?.items || 5;
+                        } else if (windowWidth < 1200) {
+                            visibleItems = categorySlider.data('owl-carousel-options')?.responsive?.['992']?.items || 6;
+                        } else {
+                            visibleItems = categorySlider.data('owl-carousel-options')?.responsive?.['1200']?.items || 7;
+                        }
+                        
+                        const maxItem = Math.max(0, Math.ceil(itemCount - visibleItems));
+                        
+                        // Update left arrow (prev)
+                        if (currentItem <= 0) {
+                            prevBtn.style.opacity = '0.3';
+                            prevBtn.style.cursor = 'default';
+                            prevBtn.disabled = true;
+                        } else {
+                            prevBtn.style.opacity = '1';
+                            prevBtn.style.cursor = 'pointer';
+                            prevBtn.disabled = false;
+                        }
+                        
+                        // Update right arrow (next)
+                        if (currentItem >= maxItem) {
+                            nextBtn.style.opacity = '0.3';
+                            nextBtn.style.cursor = 'default';
+                            nextBtn.disabled = true;
+                        } else {
+                            nextBtn.style.opacity = '1';
+                            nextBtn.style.cursor = 'pointer';
+                            nextBtn.disabled = false;
+                        }
+                    }
+                    
+                    // Wait for owl carousel to be initialized
+                    categorySlider.on('initialized.owl.carousel', function() {
+                        updateButtonVisibility();
+                    });
+                    
+                    // Next button click (right arrow)
+                    nextBtn.addEventListener('click', function() {
+                        if (this.disabled) return;
+                        if (categorySlider.data('owl.carousel')) {
+                            categorySlider.trigger('next.owl.carousel');
+                            setTimeout(updateButtonVisibility, 300);
+                        }
+                    });
+                    
+                    // Prev button click (left arrow)
+                    prevBtn.addEventListener('click', function() {
+                        if (this.disabled) return;
+                        if (categorySlider.data('owl.carousel')) {
+                            categorySlider.trigger('prev.owl.carousel');
+                            setTimeout(updateButtonVisibility, 300);
+                        }
+                    });
+                    
+                    // Update on slide change
+                    categorySlider.on('changed.owl.carousel', function() {
+                        updateButtonVisibility();
+                    });
+                    
+                    // Handle window resize to update visibility
+                    let resizeTimer;
+                    window.addEventListener('resize', function() {
+                        clearTimeout(resizeTimer);
+                        resizeTimer = setTimeout(updateButtonVisibility, 250);
+                    });
+                    
+                    // Also update when the slider is fully loaded
+                    setTimeout(updateButtonVisibility, 1000);
+                }
+            }, 500);
         });
     }
 });
+
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+});
+
 
 // Error handling
 window.addEventListener('error', function(e) {

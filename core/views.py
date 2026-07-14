@@ -437,6 +437,8 @@ def home(request):
         is_active=True, 
         is_featured=True
     ).only('id', 'name', 'slug', 'image')[:16]
+
+    print(top_categories)
     
     # Banners (essential for hero section)
     banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
