@@ -608,7 +608,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
     ).only(
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
         'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
-    )
+    ).distinct() 
     
     # Featured filter (for deals)
     if featured.lower() == 'true':
