@@ -77,7 +77,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import user_passes_test
 import base64
 import requests
-from weasyprint import HTML
+# from weasyprint import HTML
 import tempfile
 import os
 
