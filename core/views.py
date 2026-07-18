@@ -522,6 +522,11 @@ def load_deals_section(request):
     return JsonResponse({'html': html})
 
 
+
+def test_func(request):
+    return render(request, 'test/test.html')
+
+    
 # def load_category_products_section(request):
 #     """Load category products section via AJAX"""
 #     from django.template.loader import render_to_string
