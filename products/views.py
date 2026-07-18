@@ -1505,7 +1505,7 @@ def product_detail(request, slug):
                           ),
             slug=slug,
             is_active=True
-        ).order_by('created_at')
+        )
         
         # 2. Process variations into template-friendly format
         variations_dict = {}
