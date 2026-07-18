@@ -463,7 +463,7 @@ def Catalogue(request, category_slug=None, brand_slug=None):
     ).only(
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
         'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
-    )
+    ).order_by('created_at')
     
     # Category handling
     category = None
@@ -608,7 +608,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
     ).only(
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
         'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
-    ).distinct() 
+    ).distinct().order_by('created_at')
     
     # Featured filter (for deals)
     if featured.lower() == 'true':
@@ -714,7 +714,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
     
     # BASE CONTEXT: Get products for determining available options
     # This is the initial filtered set BEFORE brand/attribute/price filters
-    base_context_products = Product.objects.filter(is_active=True)
+    base_context_products = Product.objects.filter(is_active=True).order_by('created_at')
     
     # Apply the same category filter to base context
     if current_category:
@@ -1012,7 +1012,7 @@ def load_more_products(request):
             ).only(
                 'id', 'name', 'slug', 'price', 'discount_price', 'brand__name',
                 'brand__slug', 'created_at', 'view_count', 'description'
-            )
+            ).order_by('created_at')
             
             # Apply filters from AJAX request
             # Category filter
@@ -1505,7 +1505,7 @@ def product_detail(request, slug):
                           ),
             slug=slug,
             is_active=True
-        )
+        ).order_by('created_at')
         
         # 2. Process variations into template-friendly format
         variations_dict = {}
@@ -1607,7 +1607,7 @@ def get_related_products(request):
     if not html:
         try:
             # Get product's first category efficiently
-            product = Product.objects.only('id').get(id=product_id)
+            product = Product.objects.only('id').get(id=product_id).order_by('created_at')
             category = product.categories.filter(is_active=True).first()
             
             if category:
