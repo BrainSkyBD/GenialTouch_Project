@@ -154,11 +154,13 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    estimate_delivery_days = models.PositiveIntegerField(
-        default=3,
-        validators=[MinValueValidator(1)],
-        help_text="Estimated delivery time in days"
-    )
+    # estimate_delivery_days = models.PositiveIntegerField(
+    #     default=3,
+    #     validators=[MinValueValidator(1)],
+    #     help_text="Estimated delivery time in days"
+    # )
+    min_delivery_days = models.PositiveIntegerField(default=2)
+    max_delivery_days = models.PositiveIntegerField(default=3)
 
     sku = models.CharField(max_length=50, unique=True)
     is_active = models.BooleanField(default=True)
