@@ -31,4 +31,7 @@ urlpatterns = [
     path('return-and-refund_policy/', views.return_and_refund_policy, name='return_and_refund_policy'),
     path('terms-and-conditions/', views.terms_and_conditions, name='terms_and_conditions'),
     path('Replacement-Policy/', views.Replacement_Policy, name='Replacement_Policy'),
+
+
+    path('test/test/abcdefg/00001/2102910/', views.test_func, name='test_func'),
 ]
