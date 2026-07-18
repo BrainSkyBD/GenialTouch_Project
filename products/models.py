@@ -7,7 +7,7 @@ from imagekit.processors import ResizeToFill, ResizeToFit, SmartResize
 from imagekit.processors import ResizeToFit, ResizeToFill, Transpose
 from imagekit import ImageSpec
 from PIL import Image
-
+from django.core.validators import MinValueValidator
 
 
 class Brand(models.Model):
@@ -153,6 +153,13 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    estimate_delivery_days = models.PositiveIntegerField(
+        default=3,
+        validators=[MinValueValidator(1)],
+        help_text="Estimated delivery time in days"
+    )
+
     sku = models.CharField(max_length=50, unique=True)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
