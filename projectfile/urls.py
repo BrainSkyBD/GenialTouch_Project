@@ -41,6 +41,8 @@ urlpatterns = [
         template_name='robots.txt', 
         content_type='text/plain'
     ), name='robots'),
+
+    
 ]
 
 if settings.DEBUG:

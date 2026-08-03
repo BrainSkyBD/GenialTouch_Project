@@ -70,6 +70,8 @@ INSTALLED_APPS = [
 
     'offer_management',
 
+    'ckeditor',
+
 ]
 
 
