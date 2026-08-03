@@ -8,7 +8,7 @@ from imagekit.processors import ResizeToFit, ResizeToFill, Transpose
 from imagekit import ImageSpec
 from PIL import Image
 from django.core.validators import MinValueValidator
-
+from ckeditor.fields import RichTextField
 
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -150,7 +150,10 @@ class Product(models.Model):
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
     categories = models.ManyToManyField(Category, related_name='products')
-    description = models.TextField()
+    # description = models.TextField()
+    description = RichTextField()
+
+    
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
@@ -171,8 +174,14 @@ class Product(models.Model):
     view_count = models.PositiveIntegerField(default=0)
     product_keywords = models.TextField(default=None, blank=True, null=True)
 
-    caution = models.TextField(
-        blank=True, 
+    # caution = models.TextField(
+    #     blank=True, 
+    #     null=True,
+    #     help_text="Safety warnings, precautions, and usage guidelines for this product"
+    # )
+
+    caution = RichTextField(
+        blank=True,
         null=True,
         help_text="Safety warnings, precautions, and usage guidelines for this product"
     )

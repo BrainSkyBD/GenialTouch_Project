@@ -735,7 +735,7 @@
                             
                             <div class="ps-product__desc">
                                 <div class="short-description">
-                                    {{ product.description|truncatewords:30 }}
+                                    {{ product.description| safe | truncatewords:30 }}
                                 </div>
                             </div>
                             
@@ -837,7 +837,7 @@
                         <div class="ps-tabs">
                             <div class="ps-tab active" id="tab-1">
                                 <div class="ps-document">
-                                    {{ product.description|linebreaks }}
+                                    {{ product.description | safe}}
                                 </div>
                             </div>
                             <div class="ps-tab" id="tab-2">
