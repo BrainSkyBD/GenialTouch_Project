@@ -732,12 +732,13 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            
+                            {% comment %}
                             <div class="ps-product__desc">
                                 <div class="short-description">
                                     {{ product.description| safe | truncatewords:30 }}
                                 </div>
                             </div>
+                            {% endcomment %}
                             
                             <!-- Enhanced Variant Selection -->
                             <form class="ps-product__variations" method="post" action="{% url 'add_to_cart' product.id %}">
