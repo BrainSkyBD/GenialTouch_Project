@@ -15,7 +15,7 @@ from django.core.cache import cache
 
 from .models import (
     Product, Category, Brand, ProductVariation,
-    AttributeValue, Attribute, ProductImage, ProductAttribute
+    AttributeValue, Attribute, ProductImage, ProductAttribute, ProductVideo
 )
 
 from products.models import Product, Category, Brand, AttributeValue
@@ -1431,42 +1431,33 @@ def load_more_products(request):
 
 
 
+# views.py - product_detail ফাংশন
 
 def product_detail(request, slug):
     """
     Optimized product detail view with minimal queries
-    Uses select_related, prefetch_related and caching strategically
     """
     start_time = time.time()
     
-    # Try to get product from cache first (cache by slug)
     cache_key = f'product_detail_{slug}'
     cached_data = cache.get(cache_key)
     
     if cached_data:
-        # Cache hit - return cached context
         context = cached_data
     else:
-        # Cache miss - query database with optimized joins
-        
-        # 1. Get product with all necessary related data in minimal queries
-        # IMPORTANT: Don't slice in Prefetch - do it after retrieving
         product = get_object_or_404(
             Product.objects.select_related('brand')
                           .prefetch_related(
-                              # Images - only needed fields
                               Prefetch(
                                   'images',
                                   queryset=ProductImage.objects.only(
                                       'id', 'image', 'product_id', 'is_featured', 'alt_text', 'display_order'
                                   ).order_by('display_order', 'id')
                               ),
-                              # Categories - only for breadcrumbs
                               Prefetch(
                                   'categories',
                                   queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
                               ),
-                              # Variations with attributes - for variant selection
                               Prefetch(
                                   'variations',
                                   queryset=ProductVariation.objects.filter(
@@ -1480,7 +1471,6 @@ def product_detail(request, slug):
                                       )
                                   ).only('id', 'product_id', 'price', 'stock', 'sku')
                               ),
-                              # Specifications - for tab content
                               Prefetch(
                                   'productattribute_set',
                                   queryset=ProductAttribute.objects.select_related(
@@ -1491,7 +1481,6 @@ def product_detail(request, slug):
                                       'attribute_value__attribute__name'
                                   )
                               ),
-                              # Approved reviews - DON'T slice here, get all and slice in template or view
                               Prefetch(
                                   'reviews',
                                   queryset=Review.objects.filter(is_approved=True)
@@ -1500,14 +1489,21 @@ def product_detail(request, slug):
                                                     'id', 'product_id', 'user_id', 'rating', 
                                                     'title', 'comment', 'created_at',
                                                     'user__username', 'user__first_name', 'user__last_name'
-                                                ).order_by('-created_at')  # Order but don't slice
+                                                ).order_by('-created_at')
+                              ),
+                              # 👇 শুধু ProductVideo Prefetch
+                              Prefetch(
+                                  'videos',
+                                  queryset=ProductVideo.objects.filter(
+                                      is_active=True  # যদি is_active ফিল্ড থাকে
+                                  ).order_by('display_order', '-created_at')
                               )
                           ),
             slug=slug,
             is_active=True
         )
         
-        # 2. Process variations into template-friendly format
+        # Process variations
         variations_dict = {}
         for variation in product.variations.all():
             for attr in variation.attributes.all():
@@ -1516,35 +1512,48 @@ def product_detail(request, slug):
                     variations_dict[attr_name] = set()
                 variations_dict[attr_name].add(attr.value)
         
-        # Convert sets to lists and sort
         variations = {
             attr_name: sorted(list(values)) 
             for attr_name, values in variations_dict.items()
         }
         
-        # 3. Get payment methods (cached separately)
+        # Get payment methods
         payment_methods = cache.get('payment_methods')
         if not payment_methods:
             payment_methods = list(PaymentMethod.objects.filter(is_active=True).only('id', 'name', 'icon', 'description'))
-            cache.set('payment_methods', payment_methods, 3600)  # Cache for 1 hour
+            cache.set('payment_methods', payment_methods, 3600)
         
-        # 4. Build context with all data
+        # 👇 Same brand products
+        same_brand_products = []
+        if product.brand:
+            same_brand_products = Product.objects.filter(
+                brand=product.brand,
+                is_active=True
+            ).exclude(id=product.id).select_related('brand')[:4]
+        
+        # 👇 ভিডিও ডেটা নিন (শুধু ProductVideo থেকে)
+        main_video = product.videos.filter(is_featured=True).first() or product.videos.first()
+        
+        # Build context
         context = {
             'product': product,
             'variations': variations,
             'payment_methods': payment_methods,
-            
             'caution_text': product.caution,
+            'same_brand_products': same_brand_products,
+            'main_video': main_video,  # 👈 শুধু ProductVideo থেকে
+            'has_video': product.videos.exists(),  # 👈 শুধু ProductVideo চেক
+            'currency_symbol': '৳',
         }
         
-        # Cache the complete context
-        cache.set(cache_key, context, 300)  # Cache for 5 minutes
+        cache.set(cache_key, context, 300)
     
     load_time = time.time() - start_time
     print(f"Product detail page loaded in {load_time:.2f} seconds")
     
     return render(request, 'shop/product_detail.html', context)
 
+    
 
 def get_frequently_bought(request):
     """Optimized AJAX endpoint for frequently bought together"""

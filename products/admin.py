@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Brand, Category, Attribute, AttributeValue, Product, ProductImage, ProductAttribute, ProductVariation
+from .models import Brand, Category, Attribute, AttributeValue, Product, ProductImage, ProductAttribute, ProductVariation, ProductVideo
 
 
 
@@ -89,14 +89,39 @@ class ProductVariationInline(admin.TabularInline):
     model = ProductVariation
     extra = 1
 
+
+class ProductVideoInline(admin.TabularInline):
+    model = ProductVideo
+    extra = 1
+    fields = ['video_preview', 'video_file', 'video_url', 'thumbnail', 'title', 'is_featured', 'is_active', 'display_order']
+    readonly_fields = ['video_preview']
+    
+    def video_preview(self, obj):
+        if obj.id and obj.video_file:
+            return format_html(
+                '<video width="120" controls>'
+                '<source src="{}" type="video/mp4">'
+                'Your browser does not support the video tag.'
+                '</video>',
+                obj.video_file.url
+            )
+        elif obj.video_url:
+            return format_html(
+                '<a href="{}" target="_blank">🔗 Watch Video</a>',
+                obj.video_url
+            )
+        return "No video"
+    video_preview.short_description = 'Preview'
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('image_tag', 'name', 'brand', 'price', 'is_active', 'is_featured', 'stock_status')
+    list_display = ('image_tag', 'name', 'brand', 'price', 'is_active', 'is_featured', 'stock_status', 'has_video')
     list_display_links = ('image_tag', 'name')
     list_filter = ('brand', 'categories', 'is_active', 'is_featured')
     search_fields = ('name', 'description', 'sku')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = [ProductImageInline, ProductAttributeInline, ProductVariationInline]
+    inlines = [ProductImageInline, ProductVideoInline, ProductAttributeInline, ProductVariationInline]
     list_per_page = 25
     
     fieldsets = (
@@ -106,10 +131,11 @@ class ProductAdmin(admin.ModelAdmin):
         ('Pricing', {
             'fields': ('price', 'discount_price')
         }),
+        # ❌ 'Media' সেকশন রিমুভ করুন - কারণ ভিডিও এখন আলাদা ইনলাইনে
         ('Inventory', {
             'fields': ('sku', 'is_active', 'is_featured')
         }),
-        ('Safety & Caution', {  # New section
+        ('Safety & Caution', {
             'fields': ('caution',),
             'classes': ('wide',),
             'description': 'Add safety warnings, precautions, and usage guidelines for this product.'
@@ -119,6 +145,7 @@ class ProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
     readonly_fields = ('view_count', 'created_at', 'updated_at', 'main_image_preview')
     
     def image_tag(self, obj):
@@ -161,6 +188,12 @@ class ProductAdmin(admin.ModelAdmin):
         return "No image uploaded"
     main_image_preview.short_description = 'Main Image Preview'
     
+    # ✅ ভিডিও চেক করার জন্য আপডেটেড মেথড
+    def has_video(self, obj):
+        return obj.videos.filter(is_active=True).exists()
+    has_video.boolean = True
+    has_video.short_description = 'Has Video'
+    
     actions = ['duplicate_product']
     
     def duplicate_product(self, request, queryset):
@@ -181,6 +214,12 @@ class ProductAdmin(admin.ModelAdmin):
                 image.product = product
                 image.save()
             
+            # Copy videos
+            for video in product.videos.all():
+                video.pk = None
+                video.product = product
+                video.save()
+            
             # Copy attributes
             for attr in product.productattribute_set.all():
                 attr.pk = None
@@ -197,6 +236,12 @@ class ProductAdmin(admin.ModelAdmin):
         self.message_user(request, f"Successfully duplicated {len(queryset)} product(s).")
     
     duplicate_product.short_description = "Duplicate selected products"
+
+
+
+
+    
+
 
 # @admin.register(Category)
 # class CategoryAdmin(admin.ModelAdmin):

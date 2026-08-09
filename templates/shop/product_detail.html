@@ -379,6 +379,107 @@
     
     /* ... rest of your existing modal CSS ... */
 </style>
+
+
+<style>
+    .product-description {
+    line-height: 1.7;
+    }
+
+    .product-description strong,
+    .product-description b {
+        font-weight: 700;
+    }
+
+    .product-description p {
+        margin-bottom: 1rem;
+    }
+</style>
+
+<style>
+    /* product_detail.html এর extra_css ব্লকে যোগ করুন */
+
+/* Video Gallery Styles */
+.video-gallery-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.video-gallery-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+}
+
+.play-button-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.play-button-overlay i {
+    transition: transform 0.3s ease;
+}
+
+.video-gallery-thumbnail:hover .play-button-overlay i {
+    transform: scale(1.1);
+}
+
+.video-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #ff4444;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+/* Video Modal Styles */
+#videoModal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#videoModal .modal-header {
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.9);
+}
+
+#videoModal .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#videoModal .close {
+    opacity: 1;
+}
+
+#videoModal .modal-body {
+    background: #000;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .video-gallery-thumbnail {
+        min-height: 150px;
+    }
+    
+    .play-button-overlay i {
+        font-size: 40px !important;
+    }
+}
+</style>
 {% endblock %}
 {% block content %}
 
@@ -443,7 +544,7 @@
                         </div>
                         {% endcomment %}
 
-                        
+                        {% comment %}
                         <div class="ps-product__thumbnail" data-vertical="true">
                             <figure>
                                 <div class="ps-wrapper">
@@ -473,6 +574,150 @@
                                     onclick="openImageModal(this)">
                                 </div>
                                 {% endfor %}
+                            </div>
+                        </div>
+                        {% endcomment %}
+
+                        <!-- product_detail.html - ইমেজ গ্যালারির পর ভিডিও সেকশন যোগ করুন -->
+
+                        <!-- product_detail.html - গ্যালারি সেকশন ঠিক করুন -->
+
+                        <div class="ps-product__thumbnail" data-vertical="true">
+                            <figure>
+                                <div class="ps-wrapper">
+                                    <div class="ps-product__gallery" data-arrow="true">
+                                        {% for image in product.images.all|slice:":5" %}
+                                        <div class="item">
+                                            <a href="#">
+                                                <img src="{{ image.image.url }}" 
+                                                    alt="{{ product.name }}"
+                                                    class="product-gallery-image cursor-pointer"
+                                                    data-image="{{ image.image.url }}"
+                                                    onclick="openImageModal(this)"
+                                                >
+                                            </a>
+                                        </div>
+                                        {% endfor %}
+                                        
+                                        <!-- ✅ শুধু মাত্র একটি ভিডিও আইটেম -->
+                                        {% if has_video %}
+                                        <div class="item">
+                                            <a href="#">
+                                                <div class="video-gallery-thumbnail position-relative" 
+                                                    style="cursor:pointer;" 
+                                                    onclick="openVideoModal()">
+                                                    {% if main_video.thumbnail %}
+                                                        <img src="{{ main_video.thumbnail.url }}" 
+                                                            alt="Product Video" 
+                                                            class="img-fluid">
+                                                    {% else %}
+                                                        <img src="{% static 'img/video-placeholder.jpg' %}" 
+                                                            alt="Product Video" 
+                                                            class="img-fluid">
+                                                    {% endif %}
+                                                    <!-- Play button overlay -->
+                                                    <div class="play-button-overlay">
+                                                        <i class="fa fa-play-circle" style="font-size: 60px; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                                                    </div>
+                                                    <span class="video-badge badge badge-danger position-absolute" 
+                                                        style="top: 10px; right: 10px; z-index: 5;">
+                                                        <i class="fa fa-video-camera mr-1"></i> VIDEO
+                                                    </span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </figure>
+                            
+                            <!-- ✅ ভ্যারিয়েন্টস স্ট্রিপ - শুধু ইমেজ এবং ভিডিও থাম্বনেইল -->
+                            <div class="ps-product__variants" data-item="4" data-md="4" data-sm="4" data-arrow="false">
+                                {% for image in product.images.all|slice:":5" %}
+                                <div class="item">
+                                    <img src="{{ image.image.url }}" 
+                                        alt="{{ product.name }}"
+                                        class="img-thumbnail cursor-pointer"
+                                        data-image="{{ image.image.url }}"
+                                        onclick="openImageModal(this)">
+                                </div>
+                                {% endfor %}
+                                
+                                <!-- ✅ ভিডিও থাম্বনেইল - শুধু একটি বার -->
+                                {% if has_video %}
+                                <div class="item">
+                                    <div class="position-relative cursor-pointer" onclick="openVideoModal()">
+                                        {% if main_video.thumbnail %}
+                                            <img src="{{ main_video.thumbnail.url }}" 
+                                                alt="Video thumbnail"
+                                                class="img-thumbnail">
+                                        {% else %}
+                                            <img src="{% static 'img/video-thumbnail.jpg' %}" 
+                                                alt="Video thumbnail"
+                                                class="img-thumbnail">
+                                        {% endif %}
+                                        <i class="fa fa-play" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fcb800; font-size: 20px; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Video Modal - শুধু ProductVideo ব্যবহার করুন -->
+                        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content bg-dark border-0">
+                                    <div class="modal-header border-0">
+                                        <h5 class="modal-title text-white" id="videoModalLabel">
+                                            <i class="fa fa-play-circle mr-2"></i> {{ product.name }}
+                                        </h5>
+                                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body p-0">
+                                        <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                                            {% if main_video.video_file %}
+                                                <!-- Uploaded video file -->
+                                                <video id="productVideo" 
+                                                    controls 
+                                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;">
+                                                    <source src="{{ main_video.video_file.url }}" type="video/mp4">
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            {% elif main_video.video_url %}
+                                                <!-- YouTube/Vimeo embed -->
+                                                {% if 'youtube.com' in main_video.video_url or 'youtu.be' in main_video.video_url %}
+                                                    <iframe id="productVideo" 
+                                                            src="{{ main_video.video_url|add:'?autoplay=0&rel=0&modestbranding=1' }}" 
+                                                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                            allowfullscreen>
+                                                    </iframe>
+                                                {% elif 'vimeo.com' in main_video.video_url %}
+                                                    <iframe id="productVideo" 
+                                                            src="{{ main_video.video_url }}" 
+                                                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                                                            allow="autoplay; fullscreen; picture-in-picture" 
+                                                            allowfullscreen>
+                                                    </iframe>
+                                                {% else %}
+                                                    <video id="productVideo" 
+                                                        controls 
+                                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;">
+                                                        <source src="{{ main_video.video_url }}" type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="text-center text-white py-5">
+                                                    <i class="fa fa-exclamation-triangle fa-3x mb-3"></i>
+                                                    <p>Video not available</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -838,7 +1083,9 @@
                         <div class="ps-tabs">
                             <div class="ps-tab active" id="tab-1">
                                 <div class="ps-document">
-                                    {{ product.description | safe}}
+                                    <div class="product-description">
+                                        {{ product.description|safe }}
+                                    </div>
                                 </div>
                             </div>
                             <div class="ps-tab" id="tab-2">
@@ -1808,6 +2055,51 @@ $('#imageGalleryModal').on('hidden.bs.modal', function() {
     {% endfor %}
   ]
 }
+</script>
+
+
+<script>
+    // product_detail.html এর extra_js ব্লকে যোগ করুন
+
+function openVideoModal() {
+    // Show video modal
+    $('#videoModal').modal('show');
+    
+    // Pause any playing audio/video
+    const video = document.getElementById('productVideo');
+    if (video) {
+        // For HTML5 video
+        if (video.tagName === 'VIDEO') {
+            video.load();
+        }
+    }
+}
+
+// Pause video when modal is closed
+$('#videoModal').on('hidden.bs.modal', function() {
+    const video = document.getElementById('productVideo');
+    if (video) {
+        if (video.tagName === 'VIDEO') {
+            video.pause();
+        } else if (video.tagName === 'IFRAME') {
+            // For iframe (YouTube/Vimeo) - reload to stop
+            const src = video.src;
+            video.src = '';
+            video.src = src;
+        }
+    }
+});
+
+// Play video when modal is shown
+$('#videoModal').on('shown.bs.modal', function() {
+    const video = document.getElementById('productVideo');
+    if (video && video.tagName === 'VIDEO') {
+        // Autoplay might be blocked by browser
+        video.play().catch(function(error) {
+            console.log('Autoplay prevented:', error);
+        });
+    }
+});
 </script>
 
 {% endblock %}
