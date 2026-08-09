@@ -185,6 +185,33 @@ class Product(models.Model):
         null=True,
         help_text="Safety warnings, precautions, and usage guidelines for this product"
     )
+
+
+    # # নতুন ভিডিও ফিল্ড
+    # video = models.FileField(
+    #     upload_to='products/videos/',
+    #     blank=True,
+    #     null=True,
+    #     help_text="Upload product video (MP4, WebM, etc.)"
+    # )
+    
+    # # অথবা YouTube/Vimeo লিংক এর জন্য
+    # video_url = models.URLField(
+    #     blank=True,
+    #     null=True,
+    #     help_text="YouTube or Vimeo video URL"
+    # )
+    
+    # # ভিডিও থাম্বনেইল (অপশনাল)
+    # video_thumbnail = ProcessedImageField(
+    #     upload_to='products/video-thumbnails/',
+    #     processors=[ResizeToFill(400, 400)],
+    #     format='WEBP',
+    #     options={'quality': 80},
+    #     blank=True,
+    #     null=True,
+    #     help_text="Thumbnail for the video"
+    # )
     
     class Meta:
         verbose_name = 'Product'
@@ -435,6 +462,44 @@ class ProductImage(models.Model):
     @property
     def image_url(self):
         return self.image.url
+
+# models.py - ProductVideo মডেলে is_active যোগ করুন (যদি না থাকে)
+
+class ProductVideo(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='videos')
+    video_file = models.FileField(
+        upload_to='products/videos/',
+        blank=True,
+        null=True,
+        help_text="Upload product video file"
+    )
+    video_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Or provide external video URL"
+    )
+    thumbnail = ProcessedImageField(
+        upload_to='products/video-thumbnails/',
+        processors=[ResizeToFill(400, 400)],
+        format='WEBP',
+        options={'quality': 80},
+        blank=True,
+        null=True
+    )
+    title = models.CharField(max_length=200, blank=True)
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)  # 👈 এই ফিল্ড যোগ করুন
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        indexes = [
+            models.Index(fields=['product', 'is_featured', 'is_active']),  # আপডেট করুন
+        ]
+    
+    def __str__(self):
+        return f"Video for {self.product.name}"
 
 
 class ProductAttribute(models.Model):
