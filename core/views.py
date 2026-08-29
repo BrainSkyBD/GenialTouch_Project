@@ -492,7 +492,7 @@ def home(request):
         "featured_categories": featured_categories,
     }
     
-    return render(request, 'index.html', context)
+    return render(request, 'index-theme-02.html', context)
 
 
 def load_deals_section(request):
