@@ -7,12 +7,11 @@ from .models import (
 
 
 from django.contrib import admin
-from django.utils.html import format_html
 from django.urls import reverse
 from django.http import HttpResponse
 import io
 from django.template.loader import render_to_string
-from weasyprint import HTML
+# from weasyprint import HTML
 import tempfile
 from .models import Order, OrderItem, OrderTrackingTableNew
 from orders.views import generate_pdf_invoice

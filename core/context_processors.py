@@ -1,5 +1,7 @@
 from django.core.cache import cache
 from .models import CurrencySettingsTable
+from .models import BrandProfile
+
 
 
 def currency_context(request):
@@ -26,3 +28,10 @@ def currency_context(request):
     return currency_data
 
 
+
+def brand_context(request):
+    return {
+        'brand_profile': BrandProfile.get_active_profile(),
+        'brand_info': BrandProfile.get_seo_info(),
+        'contact_info': BrandProfile.get_contact_info(),
+    }
