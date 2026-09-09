@@ -42,6 +42,9 @@ urlpatterns = [
         content_type='text/plain'
     ), name='robots'),
 
+
+    path('branding/', include('branding_management.urls')),
+
     
 ]
 

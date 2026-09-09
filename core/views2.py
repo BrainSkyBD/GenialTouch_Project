@@ -1,6 +1,7 @@
-# core/views.py
+# views.py
+
 from django.shortcuts import render, redirect
-from django.db.models import Q, Count, Avg, Prefetch, Min, Max
+from django.db.models import Q, Count, Avg, Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -11,18 +12,34 @@ from products.models import Product, Category, Brand, AttributeValue, ProductIma
 from reviews.models import Review
 
 import time
-from datetime import datetime, timedelta
+from django.http import JsonResponse
+from django.db.models import Q, Count, Avg, Min, Max, Prefetch
 
-from branding_management.models import BrandInfo, TrustBadge
+from django.core.cache import cache
+from django.db.models import Exists, OuterRef
+
+from core.email_send_views import send_email_function
+
+
+# core/views.py (or wherever your home view is)
+from django.shortcuts import render
+from branding_management.models import BrandInfo
+from django.conf import settings
+import os
+
 
 
 def search_suggestions(request):
-    """Optimized search suggestions with proper image URLs"""
+    """
+    Optimized search suggestions with proper image URLs
+    Uses dictionary lookup for maximum speed
+    """
     query = request.GET.get('q', '').strip()
     
     if len(query) < 2:
         return JsonResponse({'products': []})
     
+    # Get products first (one query)
     products = list(Product.objects.filter(
         Q(name__icontains=query) & 
         Q(is_active=True)
@@ -33,19 +50,27 @@ def search_suggestions(request):
     if not products:
         return JsonResponse({'products': []})
     
+    # Get product IDs
     product_ids = [p.id for p in products]
     
+    # Get all images for these products (second query)
     images = ProductImage.objects.filter(
         product_id__in=product_ids
+    ).filter(
+        Q(is_featured=True) | Q(is_featured=False)  # Get featured first, then any
     ).order_by('product_id', '-is_featured', 'display_order').only(
         'id', 'image', 'product_id', 'is_featured'
     )
     
+    # Create a dictionary with the best image for each product
     image_dict = {}
     for img in images:
         if img.product_id not in image_dict:
+            # Take the first image we find for each product
+            # (ordered by is_featured and display_order)
             image_dict[img.product_id] = img.image.url
     
+    # Build response
     products_data = []
     for product in products:
         current_price = product.discount_price if product.discount_price else product.price
@@ -62,19 +87,30 @@ def search_suggestions(request):
     })
 
 
+
 def product_name_search(request):
+    """
+    Search products by name only - for the "See all results" functionality
+    Reuses the same product_list.html template
+    """
+    # Get search query
     query = request.GET.get('q', '').strip()
     
+    # If no query, redirect to product list
     if not query:
         return redirect('product_list')
     
+    # Check if it's an AJAX request for infinite scroll
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    # Get other filter parameters (except we'll ignore them for the search part)
     page = request.GET.get('page', 1)
     sort = request.GET.get('sort', '')
     
+    # Base queryset - ONLY filter by product name
     products = Product.objects.filter(
         is_active=True,
-        name__icontains=query
+        name__icontains=query  # Only name search, no description or SKU
     ).select_related('brand').prefetch_related(
         Prefetch(
             'images',
@@ -93,6 +129,7 @@ def product_name_search(request):
         'brand__slug', 'brand__id', 'created_at', 'view_count', 'description', 'is_featured', 'sku'
     ).distinct()
     
+    # Get brands for filtering (based on name-only search results)
     all_context_brands = Brand.objects.filter(
         product__in=products.values('id'),
         is_active=True
@@ -100,12 +137,14 @@ def product_name_search(request):
         product_count=Count('product')
     ).filter(product_count__gt=0).order_by('-product_count')
     
+    # Get attributes for filtering (based on name-only search results)
     all_context_attributes = AttributeValue.objects.filter(
         product__in=products.values('id')
     ).annotate(
         product_count=Count('product')
     ).filter(product_count__gt=0).select_related('attribute').order_by('attribute__name', 'value')
     
+    # Group attributes by type
     attribute_groups = {}
     for attr in all_context_attributes:
         attr_name = attr.attribute.name
@@ -115,14 +154,16 @@ def product_name_search(request):
             'id': attr.id,
             'value': attr.value,
             'product_count': attr.product_count,
-            'is_available': True
+            'is_available': True  # All are available in this context
         })
     
+    # Get price range for the filter
     price_range = products.aggregate(
         min_price=Min('price'),
         max_price=Max('price')
     )
     
+    # Apply sorting
     if sort == 'price_asc':
         from django.db.models import Case, When, F, FloatField
         products = products.annotate(
@@ -155,6 +196,7 @@ def product_name_search(request):
     else:
         products = products.order_by('-created_at')
     
+    # Pagination for infinite scroll
     per_page = 12
     paginator = Paginator(products, per_page)
     
@@ -163,13 +205,16 @@ def product_name_search(request):
     except:
         products_page = paginator.page(1)
     
+    # If it's an AJAX request, return JSON
     if is_ajax:
         products_data = []
         for product in products_page:
+            # Get main image
             main_image = product.images.filter(is_featured=True).first()
             if not main_image and product.images.exists():
                 main_image = product.images.first()
             
+            # Calculate discount percentage
             discount_percentage = 0
             if product.discount_price and product.price and product.price > 0:
                 discount_percentage = ((product.price - product.discount_price) / product.price) * 100
@@ -197,9 +242,15 @@ def product_name_search(request):
             'total_products': paginator.count,
         })
     
+    # For normal request, prepare context
     total_products = paginator.count
+    
+    # Page title
     page_title = f"Search results for '{query}'"
     
+    
+    
+    # Get categories for sidebar - show top-level categories
     sidebar_categories = Category.objects.filter(
         parent__isnull=True,
         is_active=True
@@ -230,10 +281,11 @@ def product_name_search(request):
         'is_new_arrivals': sort == 'newest',
         'is_ajax': is_ajax,
         'active_filter_count': 0,
-        'is_name_search': True,
+        'is_name_search': True,  # Flag to indicate this is a name-only search
     }
     
     return render(request, 'shop/product_list.html', context)
+
 
 
 def get_featured_categories(limit=8):
@@ -254,9 +306,26 @@ def get_featured_categories(limit=8):
             LIMIT %s
         """, [limit])
         
+        # Convert to dict for template
         columns = ['id', 'name', 'slug', 'image']
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+
+
+
+def get_theme_template(template_name):
+    """
+    Dynamically load template from the active theme folder
+    """
+    brand_info = BrandInfo.get_brand_info()
+    
+    if brand_info and brand_info.active_theme:
+        theme_folder = brand_info.active_theme
+    else:
+        theme_folder = 'theme-01-default'  # Default theme
+    
+    # Return template path with theme folder
+    return f'{theme_folder}/{template_name}'
 
 def home(request):
     """
@@ -264,24 +333,18 @@ def home(request):
     """
     start_time = time.time()
     
-    # Get brand info
+    # Get theme folder
     brand_info = BrandInfo.get_brand_info()
-    
-    # Get theme folder from BrandInfo
     theme_folder = brand_info.active_theme if brand_info else 'theme-01-default'
     
-    # Get top categories
+    # ONLY LOAD ESSENTIAL DATA FOR ABOVE THE FOLD
     top_categories = Category.objects.filter(
         parent__isnull=True, 
         is_active=True, 
         is_featured=True
     ).only('id', 'name', 'slug', 'image')[:16]
-    
-    # Get all categories for the promo cards
-    all_categories = Category.objects.filter(
-        is_active=True,
-        parent__isnull=True
-    ).only('id', 'name', 'slug', 'image')[:3]
+
+    print(top_categories)
     
     # Banners (essential for hero section)
     banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
@@ -302,82 +365,28 @@ def home(request):
     promotions = Promotion.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:2]
     
     # Deal end date
+    from datetime import datetime, timedelta
     deal_end_date = datetime.now() + timedelta(days=1)
     
     load_time = time.time() - start_time
     print(f"Home page initial load: {load_time:.2f} seconds")
-    
+
     featured_categories = get_featured_categories()
-    
-    # Get active currency
-    try:
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
-    except:
-        currency_symbol = '৳'
-    
-    # Get trust badges
-    trust_badges = []
-    if brand_info:
-        trust_badges = brand_info.trust_badges.filter(is_active=True).order_by('order')
-    
-    # Get deals products
-    deals_products = Product.objects.filter(
-        is_active=True, 
-        is_featured=True
-    ).select_related('brand').prefetch_related(
-        Prefetch(
-            'images',
-            queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
-        )
-    ).only(
-        'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
-    ).order_by('-created_at')[:8]
-    
-    # Get category specific products
-    category_products_data = {}
-    for category in all_categories:
-        products = Product.objects.filter(
-            categories=category,
-            is_active=True
-        ).select_related('brand').prefetch_related(
-            Prefetch(
-                'images',
-                queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
-            )
-        ).only(
-            'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
-        ).distinct().order_by('-created_at')[:10]
-        
-        if products.exists():
-            category_products_data[category.slug] = {
-                'category': category,
-                'products': products
-            }
-    
+
     context = {
         'top_categories': top_categories,
-        'all_categories': all_categories,
         'banners': banners,
         'promotions': promotions,
         'site_features': site_features,
         'deal_end_date': deal_end_date,
-        'featured_categories': featured_categories,
-        'theme_folder': theme_folder,
-        'currency_symbol': currency_symbol,
-        'trust_badges': trust_badges,
-        'deals_products': deals_products,
-        'category_products_data': category_products_data,
-        'brand_info': brand_info,
+        "featured_categories": featured_categories,
+        'theme_folder': theme_folder,  # Pass theme folder to context
     }
-
-    print(context)
     
     # Dynamic template loading
     template_name = f'{theme_folder}/home.html'
     
     return render(request, template_name, context)
-
 
 def load_deals_section(request):
     """Load deals section via AJAX"""
@@ -395,48 +404,78 @@ def load_deals_section(request):
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     ).order_by('-created_at')[:8]
     
+    from datetime import datetime, timedelta
     deal_end_date = datetime.now() + timedelta(days=1)
-    
-    try:
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
-    except:
-        currency_symbol = '৳'
     
     html = render_to_string('partials/deals_section.html', {
         'deals': deals,
         'deal_end_date': deal_end_date,
-        'currency_symbol': currency_symbol,
     })
     
     return JsonResponse({'html': html})
 
 
+
+def test_func(request):
+    return render(request, 'test/test.html')
+
+    
+# def load_category_products_section(request):
+#     """Load category products section via AJAX"""
+#     from django.template.loader import render_to_string
+    
+#     # Get featured categories
+#     featured_categories = Category.objects.filter(
+#         is_active=True, 
+#         is_featured=True
+#     ).only('id', 'name', 'slug', 'image')[:8]
+    
+#     # Get products for categories
+#     category_products = []
+#     for category in featured_categories:
+#         products = Product.objects.filter(
+#             categories=category,
+#             is_active=True
+#         ).select_related('brand').prefetch_related(
+#             Prefetch(
+#                 'images',
+#                 queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+#             )
+#         ).only(
+#             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+#         ).distinct().order_by('-created_at')[:10]
+        
+#         if products.exists():
+#             category_products.append({
+#                 'category': category,
+#                 'products': products
+#             })
+    
+#     html = render_to_string('partials/category_products_section.html', {
+#         'category_products': category_products,
+#     })
+    
+#     return JsonResponse({'html': html})
+
+
 def load_category_products_section(request, category_slug):
-    """Load category products section via AJAX"""
+    """Load deals section via AJAX"""
     from django.template.loader import render_to_string
     
     products = Product.objects.filter(
-        categories__slug=category_slug,
-        is_active=True
-    ).select_related('brand').prefetch_related(
-        Prefetch(
-            'images',
-            queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
-        )
-    ).only(
-        'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
-    ).distinct().order_by('-created_at')[:10]
-    
-    try:
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
-    except:
-        currency_symbol = '৳'
+                    categories__slug=category_slug,
+                    is_active=True
+                ).select_related('brand').prefetch_related(
+                    Prefetch(
+                        'images',
+                        queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+                    )
+                ).only(
+                    'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
+                ).distinct().order_by('-created_at')[:10]
     
     html = render_to_string('partials/category_products_section.html', {
         'products': products,
-        'currency_symbol': currency_symbol,
     })
     
     return JsonResponse({'html': html})
@@ -457,15 +496,8 @@ def load_new_arrivals_section(request):
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     ).order_by('-created_at')[:8]
     
-    try:
-        active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
-        currency_symbol = active_currency.currency_symbol if active_currency else '৳'
-    except:
-        currency_symbol = '৳'
-    
     html = render_to_string('partials/new_arrivals_section.html', {
         'new_arrivals': new_arrivals,
-        'currency_symbol': currency_symbol,
     })
     
     return JsonResponse({'html': html})
@@ -488,11 +520,18 @@ def load_home_ads_section(request):
     return JsonResponse({'html': html})
 
 
+
 def view_all_deals(request):
+    """
+    Redirect to product_list page with deals filter
+    """
     return redirect('product_list') + '?featured=true'
 
 
 def view_all_category(request, category_id):
+    """
+    Redirect to category page
+    """
     try:
         category = Category.objects.get(id=category_id, is_active=True)
         return redirect('products_by_category', slug=category.slug)
@@ -501,22 +540,30 @@ def view_all_category(request, category_id):
 
 
 def view_all_new_arrivals(request):
+    """
+    Redirect to product_list page with new arrivals filter
+    """
     return redirect('product_list') + '?sort=newest'
 
-
 def load_more_products(request):
+    """
+    AJAX endpoint for loading more products with infinite scroll
+    """
     product_type = request.GET.get('type', 'new_arrivals')
     page = int(request.GET.get('page', 2))
     per_page = 8
     
     try:
+        # Base query
         products = Product.objects.filter(is_active=True)
         
+        # Apply filters
         if product_type == 'deals':
             products = products.filter(is_featured=True)
         elif product_type == 'new_arrivals':
             products = products.order_by('-created_at')
         
+        # Optimize query
         products = products.select_related('brand').prefetch_related(
             Prefetch(
                 'images',
@@ -526,6 +573,7 @@ def load_more_products(request):
             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
         )
         
+        # Paginate
         paginator = Paginator(products, per_page)
         
         try:
@@ -533,6 +581,7 @@ def load_more_products(request):
         except (PageNotAnInteger, EmptyPage):
             products_page = paginator.page(1)
         
+        # Prepare response
         products_data = []
         for product in products_page:
             products_data.append({
@@ -547,21 +596,26 @@ def load_more_products(request):
                 'url': product.get_absolute_url(),
             })
         
-        return JsonResponse({
+        response_data = {
             'success': True,
             'products': products_data,
             'has_next': products_page.has_next(),
             'next_page': products_page.next_page_number() if products_page.has_next() else None,
-        })
+        }
         
     except Exception as e:
-        return JsonResponse({
+        response_data = {
             'success': False,
             'message': str(e)
-        })
+        }
+    
+    return JsonResponse(response_data)
 
 
 def load_category_products(request):
+    """
+    AJAX endpoint for loading category products
+    """
     category_id = request.GET.get('category_id')
     page = int(request.GET.get('page', 1))
     per_page = 10
@@ -569,6 +623,7 @@ def load_category_products(request):
     try:
         category = Category.objects.get(id=category_id, is_active=True)
         
+        # Get products
         products = Product.objects.filter(
             categories=category,
             is_active=True
@@ -581,6 +636,7 @@ def load_category_products(request):
             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
         ).distinct().order_by('-created_at')
         
+        # Paginate
         paginator = Paginator(products, per_page)
         
         try:
@@ -588,6 +644,7 @@ def load_category_products(request):
         except (PageNotAnInteger, EmptyPage):
             products_page = paginator.page(1)
         
+        # Prepare response
         products_data = []
         for product in products_page:
             products_data.append({
@@ -602,32 +659,29 @@ def load_category_products(request):
                 'url': product.get_absolute_url(),
             })
         
-        return JsonResponse({
+        response_data = {
             'success': True,
             'products': products_data,
             'has_next': products_page.has_next(),
             'next_page': products_page.next_page_number() if products_page.has_next() else None,
             'category_name': category.name,
-        })
+        }
         
     except Exception as e:
-        return JsonResponse({
+        response_data = {
             'success': False,
             'message': str(e)
-        })
+        }
+    
+    return JsonResponse(response_data)
+
 
 
 def return_and_refund_policy(request):
     return render(request, "policies/return_and_refund_policy.html")
 
-
 def terms_and_conditions(request):
     return render(request, "policies/terms_and_conditions.html")
 
-
 def Replacement_Policy(request):
     return render(request, "policies/Replacement_Policy.html")
-
-
-def test_func(request):
-    return render(request, 'test/test.html')

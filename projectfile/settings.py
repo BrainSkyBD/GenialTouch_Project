@@ -72,6 +72,8 @@ INSTALLED_APPS = [
 
     'ckeditor',
 
+    'branding_management',
+
 ]
 
 
@@ -117,6 +119,7 @@ TEMPLATES = [
                 'products.context_processors.categories',
 
                 'core.context_processors.currency_context',
+                'branding_management.context_processors.brand_info_context',
             ],
             
             'builtins': [
