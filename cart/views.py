@@ -4,12 +4,16 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.http import HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+from core.utils import get_active_theme_folder, get_theme_template
+
 
 def cart_detail(request):
     # The context processor already provides cart data
     return render(request, 'cart/detail.html')
 
 
+@csrf_exempt
 def add_to_cart(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
@@ -63,7 +67,7 @@ def add_to_cart(request, product_id):
                 'status': 'success',
                 'cart_item_count': context['cart_item_count'],
                 'cart_total': str(context['cart_total']),
-                'cart_items_html': render_to_string('partials/cart_items.html', context),
+                'cart_items_html': render_to_string(get_theme_template('partials/cart_items.html'), context),
                 'product_name': product.name,
                 'product_price': str(variation.get_price() if variation else product.get_price()),
                 'product_image': product.images.first().image.url if product.images.exists() else '',

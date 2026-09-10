@@ -4,6 +4,23 @@ from django.templatetags.static import static
 from django.conf import settings
 import os
 
+
+from branding_management.models import BrandInfo
+
+
+def theme_context(request):
+    """
+    সব template এ theme_folder variable automatically পাঠায়।
+    """
+    try:
+        brand_info = BrandInfo.get_brand_info()
+        theme_folder = brand_info.active_theme if brand_info else 'theme-01-default'
+    except Exception:
+        theme_folder = 'theme-01-default'
+    
+    return {
+        'theme_folder': theme_folder,
+    }
 def brand_info_context(request):
     """
     Context processor to make brand info available globally

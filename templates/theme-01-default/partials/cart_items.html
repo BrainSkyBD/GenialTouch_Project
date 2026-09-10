@@ -1,0 +1,56 @@
+{% if cart_items %}
+    {% for item in cart_items %}
+    <div class="cart-item" data-cart-key="{{ item.cart_key }}">
+        <div class="cart-item-image">
+            {% if item.product.images.first %}
+                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+            {% else %}
+                <img src="/static/img/no-image.jpg" alt="{{ item.product.name }}">
+            {% endif %}
+        </div>
+        <div class="cart-item-info">
+            <a href="{{ item.product.get_absolute_url }}" class="cart-item-name">{{ item.product.name }}</a>
+            
+            {% if item.attributes %}
+            <div class="cart-item-attrs">
+                {% for key, value in item.attributes.items %}
+                    <span>{{ key }}: <strong>{{ value }}</strong></span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="cart-item-price">
+                <span class="qty">{{ item.quantity }} ×</span>
+                <span class="price">৳{{ item.price }}</span>
+            </div>
+        </div>
+        <button type="button" class="cart-item-remove" data-cart-key="{{ item.cart_key }}" aria-label="Remove">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                <line x1="5" y1="5" x2="19" y2="19"/>
+                <line x1="19" y1="5" x2="5" y2="19"/>
+            </svg>
+        </button>
+    </div>
+    {% endfor %}
+    
+    <div class="cart-summary">
+        <div class="cart-summary-row">
+            <span>Subtotal:</span>
+            <strong>৳{{ cart_total }}</strong>
+        </div>
+        <div class="cart-summary-actions">
+            <a href="{% url 'cart_detail' %}" class="cart-btn cart-btn-outline">View Cart</a>
+            <a href="#" class="cart-btn cart-btn-primary">Checkout</a>
+        </div>
+    </div>
+{% else %}
+    <div class="cart-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="19" cy="21" r="1"/>
+            <path d="M2 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H5"/>
+        </svg>
+        <p>Your cart is empty</p>
+        <a href="{% url 'product_list' %}" class="cart-btn cart-btn-primary">Start Shopping</a>
+    </div>
+{% endif %}

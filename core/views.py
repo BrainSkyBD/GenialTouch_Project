@@ -14,7 +14,23 @@ import time
 from datetime import datetime, timedelta
 
 from branding_management.models import BrandInfo, TrustBadge
+# core/views.py
 
+from django.shortcuts import render, redirect
+from django.db.models import Q, Count, Avg, Prefetch, Min, Max
+from django.core.paginator import Paginator
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+from core.models import Banner, Promotion, HomeAd, CurrencySettingsTable, SiteFeature
+from products.models import Product, Category, Brand, AttributeValue, ProductImage
+from reviews.models import Review
+
+import time
+from datetime import datetime, timedelta
+
+from branding_management.models import BrandInfo, TrustBadge
 
 def search_suggestions(request):
     """Optimized search suggestions with proper image URLs"""
@@ -258,6 +274,29 @@ def get_featured_categories(limit=8):
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
+
+
+
+def get_featured_categories(limit=8):
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT c.id, c.name, c.slug, c.image
+            FROM products_category c
+            WHERE c.is_active = true 
+            AND c.is_featured = true
+            AND EXISTS (
+                SELECT 1 FROM products_product_categories pc
+                JOIN products_product p ON p.id = pc.product_id
+                WHERE pc.category_id = c.id 
+                AND p.is_active = true
+            )
+            LIMIT %s
+        """, [limit])
+        columns = ['id', 'name', 'slug', 'image']
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
 def home(request):
     """
     Home view with dynamic theme support
@@ -266,8 +305,6 @@ def home(request):
     
     # Get brand info
     brand_info = BrandInfo.get_brand_info()
-    
-    # Get theme folder from BrandInfo
     theme_folder = brand_info.active_theme if brand_info else 'theme-01-default'
     
     # Get top categories
@@ -277,18 +314,18 @@ def home(request):
         is_featured=True
     ).only('id', 'name', 'slug', 'image')[:16]
     
-    # Get all categories for the promo cards
-    all_categories = Category.objects.filter(
+    # ✅ Get 3 main categories for promo cards + product sections
+    main_categories = Category.objects.filter(
         is_active=True,
         parent__isnull=True
-    ).only('id', 'name', 'slug', 'image')[:3]
+    ).only('id', 'name', 'slug', 'image').order_by('display_order', 'name')[:3]
     
-    # Banners (essential for hero section)
+    # Banners
     banners = Banner.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')
     
     # Site features
     site_features = []
-    feature_data = SiteFeature.objects.filter(is_active=True).select_related()
+    feature_data = SiteFeature.objects.filter(is_active=True)
     for feature in feature_data:
         site_features.append({
             'title': feature.title,
@@ -298,66 +335,69 @@ def home(request):
             'return_days': feature.return_days,
         })
     
-    # Minimal promotions for sidebar (first 2 only)
+    # Promotions
     promotions = Promotion.objects.filter(is_active=True).only('image', 'url', 'title').order_by('order')[:2]
     
     # Deal end date
     deal_end_date = datetime.now() + timedelta(days=1)
     
-    load_time = time.time() - start_time
-    print(f"Home page initial load: {load_time:.2f} seconds")
-    
     featured_categories = get_featured_categories()
     
-    # Get active currency
+    # Active currency
     try:
         active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
         currency_symbol = active_currency.currency_symbol if active_currency else '৳'
     except:
         currency_symbol = '৳'
     
-    # Get trust badges
+    # Trust badges
     trust_badges = []
     if brand_info:
         trust_badges = brand_info.trust_badges.filter(is_active=True).order_by('order')
     
-    # Get deals products
+    # ✅ DEALS PRODUCTS (Dynamic from is_featured=True)
     deals_products = Product.objects.filter(
         is_active=True, 
         is_featured=True
     ).select_related('brand').prefetch_related(
         Prefetch(
             'images',
-            queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+            queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('display_order', 'id')
         )
     ).only(
         'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
     ).order_by('-created_at')[:8]
     
-    # Get category specific products
-    category_products_data = {}
-    for category in all_categories:
+    # ✅ CATEGORY PRODUCTS (Dynamic)
+    category_products_data = []
+    for category in main_categories:
+        # Get descendant category IDs
+        descendant_ids = category.get_descendant_ids()
+        
         products = Product.objects.filter(
-            categories=category,
+            categories__id__in=descendant_ids,
             is_active=True
         ).select_related('brand').prefetch_related(
             Prefetch(
                 'images',
-                queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('id')
+                queryset=ProductImage.objects.only('image', 'product_id', 'is_featured').order_by('display_order', 'id')
             )
         ).only(
             'id', 'name', 'slug', 'price', 'discount_price', 'brand__name'
         ).distinct().order_by('-created_at')[:10]
         
         if products.exists():
-            category_products_data[category.slug] = {
+            category_products_data.append({
                 'category': category,
-                'products': products
-            }
+                'products': products,
+            })
+    
+    load_time = time.time() - start_time
+    print(f"Home page loaded in {load_time:.2f} seconds")
     
     context = {
         'top_categories': top_categories,
-        'all_categories': all_categories,
+        'main_categories': main_categories,
         'banners': banners,
         'promotions': promotions,
         'site_features': site_features,
@@ -370,14 +410,9 @@ def home(request):
         'category_products_data': category_products_data,
         'brand_info': brand_info,
     }
-
-    print(context)
     
-    # Dynamic template loading
     template_name = f'{theme_folder}/home.html'
-    
     return render(request, template_name, context)
-
 
 def load_deals_section(request):
     """Load deals section via AJAX"""
