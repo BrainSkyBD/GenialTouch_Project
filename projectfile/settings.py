@@ -120,6 +120,8 @@ TEMPLATES = [
 
                 'core.context_processors.currency_context',
                 'branding_management.context_processors.brand_info_context',
+
+                'branding_management.context_processors.theme_context',
             ],
             
             'builtins': [

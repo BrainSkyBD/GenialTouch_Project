@@ -6,7 +6,7 @@
     <div class="navigation__content">
         <div class="ps-cart--mobile">
             <div class="ps-cart__items">
-            {% include 'partials/cart_items.html' %}
+            {% include theme_folder|add:"/partials/cart_items.html" %}
             </div>
             <div class="ps-cart__footer">
                 <h3>Sub Total:<strong id="cart-total">${{ cart_total|default:"0.00" }}</strong></h3>

@@ -4,11 +4,10 @@
 {% block title %}{{ brand_info.brand_name|default:'GenialTouch' }} | {{ brand_info.brand_tagline|default:'Your Trusted Shopping Partner in Japan' }}{% endblock %}
 
 {% block content %}
+
 <!-- Hero Banner Slider -->
 <section class="hero">
     <div class="hero-slides" id="heroSlides">
-
-        <!-- Slide 1 -->
         <div class="hero-slide active" style="background:linear-gradient(120deg,#ffe4ec 0%,#ffd9d0 28%,#cfe0f5 62%,#dcebff 100%);">
             <div class="container">
                 <div class="hero-copy">
@@ -18,26 +17,23 @@
                     <ul class="hero-list">
                         {% for badge in trust_badges|slice:":4" %}
                         <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>{{ badge.title }}</li>
-                        {% endfor %}
-                        {% if not trust_badges %}
+                        {% empty %}
                         <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>100% Halal Products</li>
                         <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Quality You Can Trust</li>
                         <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Fast &amp; Reliable Delivery</li>
                         <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>24/7 Customer Support</li>
-                        {% endif %}
+                        {% endfor %}
                     </ul>
                     <div class="hero-badge-row">
                         {% for badge in trust_badges|slice:":3" %}
                         <span class="hero-badge" style="background:{{ brand_info.primary_color|default:'#0f2a5c' }};">{{ badge.title|upper }}</span>
-                        {% endfor %}
-                        {% if not trust_badges %}
+                        {% empty %}
                         <span class="hero-badge quality">🛡️ QUALITY</span>
                         <span class="hero-badge halal">☪ HALAL</span>
                         <span class="hero-badge trust">🤝 TRUST</span>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
-
                 <div class="hero-visual">
                     <div class="hero-scene">
                         <svg class="fuji" viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg">
@@ -50,90 +46,13 @@
                             <rect x="0" y="228" width="460" height="18" fill="#f2c9d6"/>
                         </svg>
                         <div class="halal-medallion"><span class="ar">حلال</span><span class="en">HALAL</span></div>
-                        <div class="product-chip chip1"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.primary_color|default:'#0f2a5c' }}" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg></div>
-                        <div class="product-chip chip2"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.primary_color|default:'#1e7a3d' }}" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2"/></svg></div>
-                        <div class="product-chip chip3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.secondary_color|default:'#7a3fc4' }}" stroke-width="1.6"><path d="M4 4h16l-1.5 9h-13z"/><path d="M4 4l-1-2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg></div>
-                        <div class="product-chip chip4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.accent_color|default:'#f5b400' }}" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><line x1="12" y1="9" x2="12" y2="12"/><line x1="12" y1="12" x2="14.5" y2="13.5"/></svg></div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Slide 2 -->
-        <div class="hero-slide" style="background:linear-gradient(120deg,#fff3d6 0%,#ffe8b8 45%,#ffd9d0 100%);">
-            <div class="container">
-                <div class="hero-copy">
-                    <span class="hero-sub" style="border-color:var(--red);color:var(--red);">Limited Time Offer</span>
-                    <h1>Special Offer<span class="accent-line" style="color:var(--navy);">Up to 30% Off Selected Items</span></h1>
-                    <ul class="hero-list">
-                        <li><span class="check" style="background:var(--red);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Electronics &amp; Gadgets</li>
-                        <li><span class="check" style="background:var(--red);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Fashion &amp; Clothing</li>
-                        <li><span class="check" style="background:var(--red);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Halal Food Combos</li>
-                    </ul>
-                    <div class="hero-badge-row">
-                        <a href="#offers" class="hero-badge trust" style="text-decoration:none;">🔥 Shop the Sale →</a>
-                    </div>
-                </div>
-
-                <div class="hero-visual">
-                    <div class="hero-scene">
-                        <svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="230" cy="150" r="120" fill="#ffffff" opacity="0.5"/>
-                            <text x="230" y="130" text-anchor="middle" font-size="70" font-weight="800" fill="var(--red)" font-family="Poppins, sans-serif">30%</text>
-                            <text x="230" y="175" text-anchor="middle" font-size="24" font-weight="700" fill="#0f2a5c" font-family="Poppins, sans-serif">OFF</text>
-                        </svg>
-                        <div class="product-chip chip1"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.primary_color|default:'#0f2a5c' }}" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg></div>
-                        <div class="product-chip chip3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.secondary_color|default:'#7a3fc4' }}" stroke-width="1.6"><path d="M4 4h16l-1.5 9h-13z"/><path d="M4 4l-1-2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg></div>
-                        <div class="product-chip chip4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.accent_color|default:'#f5b400' }}" stroke-width="1.6"><path d="M4 13v-1a8 8 0 0 1 16 0v1" stroke="{{ brand_info.secondary_color|default:'#d91f2c' }}"/><rect x="2.5" y="12" width="4" height="7" rx="2" fill="{{ brand_info.secondary_color|default:'#d91f2c' }}" stroke="none"/><rect x="17.5" y="12" width="4" height="7" rx="2" fill="{{ brand_info.secondary_color|default:'#d91f2c' }}" stroke="none"/></svg></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 3 -->
-        <div class="hero-slide" style="background:linear-gradient(120deg,#e8f7ea 0%,#d9f0dd 45%,#dcebff 100%);">
-            <div class="container">
-                <div class="hero-copy">
-                    <span class="hero-sub" style="border-color:var(--green);color:var(--green-dark);">Just Landed</span>
-                    <h1>New Arrivals<span class="accent-line" style="color:var(--green-dark);">Check Out Our Latest Products</span></h1>
-                    <ul class="hero-list">
-                        <li><span class="check" style="background:var(--green);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Fresh Halal Grocery Stock</li>
-                        <li><span class="check" style="background:var(--green);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Latest Smartphones &amp; Gadgets</li>
-                        <li><span class="check" style="background:var(--green);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>New Season Clothing</li>
-                    </ul>
-                    <div class="hero-badge-row">
-                        <a href="#arrivals" class="hero-badge halal" style="text-decoration:none;background:var(--green);">🆕 Explore New Arrivals →</a>
-                    </div>
-                </div>
-
-                <div class="hero-visual">
-                    <div class="hero-scene">
-                        <svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="90" y="70" width="280" height="160" rx="16" fill="#ffffff" opacity="0.6"/>
-                            <circle cx="180" cy="150" r="45" fill="{{ brand_info.primary_color|default:'#1e7a3d' }}" opacity="0.85"/>
-                            <circle cx="280" cy="150" r="45" fill="{{ brand_info.primary_color|default:'#0f2a5c' }}" opacity="0.85"/>
-                        </svg>
-                        <div class="product-chip chip1"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.primary_color|default:'#1e7a3d' }}" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg></div>
-                        <div class="product-chip chip3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.secondary_color|default:'#7a3fc4' }}" stroke-width="1.6"><path d="M4 4h16l-1.5 9h-13z"/><path d="M4 4l-1-2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg></div>
-                        <div class="product-chip chip2"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="{{ brand_info.accent_color|default:'#f5b400' }}" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><line x1="12" y1="9" x2="12" y2="12"/><line x1="12" y1="12" x2="14.5" y2="13.5"/></svg></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
-
-    <button class="hero-arrow hero-arrow-left" id="heroPrev" aria-label="Previous slide">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="hero-arrow hero-arrow-right" id="heroNext" aria-label="Next slide">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-
     <div class="hero-dots" id="heroDots">
         <button class="hero-dot active" data-slide="0" aria-label="Slide 1"></button>
-        <button class="hero-dot" data-slide="1" aria-label="Slide 2"></button>
-        <button class="hero-dot" data-slide="2" aria-label="Slide 3"></button>
     </div>
 </section>
 
@@ -141,361 +60,395 @@
 <section id="categories">
     <div class="container">
         <div class="promo-grid">
-            <div class="promo-card halal" id="halal">
+            {% for cat in main_categories %}
+            <div class="promo-card {% cycle 'halal' 'electronics' 'clothing' %}" id="{{ cat.slug }}">
+                <div class="icon-badge">
+                    {% if cat.image %}
+                        <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
+                    {% else %}
+                        {{ cat.name|first }}
+                    {% endif %}
+                </div>
+                <h3>{{ cat.name }}</h3>
+                <p>Explore our {{ cat.name|lower }} collection</p>
+                <a href="{% url 'products_by_category' cat.slug %}" class="shop-btn">Shop Now →</a>
+            </div>
+            {% empty %}
+            <div class="promo-card halal">
                 <div class="icon-badge">☪</div>
-                <h3>Halal Food</h3>
-                <p>100% Halal &amp; Quality Products</p>
-                <a href="#" class="shop-btn">Shop Now →</a>
-                <svg class="art" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#c8e6cd"/><rect x="35" y="45" width="14" height="45" rx="3" fill="#f5b400"/><circle cx="75" cy="70" r="18" fill="#8b5a2b"/></svg>
+                <h3>No Categories</h3>
+                <p>Add categories from admin panel</p>
             </div>
-            <div class="promo-card electronics" id="electronics">
-                <div class="icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="4" width="16" height="12" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/></svg></div>
-                <h3>Electronics &amp; Accessories</h3>
-                <p>Smartphones, Laptops, Tablets &amp; Accessories</p>
-                <a href="#" class="shop-btn">Shop Now →</a>
-                <svg class="art" viewBox="0 0 120 120"><rect x="30" y="30" width="60" height="42" rx="4" fill="#c9d9f2"/><rect x="45" y="80" width="30" height="6" rx="3" fill="#c9d9f2"/></svg>
-            </div>
-            <div class="promo-card clothing" id="clothing">
-                <div class="icon-badge">👕</div>
-                <h3>Clothing</h3>
-                <p>Fashion for Everyone</p>
-                <a href="#" class="shop-btn">Shop Now →</a>
-                <svg class="art" viewBox="0 0 120 120"><path d="M40 30 20 45 30 60 40 52 40 100 80 100 80 52 90 60 100 45 80 30 65 40 55 40Z" fill="#d9c3f0"/></svg>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
 
 <!-- Feature strip -->
+{% if site_features %}
 <div class="feature-wrap">
     <div class="feature-strip">
         <div class="feature-grid">
+            {% for feature in site_features %}
             <div class="feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="12" rx="1"/><path d="M16 10h4l3 3v5h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="18" cy="18" r="1.8"/></svg>
-                <div><div class="ftitle">Fast Delivery</div><div class="fsub">Across Japan</div></div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                <div><div class="ftitle">{{ feature.title }}</div><div class="fsub">{{ feature.description }}</div></div>
             </div>
-            <div class="feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/></svg>
-                <div><div class="ftitle">Secure Payment</div><div class="fsub">100% Safe &amp; Protected</div></div>
-            </div>
-            <div class="feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="5"/><path d="M9 14 7 22l5-3 5 3-2-8"/></svg>
-                <div><div class="ftitle">Quality Guarantee</div><div class="fsub">Premium Products</div></div>
-            </div>
-            <div class="feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7 3 7"/><path d="M21 7 17 3"/><path d="M21 7 17 11"/><path d="M3 17h18"/><path d="M3 17l4-4"/><path d="M3 17l4 4"/></svg>
-                <div><div class="ftitle">Easy Returns</div><div class="fsub">Hassle-Free Returns Within 7 Days</div></div>
-            </div>
-            <div class="feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3z"/><path d="M3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>
-                <div><div class="ftitle">24/7 Support</div><div class="fsub">We're Here to Help Anytime</div></div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
-
-<!-- Offer cards -->
-<section id="offers">
-    <div class="container">
-        <div class="offer-grid">
-            <div class="offer-card special">
-                <span class="eyebrow">SPECIAL OFFER</span>
-                <span class="big">UP TO 30%<span> OFF</span></span>
-                <span class="desc">On Selected Items</span>
-                <a href="#" class="btn">Shop Now →</a>
-            </div>
-            <div class="offer-card arrivals" id="arrivals">
-                <span class="eyebrow">NEW ARRIVALS</span>
-                <span class="big">Check Out Our Latest Products</span>
-                <a href="#" class="btn">Shop Now →</a>
-            </div>
-            <div class="offer-card halalcert">
-                <span class="eyebrow">100% HALAL</span>
-                <span class="big">Certified Products</span>
-                <span class="desc">Shop with Confidence</span>
-                <a href="#" class="btn">Shop Now →</a>
-            </div>
-        </div>
-    </div>
-</section>
+{% endif %}
 
 <!-- Deals of the Day -->
+{% if deals_products %}
 <section id="deals">
     <div class="container">
         <div class="deals-head">
             <span class="section-title">Deals of the Day <span class="badge-limited">Limited Time Offer</span></span>
-            <a href="#" class="view-all">View All Deals →</a>
+            <a href="{% url 'view_all_deals' %}" class="view-all">View All Deals →</a>
         </div>
         <div class="deals-scroll-wrap">
             <button class="scroll-btn scroll-left" id="dealsScrollLeft" aria-label="Scroll left">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div class="deals-track" id="dealsTrack"></div>
+            <div class="deals-track" id="dealsTrack">
+                {% for product in deals_products %}
+                <div class="deal-card">
+                    <div class="deal-media">
+                        {% if product.get_discount_percentage > 0 %}
+                        <span class="deal-discount">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'product_detail' product.slug %}" class="deal-link">
+                            {% with product.get_main_image as img %}
+                                {% if img %}
+                                    <img src="{{ img.image.url }}" alt="{{ product.name }}" loading="lazy">
+                                {% else %}
+                                    <img src="/static/img/no-image.jpg" alt="{{ product.name }}" loading="lazy">
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </div>
+                    <div class="deal-body">
+                        <a href="{% url 'product_detail' product.slug %}" class="deal-name">{{ product.name }}</a>
+                        <div class="deal-price">
+                            <span class="now">{{ currency_symbol }}{{ product.get_price }}</span>
+                            {% if product.discount_price %}
+                            <span class="was">{{ currency_symbol }}{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        {% if product.is_in_stock %}
+                            <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+                        {% else %}
+                            <button class="add-cart-btn" disabled style="background:#8a8f9a;cursor:not-allowed;">Out of Stock</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             <button class="scroll-btn scroll-right" id="dealsScrollRight" aria-label="Scroll right">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
         </div>
     </div>
 </section>
+{% endif %}
 
-<!-- Halal Food section -->
-<section id="halal-products">
+<!-- Category product sections -->
+{% for cat_data in category_products_data %}
+<section id="{{ cat_data.category.slug }}-products">
     <div class="container">
         <div class="deals-head">
-            <span class="section-title">☪ Halal Food <span class="badge-limited" style="background:var(--green);">100% Certified</span></span>
-            <a href="#halal" class="view-all">View All →</a>
+            <span class="section-title">
+                {% if cat_data.category.image %}
+                    <span style="display:inline-block;width:28px;height:28px;border-radius:50%;overflow:hidden;vertical-align:middle;margin-right:8px;">
+                        <img src="{{ cat_data.category.image.url }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                    </span>
+                {% endif %}
+                {{ cat_data.category.name }}
+            </span>
+            <a href="{% url 'products_by_category' cat_data.category.slug %}" class="view-all">View All →</a>
         </div>
         <div class="deals-scroll-wrap">
-            <button class="scroll-btn scroll-left" id="halalScrollLeft" aria-label="Scroll left">
+            <button class="scroll-btn scroll-left" id="{{ cat_data.category.slug }}ScrollLeft" aria-label="Scroll left">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div class="deals-track" id="halalTrack"></div>
-            <button class="scroll-btn scroll-right" id="halalScrollRight" aria-label="Scroll right">
+            <div class="deals-track" id="{{ cat_data.category.slug }}Track">
+                {% for product in cat_data.products %}
+                <div class="deal-card">
+                    <div class="deal-media">
+                        {% if product.get_discount_percentage > 0 %}
+                        <span class="deal-discount">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'product_detail' product.slug %}" class="deal-link">
+                            {% with product.get_main_image as img %}
+                                {% if img %}
+                                    <img src="{{ img.image.url }}" alt="{{ product.name }}" loading="lazy">
+                                {% else %}
+                                    <img src="/static/img/no-image.jpg" alt="{{ product.name }}" loading="lazy">
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </div>
+                    <div class="deal-body">
+                        <a href="{% url 'product_detail' product.slug %}" class="deal-name">{{ product.name }}</a>
+                        <div class="deal-price">
+                            <span class="now">{{ currency_symbol }}{{ product.get_price }}</span>
+                            {% if product.discount_price %}
+                            <span class="was">{{ currency_symbol }}{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        {% if product.is_in_stock %}
+    <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+{% else %}
+    <button class="add-cart-btn" disabled style="background:#8a8f9a;cursor:not-allowed;">Out of Stock</button>
+{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="scroll-btn scroll-right" id="{{ cat_data.category.slug }}ScrollRight" aria-label="Scroll right">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
         </div>
     </div>
 </section>
-
-<!-- Electronics & Accessories section -->
-<section id="electronics-products">
-    <div class="container">
-        <div class="deals-head">
-            <span class="section-title">💻 Electronics &amp; Accessories</span>
-            <a href="#electronics" class="view-all">View All →</a>
-        </div>
-        <div class="deals-scroll-wrap">
-            <button class="scroll-btn scroll-left" id="electronicsScrollLeft" aria-label="Scroll left">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <div class="deals-track" id="electronicsTrack"></div>
-            <button class="scroll-btn scroll-right" id="electronicsScrollRight" aria-label="Scroll right">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- Clothing section -->
-<section id="clothing-products">
-    <div class="container">
-        <div class="deals-head">
-            <span class="section-title">👕 Clothing</span>
-            <a href="#clothing" class="view-all">View All →</a>
-        </div>
-        <div class="deals-scroll-wrap">
-            <button class="scroll-btn scroll-left" id="clothingScrollLeft" aria-label="Scroll left">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <div class="deals-track" id="clothingTrack"></div>
-            <button class="scroll-btn scroll-right" id="clothingScrollRight" aria-label="Scroll right">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-        </div>
-    </div>
-</section>
+{% endfor %}
 
 <!-- Trust section -->
 <section class="trust-section">
     <div class="container">
-        <div class="courier-card">
-            <div class="courier-img">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="10" rx="1"/><path d="M15 11h4l3 3v4h-7"/><circle cx="7" cy="19" r="1.8"/><circle cx="18.5" cy="19" r="1.8"/></svg>
-            </div>
-            <div class="courier-text">
-                <h3>Why Thousands Trust {{ brand_info.brand_name|default:'GenialTouch' }}?</h3>
-                <p>We bring you authentic Japanese products with a commitment to quality, halal standards, and exceptional service.</p>
-                <a href="#" class="learn-btn">Learn More</a>
-            </div>
-        </div>
-
         <div class="trust-grid">
             {% for badge in trust_badges|slice:":4" %}
             <div class="trust-item t{{ forloop.counter }}">
-                <div class="ticon">{% if badge.icon_class %}<i class="fa {{ badge.icon_class }}"></i>{% else %}☪{% endif %}</div>
+                <div class="ticon">{% if badge.icon_class %}<i class="fa {{ badge.icon_class }}"></i>{% else %}✓{% endif %}</div>
                 <h4>{{ badge.title }}</h4>
                 <p>{{ badge.description|default:'Trusted Service'|truncatechars:30 }}</p>
             </div>
+            {% empty %}
+            <div class="trust-item t1"><div class="ticon">☪</div><h4>Halal Certified</h4><p>100% Halal Guaranteed</p></div>
+            <div class="trust-item t2"><div class="ticon">🛡️</div><h4>Authentic Products</h4><p>Direct from Trusted Suppliers</p></div>
+            <div class="trust-item t3"><div class="ticon">🏆</div><h4>Premium Quality</h4><p>Carefully Selected Top Quality</p></div>
+            <div class="trust-item t4"><div class="ticon">👥</div><h4>Customer First</h4><p>Your Satisfaction is Our Priority</p></div>
             {% endfor %}
-            {% if not trust_badges %}
-            <div class="trust-item t1">
-                <div class="ticon">☪</div>
-                <h4>Halal Certified</h4>
-                <p>100% Halal Guaranteed</p>
-            </div>
-            <div class="trust-item t2">
-                <div class="ticon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/></svg></div>
-                <h4>Authentic Products</h4>
-                <p>Direct from Trusted Suppliers</p>
-            </div>
-            <div class="trust-item t3">
-                <div class="ticon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><polyline points="9 13 6 22 12 18 18 22 15 13"/></svg></div>
-                <h4>Premium Quality</h4>
-                <p>Carefully Selected Top Quality</p>
-            </div>
-            <div class="trust-item t4">
-                <div class="ticon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="9" r="3.2"/><circle cx="17" cy="10" r="2.6"/><path d="M2 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M13.5 14.7c2.6.2 4.5 2.2 4.5 5.3"/></svg></div>
-                <h4>Customer First</h4>
-                <p>Your Satisfaction is Our Priority</p>
-            </div>
-            {% endif %}
         </div>
     </div>
 </section>
 
+<style>
+/* Deal Card styles (scoped to home) */
+.deal-card {
+    min-width: 200px;
+    max-width: 220px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    border: 1px solid #eef0f5;
+}
+.deal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.deal-media {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background: #f8f9fa;
+    overflow: hidden;
+}
+.deal-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.deal-card:hover .deal-media img {
+    transform: scale(1.05);
+}
+.deal-discount {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--red, #d91f2c);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+}
+.deal-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.deal-body {
+    padding: 12px;
+}
+.deal-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy, #0f2a5c);
+    text-decoration: none;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    height: 38px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.deal-name:hover {
+    color: var(--red, #d91f2c);
+}
+.deal-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.deal-price .now {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--red, #d91f2c);
+}
+.deal-price .was {
+    font-size: 13px;
+    color: #999;
+    text-decoration: line-through;
+}
+.add-cart-btn {
+    width: 100%;
+    padding: 8px;
+    background: var(--navy, #0f2a5c);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.add-cart-btn:hover {
+    background: var(--navy-dark, #0a1d40);
+}
+.add-cart-btn.added {
+    background: var(--green, #1e7a3d);
+}
+.add-cart-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
-// ---------- Product icon library ----------
-const icon = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="#0f2a5c" stroke-width="1.5">${paths}</svg>`;
-
-const deals = [
-    { name:'Halal Food Combo Pack', price:2980, was:3760, discount:20, color:'#1e7a3d',
-        svg:`<circle cx="12" cy="12" r="9" fill="#c8e6cd" stroke="none"/><rect x="8" y="7" width="4" height="11" rx="1" fill="#f5b400" stroke="none"/><circle cx="15" cy="14" r="3.5" fill="#8b5a2b" stroke="none"/>` },
-    { name:'iPhone 15 (128GB)', price:109800, was:129800, discount:15, color:'#0f2a5c',
-        svg:`<rect x="7" y="2" width="10" height="20" rx="2" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><circle cx="12" cy="18.5" r="1" fill="#0f2a5c" stroke="none"/>` },
-    { name:'Laptop 15.6" i5 16GB RAM', price:69800, was:84800, discount:18, color:'#0f2a5c',
-        svg:`<rect x="3" y="5" width="18" height="12" rx="1" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><rect x="6" y="19" width="12" height="2" rx="1" fill="#0f2a5c" stroke="none"/>` },
-    { name:'Wireless Headphones', price:4980, was:6400, discount:22, color:'#0f2a5c',
-        svg:`<path d="M4 13v-1a8 8 0 0 1 16 0v1" stroke="#0f2a5c"/><rect x="2.5" y="12" width="4" height="7" rx="2" fill="#0f2a5c" stroke="none"/><rect x="17.5" y="12" width="4" height="7" rx="2" fill="#0f2a5c" stroke="none"/>` },
-    { name:"Men's Hoodie", price:2780, was:3980, discount:25, color:'#7a3fc4',
-        svg:`<path d="M8 5 4 8l2 3 2-1.5V19h8V9.5L18 11l2-3-4-3-2 1.5h-4Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/>` },
-    { name:'Smart Watch Series 9', price:5980, was:7980, discount:30, color:'#0f2a5c',
-        svg:`<rect x="7" y="6" width="10" height="12" rx="3" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><rect x="9" y="2" width="6" height="4" rx="1" fill="#0f2a5c" stroke="none"/><rect x="9" y="18" width="6" height="4" rx="1" fill="#0f2a5c" stroke="none"/>` },
-];
-
-const categoryProducts = {
-    halal: [
-        { name:'Basmati Rice 5kg', price:2450, was:2900, discount:16,
-            svg:`<rect x="7" y="4" width="10" height="16" rx="2" fill="#f5e6c8" stroke="#8b5a2b" stroke-width="1"/><path d="M9 4c0-1 1-2 3-2s3 1 3 2" stroke="#8b5a2b"/>` },
-        { name:'Halal Chicken Nuggets', price:890, was:1100, discount:19,
-            svg:`<circle cx="8" cy="10" r="3" fill="#f5b400" stroke="none"/><circle cx="14" cy="8" r="3" fill="#f5b400" stroke="none"/><circle cx="15" cy="14" r="3" fill="#f5b400" stroke="none"/><circle cx="9" cy="16" r="3" fill="#f5b400" stroke="none"/>` },
-        { name:'Organic Honey Jar 500g', price:1680, was:1980, discount:15,
-            svg:`<path d="M8 4h8v3l1 2v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9l1-2Z" fill="#f5b400" stroke="#8b5a2b" stroke-width="1"/><line x1="7" y1="12" x2="17" y2="12" stroke="#8b5a2b"/>` },
-        { name:'Premium Dates Pack 1kg', price:1250, was:1500, discount:17,
-            svg:`<ellipse cx="12" cy="12" rx="7" ry="9" fill="#8b5a2b" stroke="none"/><ellipse cx="12" cy="12" rx="3" ry="6" fill="#a9743f" stroke="none"/>` },
-        { name:'Halal Beef Sausages', price:1420, was:1750, discount:19,
-            svg:`<rect x="4" y="10" width="16" height="5" rx="2.5" fill="#c9584a" stroke="#8b3a2e" stroke-width="1"/><rect x="6" y="10" width="2" height="5" fill="#8b3a2e" stroke="none"/><rect x="11" y="10" width="2" height="5" fill="#8b3a2e" stroke="none"/><rect x="16" y="10" width="2" height="5" fill="#8b3a2e" stroke="none"/>` },
-        { name:'Coconut Milk Pack (6)', price:980, was:1180, discount:17,
-            svg:`<rect x="6" y="5" width="12" height="15" rx="2" fill="#e8f5ea" stroke="#1e7a3d" stroke-width="1"/><circle cx="12" cy="11" r="3" fill="#1e7a3d" stroke="none"/>` },
-    ],
-    electronics: [
-        { name:'Tablet 10.9" 128GB', price:64800, was:74800, discount:13,
-            svg:`<rect x="6" y="2" width="12" height="20" rx="2" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><circle cx="12" cy="19" r="1" fill="#0f2a5c" stroke="none"/>` },
-        { name:'Bluetooth Speaker', price:5480, was:6980, discount:21,
-            svg:`<rect x="5" y="4" width="14" height="16" rx="3" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><circle cx="12" cy="12" r="4" fill="none" stroke="#0f2a5c" stroke-width="1.2"/><circle cx="12" cy="7" r="0.8" fill="#0f2a5c" stroke="none"/>` },
-        { name:'Power Bank 20000mAh', price:3480, was:4200, discount:17,
-            svg:`<rect x="7" y="3" width="10" height="18" rx="2" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><polygon points="13,7 9,13 12,13 11,17 15,11 12,11" fill="#f5b400" stroke="none"/>` },
-        { name:'Wireless Gaming Mouse', price:2980, was:3780, discount:21,
-            svg:`<path d="M9 4h6a4 4 0 0 1 4 4v8a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5V8a4 4 0 0 1 4-4Z" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><line x1="12" y1="4" x2="12" y2="11" stroke="#0f2a5c"/>` },
-        { name:'USB-C Hub 7-in-1', price:2180, was:2680, discount:19,
-            svg:`<rect x="3" y="9" width="18" height="6" rx="2" fill="#dbe4f5" stroke="#0f2a5c" stroke-width="1.2"/><circle cx="7" cy="12" r="1" fill="#0f2a5c" stroke="none"/><circle cx="12" cy="12" r="1" fill="#0f2a5c" stroke="none"/><circle cx="17" cy="12" r="1" fill="#0f2a5c" stroke="none"/>` },
-        { name:'Smart LED Bulb (WiFi)', price:1480, was:1880, discount:21,
-            svg:`<circle cx="12" cy="10" r="6" fill="#fff3d6" stroke="#0f2a5c" stroke-width="1.2"/><rect x="10" y="16" width="4" height="4" rx="1" fill="#0f2a5c" stroke="none"/>` },
-    ],
-    clothing: [
-        { name:"Men's Winter Jacket", price:6480, was:8200, discount:21,
-            svg:`<path d="M8 5 4 8l2 3 2-1.5V19h8V9.5L18 11l2-3-4-3-2 1.5h-4Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/>` },
-        { name:"Women's Abaya", price:4980, was:6200, discount:20,
-            svg:`<path d="M9 3h6l1 5-2 13H10L8 8Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/>` },
-        { name:"Kids T-Shirt Pack (3)", price:1980, was:2600, discount:24,
-            svg:`<path d="M8 4 5 6l1 3 2-1v11h8V8l2 1 1-3-3-2-2 1.2h-4Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/>` },
-        { name:'Winter Scarf', price:1280, was:1650, discount:22,
-            svg:`<path d="M4 8c4 2 12 2 16 0" fill="none" stroke="#7a3fc4" stroke-width="3" stroke-linecap="round"/><path d="M9 8v11" stroke="#7a3fc4" stroke-width="3" stroke-linecap="round"/>` },
-        { name:'Running Shoes', price:5280, was:6600, discount:20,
-            svg:`<path d="M3 16c0-2 2-3 4-3l3-3 6 2c2 .5 5 1 5 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/>` },
-        { name:'Casual Cap', price:980, was:1280, discount:23,
-            svg:`<path d="M4 14a8 8 0 0 1 16 0Z" fill="#d9c3f0" stroke="#7a3fc4" stroke-width="1"/><rect x="3" y="14" width="8" height="2" rx="1" fill="#7a3fc4" stroke="none"/>` },
-    ],
-};
-
-const fmt = (n) => '¥' + n.toLocaleString('en-US');
-
-// ---------- Render product tracks ----------
-function renderProductTrack(trackEl, items){
-    trackEl.innerHTML = '';
-    items.forEach((d, i) => {
-        const card = document.createElement('div');
-        card.className = 'deal-card';
-        card.innerHTML = `
-            <div class="deal-media">
-                <span class="deal-discount">-${d.discount}%</span>
-                <button class="deal-fav" aria-label="Add to wishlist" data-idx="${i}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
-                </button>
-                ${icon(d.svg)}
-            </div>
-            <div class="deal-body">
-                <div class="deal-name">${d.name}</div>
-                <div class="deal-price"><span class="now">${fmt(d.price)}</span><span class="was">${fmt(d.was)}</span></div>
-                <button class="add-cart-btn" data-idx="${i}">Add to Cart</button>
-            </div>`;
-        trackEl.appendChild(card);
-    });
-}
-
-// ---------- Cart / wishlist counters ----------
-let cartCount = 0, wishCount = 0;
-const cartEl = document.getElementById('cartCount');
-const wishEl = document.getElementById('wishCount');
-const cartBadge = document.getElementById('cartBadge');
-const wishBadge = document.getElementById('wishBadge');
-
-// ---------- Setup track with auto-scroll ----------
-function setupTrack(trackEl, leftBtnId, rightBtnId, items) {
-    // Render products
-    renderProductTrack(trackEl, items);
+(function() {
+    'use strict';
     
-    // Add event listeners for cart/wishlist
-    trackEl.addEventListener('click', (e) => {
-        const addBtn = e.target.closest('.add-cart-btn');
-        if (addBtn) {
-            cartCount++;
-            cartEl.textContent = cartCount + (cartCount === 1 ? ' item' : ' items');
-            cartBadge.textContent = cartCount;
-            addBtn.textContent = 'Added ✓';
-            addBtn.classList.add('added');
-            showToast(items[addBtn.dataset.idx].name + ' added to cart');
-            setTimeout(() => { addBtn.textContent = 'Add to Cart'; addBtn.classList.remove('added'); }, 1400);
-            return;
+    // ---------- Track Auto-Scroll ----------
+    function setupTrack(trackId, leftBtnId, rightBtnId) {
+        const trackEl = document.getElementById(trackId);
+        const leftBtn = document.getElementById(leftBtnId);
+        const rightBtn = document.getElementById(rightBtnId);
+        
+        if (!trackEl || !leftBtn || !rightBtn) return;
+        
+        let timer = null;
+        
+        function step(){
+            const maxScroll = trackEl.scrollWidth - trackEl.clientWidth;
+            if (maxScroll <= 0) return;
+            if (trackEl.scrollLeft >= maxScroll - 4) {
+                trackEl.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                trackEl.scrollBy({ left: 220, behavior: 'smooth' });
+            }
         }
-        const favBtn = e.target.closest('.deal-fav');
-        if (favBtn) {
-            wishCount++;
-            wishEl.textContent = wishCount + (wishCount === 1 ? ' item' : ' items');
-            wishBadge.textContent = wishCount;
-            favBtn.querySelector('svg').setAttribute('fill', '#d91f2c');
-            favBtn.querySelector('svg').style.color = '#d91f2c';
-            showToast(items[favBtn.dataset.idx].name + ' added to wishlist');
-        }
-    });
-
-    // Setup scroll buttons and auto-scroll
-    const leftBtn = document.getElementById(leftBtnId);
-    const rightBtn = document.getElementById(rightBtnId);
-    let timer = null;
-
-    function step(){
-        const maxScroll = trackEl.scrollWidth - trackEl.clientWidth;
-        if (trackEl.scrollLeft >= maxScroll - 4) {
-            trackEl.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-            trackEl.scrollBy({ left: 210, behavior: 'smooth' });
-        }
+        function start(){ stop(); timer = setInterval(step, 4500); }
+        function stop(){ if (timer) clearInterval(timer); }
+        
+        leftBtn.addEventListener('click', () => { trackEl.scrollBy({ left: -440, behavior: 'smooth' }); stop(); start(); });
+        rightBtn.addEventListener('click', () => { trackEl.scrollBy({ left: 440, behavior: 'smooth' }); stop(); start(); });
+        ['mouseenter', 'touchstart', 'wheel'].forEach(evt => trackEl.addEventListener(evt, stop, { passive: true }));
+        ['mouseleave', 'touchend'].forEach(evt => trackEl.addEventListener(evt, start, { passive: true }));
+        
+        start();
     }
-    function start(){ stop(); timer = setInterval(step, 3000); }
-    function stop(){ if (timer) clearInterval(timer); }
-
-    leftBtn.addEventListener('click', () => { trackEl.scrollBy({ left: -420, behavior: 'smooth' }); stop(); start(); });
-    rightBtn.addEventListener('click', () => { trackEl.scrollBy({ left: 420, behavior: 'smooth' }); stop(); start(); });
-    ['mouseenter', 'touchstart', 'wheel'].forEach(evt => trackEl.addEventListener(evt, stop, { passive: true }));
-    ['mouseleave', 'touchend'].forEach(evt => trackEl.addEventListener(evt, start, { passive: true }));
-
-    start();
-}
-
-// Setup all tracks
-setupTrack(document.getElementById('dealsTrack'), 'dealsScrollLeft', 'dealsScrollRight', deals);
-setupTrack(document.getElementById('halalTrack'), 'halalScrollLeft', 'halalScrollRight', categoryProducts.halal);
-setupTrack(document.getElementById('electronicsTrack'), 'electronicsScrollLeft', 'electronicsScrollRight', categoryProducts.electronics);
-setupTrack(document.getElementById('clothingTrack'), 'clothingScrollLeft', 'clothingScrollRight', categoryProducts.clothing);
+    
+    {% if deals_products %}
+    setupTrack('dealsTrack', 'dealsScrollLeft', 'dealsScrollRight');
+    {% endif %}
+    {% for cat_data in category_products_data %}
+    setupTrack('{{ cat_data.category.slug }}Track', '{{ cat_data.category.slug }}ScrollLeft', '{{ cat_data.category.slug }}ScrollRight');
+    {% endfor %}
+    
+    // ---------- Add to Cart ----------
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.add-cart-btn');
+        if (!btn) return;
+        
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+        
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Adding...';
+        
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'quantity=1'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.textContent = 'Added ✓';
+                btn.classList.add('added');
+                
+                // ✅ Update cart UI globally
+                if (window.updateCartUI) {
+                    window.updateCartUI(data.cart_item_count, data.cart_items_html);
+                }
+                
+                // ✅ Auto-open cart dropdown
+                if (window.openCartDropdown) {
+                    window.openCartDropdown();
+                }
+                
+                if (window.showToast) {
+                    window.showToast((data.product_name || 'Product') + ' added to cart 🛒');
+                }
+            } else {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                if (window.showToast) window.showToast(data.message || 'Failed to add');
+            }
+        })
+        .catch(err => {
+            console.error('Add to cart error:', err);
+            btn.textContent = originalText;
+            btn.disabled = false;
+            if (window.showToast) window.showToast('Something went wrong');
+        })
+        .finally(() => {
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('added');
+                btn.disabled = false;
+            }, 1600);
+        });
+    });
+})();
 </script>
 {% endblock %}

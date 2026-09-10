@@ -16,19 +16,68 @@ from PIL import Image
 from io import BytesIO
 import os
 from django.core.files.base import ContentFile
+from core.utils import get_theme_template
+
+
+# def register(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+        
+#         if User.objects.filter(email=email).exists():
+#             messages.error(request, 'Email already exists')
+#             return redirect('register')
+        
+#         user = User.objects.create_user(
+#             email=email,
+#             password=password,
+#             first_name=first_name,
+#             last_name=last_name,
+#             username=email
+#         )
+        
+#         # Create customer profile
+#         CustomerProfile.objects.create(user=user)
+        
+#         # Log the user in
+#         login(request, user)
+#         messages.success(request, 'Registration successful')
+#         return redirect('home')
+    
+#     return render(request, get_theme_template('accounts/register.html'))
 
 
 def register(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')  # ✅ New
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         
+        # ✅ Validate required fields
+        if not email or not password or not first_name or not last_name:
+            messages.error(request, 'All fields are required')
+            return redirect('register')
+        
+        # ✅ Validate password match
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match')
+            return redirect('register')
+        
+        # ✅ Validate password length
+        if len(password) < 8:
+            messages.error(request, 'Password must be at least 8 characters')
+            return redirect('register')
+        
+        # Check if email exists
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
             return redirect('register')
         
+        # Create user
         user = User.objects.create_user(
             email=email,
             password=password,
@@ -42,10 +91,12 @@ def register(request):
         
         # Log the user in
         login(request, user)
-        messages.success(request, 'Registration successful')
+        messages.success(request, f'Welcome {first_name}! Your account is ready.')
         return redirect('home')
     
-    return render(request, 'accounts/register.html')
+    return render(request, get_theme_template('accounts/register.html'))
+
+    
 
 def user_login(request):
     if request.method == 'POST':
@@ -62,7 +113,7 @@ def user_login(request):
             messages.error(request, 'Invalid credentials')
             return redirect('login')
     
-    return render(request, 'accounts/login.html')
+    return render(request, get_theme_template('accounts/login.html'))
 
 @login_required
 def user_logout(request):

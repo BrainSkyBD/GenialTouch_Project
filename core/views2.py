@@ -284,7 +284,7 @@ def product_name_search(request):
         'is_name_search': True,  # Flag to indicate this is a name-only search
     }
     
-    return render(request, 'shop/product_list.html', context)
+    return render(request, get_theme_template('shop/product_list.html'), context)
 
 
 

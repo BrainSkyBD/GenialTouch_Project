@@ -1,0 +1,1304 @@
+{% extends 'theme-01-default/base.html' %}
+{% load static %}
+
+{% block title %}Checkout | {{ brand_info.brand_name|default:'GenialTouch' }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   CHECKOUT PAGE STYLES
+   ============================================================ */
+.ck-page{
+    max-width:1400px;
+    margin:0 auto;
+    padding:20px 24px 60px;
+    -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- Progress Steps ---------- */
+.ck-steps{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:26px;
+    padding:16px 20px;
+    background:#fff;
+    border-radius:14px;
+    border:1px solid var(--line);
+    box-shadow:0 2px 12px rgba(15,42,92,0.04);
+    overflow-x:auto;
+    scrollbar-width:none;
+}
+.ck-steps::-webkit-scrollbar{display:none;}
+.ck-step{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    flex-shrink:0;
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+}
+.ck-step-num{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:var(--cream);
+    border:2px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:800;
+    color:var(--muted);
+    transition:all .2s;
+}
+.ck-step.done .ck-step-num{
+    background:var(--green);
+    border-color:var(--green);
+    color:#fff;
+}
+.ck-step.active .ck-step-num{
+    background:var(--red);
+    border-color:var(--red);
+    color:#fff;
+    box-shadow:0 0 0 4px rgba(217,31,44,0.15);
+}
+.ck-step.active{color:var(--navy);}
+.ck-step-line{
+    width:36px;
+    height:2px;
+    background:var(--line);
+    border-radius:2px;
+    flex-shrink:0;
+}
+
+/* ---------- Grid Layout ---------- */
+.ck-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 380px;
+    gap:24px;
+    align-items:start;
+}
+
+/* ---------- Card ---------- */
+.ck-card{
+    background:#fff;
+    border-radius:16px;
+    border:1px solid var(--line);
+    box-shadow:0 2px 16px rgba(15,42,92,0.05);
+    overflow:hidden;
+    margin-bottom:20px;
+}
+.ck-card-head{
+    padding:16px 22px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(135deg,#f8f9fc,var(--cream));
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.ck-card-head svg{
+    width:18px;
+    height:18px;
+    color:var(--red);
+    flex-shrink:0;
+}
+.ck-card-head h3{
+    font-size:15.5px;
+    font-weight:700;
+    color:var(--navy);
+    margin:0;
+}
+.ck-card-head .ck-card-sub{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:500;
+    margin-left:auto;
+}
+
+.ck-card-body{
+    padding:20px 22px;
+}
+
+/* ---------- Form ---------- */
+.ck-form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:14px;
+}
+.ck-form-row.full{grid-template-columns:1fr;}
+.ck-form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.ck-form-group{display:flex;flex-direction:column;gap:6px;}
+.ck-form-group label{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+.ck-form-group label .req{color:var(--red);font-weight:800;}
+.ck-form-group input,
+.ck-form-group select,
+.ck-form-group textarea{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fff;
+    transition:all .15s;
+    outline:none;
+    -webkit-appearance:none;
+    appearance:none;
+}
+.ck-form-group select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.4'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:38px;
+    cursor:pointer;
+}
+.ck-form-group input:focus,
+.ck-form-group select:focus,
+.ck-form-group textarea:focus{
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(15,42,92,0.08);
+}
+.ck-form-group input::placeholder,
+.ck-form-group textarea::placeholder{color:#a9b0bd;}
+.ck-form-group textarea{resize:vertical;min-height:88px;}
+
+.ck-form-group.error input,
+.ck-form-group.error select,
+.ck-form-group.error textarea{
+    border-color:var(--red);
+    background:#fef8f8;
+}
+.ck-form-error{
+    font-size:11.5px;
+    color:var(--red);
+    font-weight:600;
+    display:none;
+    align-items:center;
+    gap:4px;
+}
+.ck-form-group.error .ck-form-error{display:flex;}
+
+/* ---------- Payment Methods ---------- */
+.ck-payments{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+.ck-payment-option{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    background:#fff;
+    cursor:pointer;
+    transition:all .15s;
+    position:relative;
+}
+.ck-payment-option:hover{
+    border-color:var(--navy);
+    background:#fafbfd;
+}
+.ck-payment-option.selected{
+    border-color:var(--red);
+    background:#fef8f8;
+    box-shadow:0 0 0 3px rgba(217,31,44,0.08);
+}
+.ck-payment-option input[type="radio"]{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+}
+.ck-payment-radio{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    flex-shrink:0;
+    position:relative;
+    transition:all .15s;
+}
+.ck-payment-option.selected .ck-payment-radio{
+    border-color:var(--red);
+}
+.ck-payment-option.selected .ck-payment-radio::after{
+    content:"";
+    position:absolute;
+    inset:3px;
+    border-radius:50%;
+    background:var(--red);
+}
+.ck-payment-icon{
+    width:38px;
+    height:38px;
+    border-radius:9px;
+    background:var(--cream);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+}
+.ck-payment-icon img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    padding:4px;
+}
+.ck-payment-icon .fallback{
+    font-size:16px;
+    font-weight:800;
+    color:var(--navy);
+}
+.ck-payment-info{flex:1;min-width:0;}
+.ck-payment-name{
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:2px;
+}
+.ck-payment-desc{
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.4;
+}
+
+/* ---------- Order Summary ---------- */
+.ck-summary{
+    background:#fff;
+    border-radius:16px;
+    border:1px solid var(--line);
+    box-shadow:0 2px 16px rgba(15,42,92,0.05);
+    position:sticky;
+    top:100px;
+    overflow:hidden;
+}
+.ck-summary-head{
+    padding:16px 22px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.ck-summary-head h3{
+    font-size:15px;
+    font-weight:700;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.ck-summary-head h3 svg{width:17px;height:17px;}
+.ck-summary-head .item-count{
+    font-size:11.5px;
+    font-weight:700;
+    background:rgba(255,255,255,0.15);
+    color:#fff;
+    padding:4px 10px;
+    border-radius:20px;
+}
+
+/* Summary items list */
+.ck-summary-items{
+    max-height:280px;
+    overflow-y:auto;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+}
+.ck-summary-items::-webkit-scrollbar{width:5px;}
+.ck-summary-items::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+.ck-summary-item{
+    display:flex;
+    gap:12px;
+    padding:10px 22px;
+    align-items:flex-start;
+}
+.ck-summary-thumb{
+    width:52px;
+    height:52px;
+    border-radius:9px;
+    overflow:hidden;
+    background:#f3f4f7;
+    flex-shrink:0;
+    position:relative;
+}
+.ck-summary-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+.ck-summary-thumb .qty-badge{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    min-width:18px;
+    height:18px;
+    background:var(--red);
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 4px;
+    border:2px solid #fff;
+    line-height:1;
+}
+.ck-summary-item-info{
+    flex:1;
+    min-width:0;
+}
+.ck-summary-item-name{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.35;
+    margin-bottom:2px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.ck-summary-item-attrs{
+    font-size:10.5px;
+    color:var(--muted);
+    margin-bottom:2px;
+    font-weight:500;
+}
+.ck-summary-item-price{
+    font-size:13px;
+    font-weight:800;
+    color:var(--navy);
+}
+
+/* Summary totals */
+.ck-summary-body{
+    padding:16px 22px;
+}
+.ck-summary-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 0;
+    font-size:13.5px;
+}
+.ck-summary-row .label{color:var(--muted);font-weight:500;}
+.ck-summary-row .value{color:var(--ink);font-weight:700;}
+.ck-summary-row.discount .value{color:var(--green);}
+.ck-summary-row.tax .value{color:#b8860b;}
+.ck-summary-row.total{
+    border-top:2px dashed var(--line);
+    margin-top:8px;
+    padding-top:14px;
+    font-size:15px;
+}
+.ck-summary-row.total .label{
+    font-weight:800;
+    color:var(--navy);
+}
+.ck-summary-row.total .value{
+    font-size:22px;
+    font-weight:800;
+    color:var(--red);
+}
+
+/* Free shipping notice */
+.ck-free-ship{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    background:#e7f6ea;
+    border-radius:10px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--green-dark);
+    margin:10px 0;
+}
+.ck-free-ship svg{width:16px;height:16px;flex-shrink:0;}
+
+/* Place Order Button */
+.ck-place-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    padding:16px;
+    background:var(--red);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:800;
+    cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 6px 16px rgba(217,31,44,0.25);
+    margin-top:6px;
+    letter-spacing:0.3px;
+}
+.ck-place-btn:hover:not(:disabled){
+    background:var(--navy);
+    box-shadow:0 8px 22px rgba(15,42,92,0.3);
+    transform:translateY(-2px);
+}
+.ck-place-btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+}
+.ck-place-btn svg{width:18px;height:18px;}
+
+/* Back to cart link */
+.ck-back-cart{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:12px;
+    margin-top:10px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    transition:color .15s;
+}
+.ck-back-cart:hover{color:var(--navy);}
+.ck-back-cart svg{width:14px;height:14px;}
+
+/* Trust list */
+.ck-trust-list{
+    padding:14px 22px;
+    border-top:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    background:var(--cream);
+}
+.ck-trust-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:12.5px;
+    color:var(--ink);
+    font-weight:500;
+}
+.ck-trust-item svg{
+    width:15px;
+    height:15px;
+    color:var(--green);
+    flex-shrink:0;
+}
+
+/* ---------- Mobile sticky place order ---------- */
+.ck-mobile-submit{
+    display:none;
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:#fff;
+    border-top:1px solid var(--line);
+    padding:12px 16px;
+    box-shadow:0 -4px 20px rgba(15,42,92,0.1);
+    z-index:90;
+    align-items:center;
+    gap:12px;
+}
+.ck-mobile-total{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    flex-shrink:0;
+}
+.ck-mobile-total span{
+    font-size:10.5px;
+    color:var(--muted);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+}
+.ck-mobile-total strong{
+    font-size:18px;
+    font-weight:800;
+    color:var(--red);
+}
+.ck-mobile-submit .ck-place-btn{
+    flex:1;
+    padding:13px;
+    font-size:13.5px;
+    margin-top:0;
+}
+
+/* ---------- Order note textarea ---------- */
+.ck-note-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--navy);
+    font-weight:600;
+    cursor:pointer;
+    padding:8px 0;
+    background:none;
+    border:none;
+    font-family:inherit;
+}
+.ck-note-toggle:hover{color:var(--red);}
+.ck-note-toggle svg{width:14px;height:14px;transition:transform .2s;}
+.ck-note-toggle.open svg{transform:rotate(180deg);}
+.ck-note-wrap{display:none;margin-top:10px;}
+.ck-note-wrap.open{display:block;}
+
+/* ---------- Loading Overlay ---------- */
+.ck-loading{
+    position:fixed;
+    inset:0;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(6px);
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:16px;
+}
+.ck-loading.active{display:flex;}
+.ck-spinner{
+    width:48px;
+    height:48px;
+    border:4px solid var(--line);
+    border-top-color:var(--red);
+    border-radius:50%;
+    animation:ckSpin 0.9s linear infinite;
+}
+@keyframes ckSpin{to{transform:rotate(360deg);}}
+.ck-loading-text{
+    font-size:14px;
+    font-weight:600;
+    color:var(--navy);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1100px){
+    .ck-grid{grid-template-columns:1fr 340px;gap:18px;}
+}
+
+@media (max-width:900px){
+    .ck-page{padding:14px 14px 100px;}
+    .ck-grid{grid-template-columns:1fr;gap:16px;}
+    .ck-summary{position:static;}
+    .ck-steps{padding:12px 16px;gap:8px;}
+    .ck-step{font-size:12px;}
+    .ck-step-num{width:24px;height:24px;font-size:11px;}
+    .ck-step-line{width:24px;}
+    .ck-card-head{padding:14px 16px;}
+    .ck-card-head h3{font-size:14.5px;}
+    .ck-card-body{padding:16px;}
+    .ck-mobile-submit{display:flex;}
+    .ck-summary-items{max-height:220px;}
+    .ck-summary-item{padding:10px 16px;}
+    .ck-summary-body{padding:14px 16px;}
+    .ck-trust-list{padding:14px 16px;}
+}
+
+@media (max-width:600px){
+    .ck-page{padding:12px 12px 96px;}
+    .ck-steps{margin-bottom:16px;}
+    .ck-step span:not(.ck-step-num){display:none;}
+    .ck-step.active span,
+    .ck-step.active{display:flex;}
+    .ck-step.active span:not(.ck-step-num){display:inline;}
+    .ck-form-row{grid-template-columns:1fr;gap:12px;}
+    .ck-form-row.three{grid-template-columns:1fr;}
+    .ck-form-group input,
+    .ck-form-group select,
+    .ck-form-group textarea{padding:11px 12px;font-size:13.5px;}
+    .ck-payment-option{padding:12px 14px;}
+    .ck-payment-icon{width:34px;height:34px;}
+    .ck-payment-name{font-size:13px;}
+    .ck-payment-desc{font-size:11px;}
+    .ck-summary-row{font-size:13px;padding:7px 0;}
+    .ck-summary-row.total .value{font-size:19px;}
+    .ck-summary-item-name{font-size:12px;}
+    .ck-summary-thumb{width:46px;height:46px;}
+    .ck-card-head svg{width:16px;height:16px;}
+    .ck-mobile-total strong{font-size:16px;}
+    .ck-mobile-submit .ck-place-btn{padding:12px;font-size:13px;}
+    .ck-place-btn{padding:14px;font-size:14px;}
+}
+
+@media (max-width:400px){
+    .ck-card-body{padding:14px;}
+    .ck-summary-items{max-height:180px;}
+    .ck-summary-item{padding:8px 14px;gap:10px;}
+}
+</style>
+
+<div class="ck-page">
+
+    <!-- ============ PROGRESS STEPS ============ -->
+    <div class="ck-steps">
+        <div class="ck-step done">
+            <span class="ck-step-num">✓</span>
+            <span>Cart</span>
+        </div>
+        <div class="ck-step-line"></div>
+        <div class="ck-step active">
+            <span class="ck-step-num">2</span>
+            <span>Checkout</span>
+        </div>
+        <div class="ck-step-line"></div>
+        <div class="ck-step">
+            <span class="ck-step-num">3</span>
+            <span>Confirmation</span>
+        </div>
+    </div>
+
+    <!-- ============ MAIN GRID ============ -->
+    <form id="ckForm" method="POST" action="{% url 'checkout' %}" novalidate>
+        {% csrf_token %}
+
+        <div class="ck-grid">
+
+            <!-- ============ LEFT: FORM ============ -->
+            <div class="ck-left">
+
+                <!-- ===== Contact Information ===== -->
+                <div class="ck-card">
+                    <div class="ck-card-head">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+                        </svg>
+                        <h3>Contact Information</h3>
+                    </div>
+                    <div class="ck-card-body">
+                        <div class="ck-form-row">
+                            <div class="ck-form-group">
+                                <label>First Name <span class="req">*</span></label>
+                                <input type="text" name="first_name" id="first_name"
+                                       value="{{ initial_data.first_name|default:'' }}"
+                                       placeholder="John" required autocomplete="given-name">
+                                <span class="ck-form-error">⚠ First name is required</span>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>Last Name <span class="req">*</span></label>
+                                <input type="text" name="last_name" id="last_name"
+                                       value="{{ initial_data.last_name|default:'' }}"
+                                       placeholder="Doe" required autocomplete="family-name">
+                                <span class="ck-form-error">⚠ Last name is required</span>
+                            </div>
+                        </div>
+
+                        <div class="ck-form-row">
+                            <div class="ck-form-group">
+                                <label>Phone Number <span class="req">*</span></label>
+                                <input type="tel" name="phone_number" id="phone_number"
+                                       value="{{ initial_data.phone_number|default:'' }}"
+                                       placeholder="+880 1XXX XXXXXX" required autocomplete="tel">
+                                <span class="ck-form-error">⚠ Valid phone number is required</span>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>Email Address</label>
+                                <input type="email" name="email" id="email"
+                                       value="{{ initial_data.email|default:'' }}"
+                                       placeholder="you@example.com" autocomplete="email">
+                                <span class="ck-form-error">⚠ Invalid email</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Shipping Address ===== -->
+                <div class="ck-card">
+                    <div class="ck-card-head">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <h3>Shipping Address</h3>
+                    </div>
+                    <div class="ck-card-body">
+                        <div class="ck-form-row">
+                            <div class="ck-form-group">
+                                <label>Country <span class="req">*</span></label>
+                                <select name="country" id="countrySelect" required>
+                                    <option value="">Select Country</option>
+                                    {% for c in countries %}
+                                        <option value="{{ c.id }}" {% if c.name == 'Bangladesh' %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="ck-form-error">⚠ Country is required</span>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>District <span class="req">*</span></label>
+                                <select name="district" id="districtSelect" required>
+                                    <option value="">Select District</option>
+                                </select>
+                                <span class="ck-form-error">⚠ District is required</span>
+                            </div>
+                        </div>
+
+                        <div class="ck-form-row">
+                            <div class="ck-form-group">
+                                <label>Thana / Area</label>
+                                <select name="thana" id="thanaSelect">
+                                    <option value="">Select Thana</option>
+                                </select>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>Postal Code</label>
+                                <input type="text" name="postal_code" id="postal_code"
+                                       value="{{ initial_data.postal_code|default:'' }}"
+                                       placeholder="1207" autocomplete="postal-code">
+                            </div>
+                        </div>
+
+                        <div class="ck-form-row full">
+                            <div class="ck-form-group">
+                                <label>Full Address <span class="req">*</span></label>
+                                <textarea name="full_address" id="full_address" required
+                                          placeholder="House / Road / Landmark" autocomplete="street-address">{{ initial_data.full_address|default:'' }}</textarea>
+                                <span class="ck-form-error">⚠ Full address is required</span>
+                            </div>
+                        </div>
+
+                        <div class="ck-form-row three">
+                            <div class="ck-form-group">
+                                <label>Birth Date (optional)</label>
+                                <select name="birth_date">
+                                    <option value="">Day</option>
+                                    {% for d in days_range %}
+                                        <option value="{{ d }}">{{ d }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>Birth Month (optional)</label>
+                                <select name="birth_month">
+                                    <option value="">Month</option>
+                                    <option>January</option><option>February</option><option>March</option>
+                                    <option>April</option><option>May</option><option>June</option>
+                                    <option>July</option><option>August</option><option>September</option>
+                                    <option>October</option><option>November</option><option>December</option>
+                                </select>
+                            </div>
+                            <div class="ck-form-group">
+                                <label>&nbsp;</label>
+                                <button type="button" class="ck-note-toggle" id="noteToggle">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                    Add order note
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="ck-note-wrap" id="noteWrap">
+                            <div class="ck-form-group">
+                                <label>Order Note</label>
+                                <textarea name="order_note" placeholder="Special instructions for your order (optional)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Payment Method ===== -->
+                <div class="ck-card">
+                    <div class="ck-card-head">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="1" y="4" width="22" height="16" rx="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        <h3>Payment Method</h3>
+                        <span class="ck-card-sub">🔒 Secure</span>
+                    </div>
+                    <div class="ck-card-body">
+                        <div class="ck-payments" id="ckPayments">
+                            {% for pm in payment_methods %}
+                            <label class="ck-payment-option {% if forloop.first %}selected{% endif %}" data-payment-id="{{ pm.id }}">
+                                <input type="radio" name="payment_method" value="{{ pm.id }}" {% if forloop.first %}checked{% endif %} required>
+                                <span class="ck-payment-radio"></span>
+                                <span class="ck-payment-icon">
+                                    {% if pm.icon %}
+                                        <img src="{{ pm.icon.url }}" alt="{{ pm.name }}">
+                                    {% else %}
+                                        <span class="fallback">{{ pm.name|first }}</span>
+                                    {% endif %}
+                                </span>
+                                <div class="ck-payment-info">
+                                    <div class="ck-payment-name">{{ pm.name }}</div>
+                                    {% if pm.description %}
+                                        <div class="ck-payment-desc">{{ pm.description }}</div>
+                                    {% endif %}
+                                </div>
+                            </label>
+                            {% empty %}
+                            <div style="padding:20px;text-align:center;color:var(--muted);font-size:13.5px;">
+                                ⚠ No payment methods available. Please contact support.
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ============ RIGHT: ORDER SUMMARY ============ -->
+            <aside class="ck-right">
+                <div class="ck-summary">
+
+                    <!-- Header -->
+                    <div class="ck-summary-head">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+                                <path d="M2 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H5"/>
+                            </svg>
+                            Your Order
+                        </h3>
+                        <span class="item-count">{{ cart_item_count }} item{{ cart_item_count|pluralize }}</span>
+                    </div>
+
+                    <!-- Items list -->
+                    <div class="ck-summary-items">
+                        {% for item in cart_items %}
+                        <div class="ck-summary-item">
+                            <div class="ck-summary-thumb">
+                                {% with item.product.get_main_image as img %}
+                                    {% if img %}
+                                        <img src="{{ img.thumbnail.url }}" alt="{{ item.product.name }}">
+                                    {% else %}
+                                        <img src="/static/img/no-image.jpg" alt="{{ item.product.name }}">
+                                    {% endif %}
+                                {% endwith %}
+                                <span class="qty-badge">{{ item.quantity }}</span>
+                            </div>
+                            <div class="ck-summary-item-info">
+                                <div class="ck-summary-item-name">{{ item.product.name }}</div>
+                                {% if item.attributes %}
+                                <div class="ck-summary-item-attrs">
+                                    {% for k, v in item.attributes.items %}{{ v }}{% if not forloop.last %} · {% endif %}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="ck-summary-item-price">
+                                    {{ currency_symbol|default:'৳' }}{{ item.total }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="ck-summary-body">
+                        <div class="ck-summary-row">
+                            <span class="label">Subtotal</span>
+                            <span class="value">{{ currency_symbol|default:'৳' }}{{ cart_total }}</span>
+                        </div>
+
+                        {% if promo_discount and promo_discount > 0 %}
+                        <div class="ck-summary-row discount">
+                            <span class="label">Promo Discount</span>
+                            <span class="value">−{{ currency_symbol|default:'৳' }}{{ promo_discount }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="ck-summary-row" id="shippingRow">
+                            <span class="label">Shipping</span>
+                            <span class="value" id="shippingValue">Calculated at checkout</span>
+                        </div>
+
+                        <div class="ck-summary-row tax" id="taxRow" style="display:none;">
+                            <span class="label">Tax</span>
+                            <span class="value" id="taxValue">৳0</span>
+                        </div>
+
+                        <div class="ck-free-ship" id="freeShippingNote" style="display:none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                            <span>You qualify for free shipping!</span>
+                        </div>
+
+                        <div class="ck-summary-row total">
+                            <span class="label">Total</span>
+                            <span class="value" id="grandTotal">
+                                {{ currency_symbol|default:'৳' }}{{ display_cart_total|default:cart_total }}
+                            </span>
+                        </div>
+
+                        <button type="submit" class="ck-place-btn" id="ckPlaceBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Place Order
+                        </button>
+
+                        <a href="{% url 'cart_detail' %}" class="ck-back-cart">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                            Back to Cart
+                        </a>
+                    </div>
+
+                    <!-- Trust -->
+                    <div class="ck-trust-list">
+                        <div class="ck-trust-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>
+                            </svg>
+                            100% Secure & Encrypted Checkout
+                        </div>
+                        <div class="ck-trust-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 3 3 12 12 12"/>
+                            </svg>
+                            Easy 7-Day Returns
+                        </div>
+                        <div class="ck-trust-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <rect x="1" y="6" width="15" height="12" rx="1"/><path d="M16 10h4l3 3v5h-7"/>
+                                <circle cx="6" cy="18" r="1.8"/><circle cx="18" cy="18" r="1.8"/>
+                            </svg>
+                            Fast & Reliable Delivery
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </form>
+
+    <!-- ============ MOBILE STICKY SUBMIT ============ -->
+    <div class="ck-mobile-submit" id="mobileSubmit">
+        <div class="ck-mobile-total">
+            <span>Total</span>
+            <strong id="mobileTotal">{{ currency_symbol|default:'৳' }}{{ display_cart_total|default:cart_total }}</strong>
+        </div>
+        <button type="button" class="ck-place-btn" id="mobilePlaceBtn">
+            Place Order →
+        </button>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="ck-loading" id="ckLoading">
+        <div class="ck-spinner"></div>
+        <div class="ck-loading-text">Placing your order...</div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    const currencySymbol = '{{ currency_symbol|default:"৳" }}';
+    const cartTotal = parseFloat('{{ cart_total }}');
+    const promoDiscount = parseFloat('{{ promo_discount|default:0 }}');
+    const subtotal = cartTotal - promoDiscount;
+
+    // ============================================================
+    // PAYMENT SELECTION
+    // ============================================================
+    document.querySelectorAll('.ck-payment-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.ck-payment-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+        });
+    });
+
+    // ============================================================
+    // ORDER NOTE TOGGLE
+    // ============================================================
+    const noteToggle = document.getElementById('noteToggle');
+    const noteWrap = document.getElementById('noteWrap');
+    if (noteToggle && noteWrap) {
+        noteToggle.addEventListener('click', function() {
+            noteWrap.classList.toggle('open');
+            this.classList.toggle('open');
+        });
+    }
+
+    // ============================================================
+    // COUNTRY → DISTRICT → THANA CASCADE
+    // ============================================================
+    const countrySelect = document.getElementById('countrySelect');
+    const districtSelect = document.getElementById('districtSelect');
+    const thanaSelect = document.getElementById('thanaSelect');
+
+    function loadDistricts(countryId) {
+        districtSelect.innerHTML = '<option value="">Loading...</option>';
+        thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+
+        fetch(`/orders/get_districts/?country_id=${countryId}`)
+            .then(res => res.json())
+            .then(data => {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                data.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    opt.dataset.shippingCost = d.shipping_cost;
+                    districtSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                districtSelect.innerHTML = '<option value="">Failed to load</option>';
+            });
+    }
+
+    function loadThanas(districtId) {
+        thanaSelect.innerHTML = '<option value="">Loading...</option>';
+        fetch(`/orders/get_thanas/?district_id=${districtId}`)
+            .then(res => res.json())
+            .then(data => {
+                thanaSelect.innerHTML = '<option value="">Select Thana (optional)</option>';
+                data.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    thanaSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                thanaSelect.innerHTML = '<option value="">Failed to load</option>';
+            });
+    }
+
+    if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+            if (this.value) loadDistricts(this.value);
+            else {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+            }
+        });
+
+        // Auto-load if Bangladesh pre-selected
+        if (countrySelect.value) loadDistricts(countrySelect.value);
+    }
+
+    if (districtSelect) {
+        districtSelect.addEventListener('change', function() {
+            if (this.value) loadThanas(this.value);
+
+            // ✅ Update shipping cost live
+            const selected = this.options[this.selectedIndex];
+            const shipCost = parseFloat(selected.dataset.shippingCost || 0);
+            updateSummary(shipCost);
+        });
+    }
+
+    // ============================================================
+    // UPDATE SUMMARY
+    // ============================================================
+    function updateSummary(shippingCost) {
+        const shippingRow = document.getElementById('shippingRow');
+        const shippingValue = document.getElementById('shippingValue');
+        const taxRow = document.getElementById('taxRow');
+        const taxValue = document.getElementById('taxValue');
+        const grandTotalEl = document.getElementById('grandTotal');
+        const mobileTotal = document.getElementById('mobileTotal');
+        const freeShippingNote = document.getElementById('freeShippingNote');
+
+        // Fetch tax from server
+        if (countrySelect.value && districtSelect.value) {
+            fetch(`/orders/calculate_tax/?country_id=${countrySelect.value}&district_id=${districtSelect.value}&subtotal=${subtotal}&shipping=${shippingCost}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const taxAmount = parseFloat(data.tax_amount || 0);
+                        const grandTotal = parseFloat(data.grand_total || 0);
+                        const shipCost = parseFloat(data.shipping_cost || shippingCost);
+
+                        if (shipCost > 0) {
+                            shippingValue.textContent = currencySymbol + shipCost.toFixed(2);
+                            freeShippingNote.style.display = 'none';
+                        } else {
+                            shippingValue.textContent = 'Free';
+                            shippingValue.style.color = 'var(--green)';
+                            freeShippingNote.style.display = 'flex';
+                        }
+
+                        if (taxAmount > 0) {
+                            taxRow.style.display = 'flex';
+                            taxValue.textContent = currencySymbol + taxAmount.toFixed(2);
+                        } else {
+                            taxRow.style.display = 'none';
+                        }
+
+                        grandTotalEl.textContent = currencySymbol + grandTotal.toFixed(2);
+                        if (mobileTotal) mobileTotal.textContent = currencySymbol + grandTotal.toFixed(2);
+                    }
+                })
+                .catch(err => {
+                    console.error('[Checkout] Tax calc error:', err);
+                    updateTotalsManually(shippingCost);
+                });
+        } else {
+            updateTotalsManually(shippingCost);
+        }
+    }
+
+    function updateTotalsManually(shippingCost) {
+        const grand = subtotal + (shippingCost || 0);
+        const shippingValue = document.getElementById('shippingValue');
+        const grandTotalEl = document.getElementById('grandTotal');
+        const mobileTotal = document.getElementById('mobileTotal');
+
+        if (shippingCost > 0) {
+            shippingValue.textContent = currencySymbol + shippingCost.toFixed(2);
+            shippingValue.style.color = '';
+        } else {
+            shippingValue.textContent = 'Calculated at checkout';
+        }
+
+        grandTotalEl.textContent = currencySymbol + grand.toFixed(2);
+        if (mobileTotal) mobileTotal.textContent = currencySymbol + grand.toFixed(2);
+    }
+
+    // ============================================================
+    // FORM VALIDATION
+    // ============================================================
+    function validateField(field) {
+        const group = field.closest('.ck-form-group');
+        if (!group) return true;
+
+        let valid = true;
+        const val = (field.value || '').trim();
+
+        if (field.hasAttribute('required') && !val) {
+            valid = false;
+        } else if (field.type === 'email' && val) {
+            valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        } else if (field.type === 'tel' && val) {
+            valid = val.length >= 6;
+        }
+
+        group.classList.toggle('error', !valid);
+        return valid;
+    }
+
+    const form = document.getElementById('ckForm');
+    const placeBtn = document.getElementById('ckPlaceBtn');
+    const mobilePlaceBtn = document.getElementById('mobilePlaceBtn');
+    const loadingOverlay = document.getElementById('ckLoading');
+
+    function submitForm() {
+        // Validate all fields
+        const fields = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let allValid = true;
+        let firstInvalid = null;
+
+        fields.forEach(field => {
+            if (!validateField(field)) {
+                allValid = false;
+                if (!firstInvalid) firstInvalid = field;
+            }
+        });
+
+        // Check payment method
+        const selectedPayment = form.querySelector('input[name="payment_method"]:checked');
+        if (!selectedPayment) {
+            if (window.showToast) window.showToast('Please select a payment method');
+            allValid = false;
+        }
+
+        if (!allValid) {
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+            if (window.showToast) window.showToast('Please fill all required fields correctly');
+            return;
+        }
+
+        // Show loading
+        if (loadingOverlay) loadingOverlay.classList.add('active');
+
+        // Submit via AJAX for better UX
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData,
+            credentials: 'same-origin',
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success' && data.redirect_url) {
+                if (window.showToast) window.showToast('Order placed successfully! 🎉');
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 400);
+            } else {
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                if (window.showToast) window.showToast(data.message || 'Failed to place order');
+            }
+        })
+        .catch(err => {
+            console.error('[Checkout] Submit error:', err);
+            // Fallback: submit normally
+            form.submit();
+        });
+    }
+
+    if (placeBtn) placeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        submitForm();
+    });
+
+    if (mobilePlaceBtn) mobilePlaceBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        submitForm();
+    });
+
+    // Live validation on blur
+    form.querySelectorAll('input[required], select[required], textarea[required]').forEach(field => {
+        field.addEventListener('blur', () => validateField(field));
+        field.addEventListener('input', function() {
+            if (this.closest('.ck-form-group')?.classList.contains('error')) {
+                validateField(this);
+            }
+        });
+    });
+
+    // Prevent native submit (we handle it)
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm();
+    });
+
+    console.log('[Checkout] Page initialized');
+})();
+</script>
+{% endblock %}

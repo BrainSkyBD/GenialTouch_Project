@@ -243,8 +243,30 @@ class Product(models.Model):
     def get_price(self):
         return self.discount_price if self.discount_price else self.price
     
+    # def is_in_stock(self):
+    #     return any(variation.stock > 0 for variation in self.variations.all())
+
+    
     def is_in_stock(self):
-        return any(variation.stock > 0 for variation in self.variations.all())
+        """Check if product is in stock"""
+        # If product has variations, check any variation with stock
+        variations = self.variations.filter(is_active=True)
+        if variations.exists():
+            return variations.filter(stock__gt=0).exists()
+        
+        # If no variations, product is considered in stock (simple product)
+        return True
+
+
+    def get_total_stock(self):
+        """Get total stock across all variations"""
+        result = self.variations.aggregate(total_stock=Sum('stock'))['total_stock']
+        
+        # If no variations exist, return a default large number (simple product = in stock)
+        if result is None:
+            return 999  # or any positive number
+        
+        return result
     
     def get_discount_percentage(self):
         if self.discount_price and self.price:
@@ -252,8 +274,8 @@ class Product(models.Model):
             return round(discount)
         return 0
     
-    def get_total_stock(self):
-        return self.variations.aggregate(total_stock=Sum('stock'))['total_stock'] or 0
+    # def get_total_stock(self):
+    #     return self.variations.aggregate(total_stock=Sum('stock'))['total_stock'] or 0
     
     def get_main_image(self):
         """Get the featured image or first image"""
@@ -500,6 +522,41 @@ class ProductVideo(models.Model):
     
     def __str__(self):
         return f"Video for {self.product.name}"
+
+    @property
+    def embed_url(self):
+        """
+        Convert YouTube/Vimeo URL to embeddable URL
+        """
+        if not self.video_url:
+            return None
+        
+        url = self.video_url
+        
+        # YouTube
+        import re
+        yt_match = re.search(r'(?:youtube\.com/(?:watch\?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})', url)
+        if yt_match:
+            return f'https://www.youtube.com/embed/{yt_match.group(1)}?autoplay=1&rel=0'
+        
+        # Vimeo
+        vimeo_match = re.search(r'vimeo\.com/(\d+)', url)
+        if vimeo_match:
+            return f'https://player.vimeo.com/video/{vimeo_match.group(1)}?autoplay=1'
+        
+        return url
+    
+    @property
+    def is_youtube(self):
+        if not self.video_url:
+            return False
+        return 'youtube.com' in self.video_url or 'youtu.be' in self.video_url
+    
+    @property
+    def is_vimeo(self):
+        if not self.video_url:
+            return False
+        return 'vimeo.com' in self.video_url
 
 
 class ProductAttribute(models.Model):
