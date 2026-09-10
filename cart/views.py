@@ -10,7 +10,7 @@ from core.utils import get_active_theme_folder, get_theme_template
 
 def cart_detail(request):
     # The context processor already provides cart data
-    return render(request, 'cart/detail.html')
+    return render(request, get_theme_template('cart/detail.html'))
 
 
 @csrf_exempt

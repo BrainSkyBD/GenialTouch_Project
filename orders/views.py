@@ -87,7 +87,7 @@ from django.utils import timezone
 from core.email_send_views import send_email_function
 from .utils.email_utils import notify_both_new_order
 from django.conf import settings
-
+from core.utils import get_theme_template
 
 def generate_order_number():
     """Generate a unique order number"""
@@ -790,7 +790,7 @@ def checkout(request):
         'promo_discount': promo_discount,
         'currency_symbol': '৳',  # Add your currency symbol
     }
-    return render(request, 'orders/checkout.html', context)
+    return render(request, get_theme_template('orders/checkout.html'), context)
 
 
 

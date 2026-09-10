@@ -983,7 +983,7 @@ def _product_list_base(request, category_slug=None, brand_slug=None):
         'active_filter_count': active_filter_count,
     }
     
-    return render(request, 'shop/product_list.html', context)
+    return render(request, get_theme_template('shop/product_list.html'), context)
 
 
 @csrf_exempt

@@ -29,7 +29,7 @@ from reviews.models import Review
 
 import time
 from datetime import datetime, timedelta
-
+from core.utils import get_theme_template
 from branding_management.models import BrandInfo, TrustBadge
 
 def search_suggestions(request):
@@ -249,7 +249,7 @@ def product_name_search(request):
         'is_name_search': True,
     }
     
-    return render(request, 'shop/product_list.html', context)
+    return render(request, get_theme_template('shop/product_list.html'), context)
 
 
 def get_featured_categories(limit=8):
