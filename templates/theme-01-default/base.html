@@ -14,7 +14,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Dynamic Favicon -->
     {% if brand_info.brand_favicon %}
     <link rel="icon" href="{{ brand_info.brand_favicon.url }}" type="image/x-icon">
     {% else %}
@@ -222,13 +221,18 @@
         .cart-item-price{font-size:12.5px;display:flex;gap:6px;align-items:center;}
         .cart-item-price .qty{color:var(--muted);font-weight:600;}
         .cart-item-price .price{color:var(--red);font-weight:700;font-size:14px;}
+
+        /* ✅ Fixed remove button */
         .cart-item-remove{
-            width:24px;height:24px;border-radius:50%;
+            width:26px;height:26px;min-width:26px;border-radius:50%;
             background:#f3f4f7;color:var(--muted);
             display:flex;align-items:center;justify-content:center;
-            flex-shrink:0;transition:all .15s;
+            flex-shrink:0;transition:all .15s;cursor:pointer;
+            border:none;padding:0;
         }
         .cart-item-remove:hover{background:var(--red);color:#fff;}
+        .cart-item-remove:disabled{opacity:0.5;cursor:not-allowed;}
+        .cart-item-remove svg{width:12px;height:12px;pointer-events:none;}
 
         .cart-summary{
             padding:14px 18px;background:var(--cream);
@@ -393,8 +397,6 @@
         .offer-card.halalcert .eyebrow{color:var(--green-dark);}
         .offer-card.halalcert .big{color:var(--green-dark);font-size:20px;}
         .offer-card.halalcert .btn{background:var(--green);}
-        .offer-icon-row{position:absolute;right:16px;bottom:16px;display:flex;gap:8px;}
-        .offer-icon-row .oi{width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;}
         @media (max-width:900px){ .offer-grid{grid-template-columns:1fr;} }
 
         /* ---------- Deals ---------- */
@@ -487,6 +489,11 @@
     </style>
 </head>
 <body>
+
+<!-- ✅ CSRF Token for AJAX (hidden) -->
+<div style="display:none;">
+    {% csrf_token %}
+</div>
 
 <!-- Top utility bar -->
 <div class="topbar">
@@ -757,7 +764,31 @@
 (function() {
     'use strict';
     
-    // ============ Utilities ============
+    console.log('[Base] Script loaded');
+    
+    // ============ Get CSRF Token ============
+    function getCSRFToken() {
+        // Method 1: From cookie
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        // Method 2: From hidden input (fallback)
+        if (!cookieValue) {
+            const input = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (input) cookieValue = input.value;
+        }
+        return cookieValue;
+    }
+    
+    // Expose globally
     window.getCookie = function(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -773,6 +804,7 @@
         return cookieValue;
     };
     
+    // ============ Toast ============
     window.showToast = function(message) {
         const toastEl = document.getElementById('toast');
         if (!toastEl) return;
@@ -878,7 +910,7 @@
         });
     }
     
-    // ============ Cart Dropdown ============
+    // ============ Cart Dropdown (Hover/Click) ============
     const cartToggle = document.getElementById('cartToggle');
     const cartDropdown = document.getElementById('cartDropdown');
     const cartDropdownWrap = document.getElementById('cartDropdownWrap');
@@ -894,7 +926,7 @@
         
         cartDropdownWrap.addEventListener('mouseleave', function() {
             if (window.innerWidth <= 980) return;
-            hoverTimer = setTimeout(() => cartDropdown.classList.remove('open'), 250);
+            hoverTimer = setTimeout(() => cartDropdown.classList.remove('open'), 300);
         });
         
         document.addEventListener('click', function(e) {
@@ -902,47 +934,109 @@
                 cartDropdown.classList.remove('open');
             }
         });
-        
-        cartDropdown.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
     }
     
-    // ============ Remove from Cart ============
+    // ============ ✅ REMOVE FROM CART (CROSS BUTTON) ============
+    // Using event delegation on document — works even after AJAX replaces HTML
     document.addEventListener('click', function(e) {
         const removeBtn = e.target.closest('.cart-item-remove');
         if (!removeBtn) return;
         
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
-        const cartKey = removeBtn.dataset.cartKey;
-        if (!cartKey) return;
+        const cartKey = removeBtn.getAttribute('data-cart-key');
+        if (!cartKey) {
+            console.warn('[Cart] No cart-key on remove button');
+            return;
+        }
         
+        console.log('[Cart] Removing item:', cartKey);
+        
+        // Disable button while processing
         removeBtn.disabled = true;
+        removeBtn.style.opacity = '0.4';
         
-        fetch(`/cart/remove/${cartKey}/`, {
+        const csrftoken = getCSRFToken();
+        if (!csrftoken) {
+            console.error('[Cart] CSRF token not found!');
+            if (window.showToast) window.showToast('Session error. Please refresh page.');
+            removeBtn.disabled = false;
+            removeBtn.style.opacity = '1';
+            return;
+        }
+        
+        // ✅ Encode cart key for URL safety
+        const encodedKey = encodeURIComponent(cartKey);
+        const url = `/cart/remove/${encodedKey}/`;
+        
+        fetch(url, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': window.getCookie('csrftoken'),
+                'X-CSRFToken': csrftoken,
                 'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
+            body: 'x=1',
+            credentials: 'same-origin',
         })
-        .then(res => res.json())
+        .then(response => {
+            console.log('[Cart] Response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.status === 'success') {
-                window.updateCartUI(data.cart_item_count, data.cart_items_html);
-                window.showToast((data.product_name || 'Item') + ' removed');
+            console.log('[Cart] Response data:', data);
+            
+            if (data.status === 'success' || data.success === true) {
+                // ✅ Update badge counts
+                const badge = document.getElementById('cartBadge');
+                const countText = document.getElementById('cartCount');
+                const dropdownCount = document.getElementById('cartDropdownCount');
+                
+                if (badge) badge.textContent = data.cart_item_count;
+                if (countText) {
+                    countText.textContent = data.cart_item_count + (data.cart_item_count === 1 ? ' item' : ' items');
+                }
+                if (dropdownCount) {
+                    dropdownCount.textContent = data.cart_item_count + ' items';
+                }
+                
+                // ✅ Replace cart items HTML
+                const container = document.getElementById('cartItemsContainer');
+                if (container && data.cart_items_html) {
+                    container.innerHTML = data.cart_items_html;
+                }
+                
+                // ✅ Toast
+                if (window.showToast) {
+                    window.showToast((data.product_name || 'Item') + ' removed from cart');
+                }
+            } else {
+                // Server returned error status
+                removeBtn.disabled = false;
+                removeBtn.style.opacity = '1';
+                if (window.showToast) {
+                    window.showToast(data.message || 'Failed to remove item');
+                }
             }
         })
         .catch(err => {
-            console.error('Remove from cart error:', err);
+            console.error('[Cart] Remove error:', err);
             removeBtn.disabled = false;
+            removeBtn.style.opacity = '1';
+            if (window.showToast) {
+                window.showToast('Failed to remove. Please try again.');
+            }
         });
     });
     
-    // ============ Global Cart UI Update ============
+    // ============ Global Cart UI Update (for home page Add to Cart) ============
     window.updateCartUI = function(newCount, cartHtml) {
         if (newCount !== undefined && newCount !== null) {
             const badge = document.getElementById('cartBadge');
@@ -960,7 +1054,6 @@
         }
     };
     
-    // Alias for backward compatibility
     window.updateCartCount = window.updateCartUI;
     
     // ============ Open Cart Dropdown Programmatically ============
@@ -979,14 +1072,12 @@
     const wishEl = document.getElementById('wishCount');
     const wishBadge = document.getElementById('wishBadge');
     
-    document.addEventListener('DOMContentLoaded', function() {
-        const savedWish = localStorage.getItem('wishCount');
-        if (savedWish) {
-            wishCount = parseInt(savedWish) || 0;
-            if (wishEl) wishEl.textContent = wishCount + (wishCount === 1 ? ' item' : ' items');
-            if (wishBadge) wishBadge.textContent = wishCount;
-        }
-    });
+    const savedWish = localStorage.getItem('wishCount');
+    if (savedWish) {
+        wishCount = parseInt(savedWish) || 0;
+        if (wishEl) wishEl.textContent = wishCount + (wishCount === 1 ? ' item' : ' items');
+        if (wishBadge) wishBadge.textContent = wishCount;
+    }
     
     window.updateWishCount = function() {
         if (wishEl) wishEl.textContent = wishCount + (wishCount === 1 ? ' item' : ' items');
@@ -1004,6 +1095,7 @@
         });
     }
     
+    console.log('[Base] All handlers initialized');
 })();
 </script>
 

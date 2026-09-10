@@ -24,7 +24,7 @@ from orders.models import (
     PaymentMethod, Order, OrderItem,
     Country, District, TaxConfiguration
 )
-
+from core.utils import get_active_theme_folder, get_theme_template
 
 
 # def Catalogue(request, category_slug=None, brand_slug=None):
@@ -1254,7 +1254,7 @@ def load_more_products(request):
 #         except:
 #             pass  # Continue even if caching fails
     
-#     return render(request, 'shop/product_detail.html', context)
+#     return render(request, get_theme_template('shop/product_detail.html'), context)
 
 
 # def get_frequently_bought(request):
@@ -1433,77 +1433,202 @@ def load_more_products(request):
 
 # views.py - product_detail ফাংশন
 
+# def product_detail(request, slug):
+#     """
+#     Optimized product detail view with minimal queries
+#     """
+#     start_time = time.time()
+    
+#     cache_key = f'product_detail_{slug}'
+#     cached_data = cache.get(cache_key)
+    
+#     if cached_data:
+#         context = cached_data
+#     else:
+#         product = get_object_or_404(
+#             Product.objects.select_related('brand')
+#                           .prefetch_related(
+#                               Prefetch(
+#                                   'images',
+#                                   queryset=ProductImage.objects.only(
+#                                       'id', 'image', 'product_id', 'is_featured', 'alt_text', 'display_order'
+#                                   ).order_by('display_order', 'id')
+#                               ),
+#                               Prefetch(
+#                                   'categories',
+#                                   queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
+#                               ),
+#                               Prefetch(
+#                                   'variations',
+#                                   queryset=ProductVariation.objects.filter(
+#                                       is_active=True, stock__gt=0
+#                                   ).prefetch_related(
+#                                       Prefetch(
+#                                           'attributes',
+#                                           queryset=AttributeValue.objects.select_related('attribute').only(
+#                                               'id', 'value', 'attribute__name'
+#                                           )
+#                                       )
+#                                   ).only('id', 'product_id', 'price', 'stock', 'sku')
+#                               ),
+#                               Prefetch(
+#                                   'productattribute_set',
+#                                   queryset=ProductAttribute.objects.select_related(
+#                                       'attribute_value__attribute'
+#                                   ).only(
+#                                       'id', 'product_id', 
+#                                       'attribute_value__value', 
+#                                       'attribute_value__attribute__name'
+#                                   )
+#                               ),
+#                               Prefetch(
+#                                   'reviews',
+#                                   queryset=Review.objects.filter(is_approved=True)
+#                                                 .select_related('user')
+#                                                 .only(
+#                                                     'id', 'product_id', 'user_id', 'rating', 
+#                                                     'title', 'comment', 'created_at',
+#                                                     'user__username', 'user__first_name', 'user__last_name'
+#                                                 ).order_by('-created_at')
+#                               ),
+#                               # 👇 শুধু ProductVideo Prefetch
+#                               Prefetch(
+#                                   'videos',
+#                                   queryset=ProductVideo.objects.filter(
+#                                       is_active=True  # যদি is_active ফিল্ড থাকে
+#                                   ).order_by('display_order', '-created_at')
+#                               )
+#                           ),
+#             slug=slug,
+#             is_active=True
+#         )
+        
+#         # Process variations
+#         variations_dict = {}
+#         for variation in product.variations.all():
+#             for attr in variation.attributes.all():
+#                 attr_name = attr.attribute.name
+#                 if attr_name not in variations_dict:
+#                     variations_dict[attr_name] = set()
+#                 variations_dict[attr_name].add(attr.value)
+        
+#         variations = {
+#             attr_name: sorted(list(values)) 
+#             for attr_name, values in variations_dict.items()
+#         }
+        
+#         # Get payment methods
+#         payment_methods = cache.get('payment_methods')
+#         if not payment_methods:
+#             payment_methods = list(PaymentMethod.objects.filter(is_active=True).only('id', 'name', 'icon', 'description'))
+#             cache.set('payment_methods', payment_methods, 3600)
+        
+#         # 👇 Same brand products
+#         same_brand_products = []
+#         if product.brand:
+#             same_brand_products = Product.objects.filter(
+#                 brand=product.brand,
+#                 is_active=True
+#             ).exclude(id=product.id).select_related('brand')[:4]
+        
+#         # 👇 ভিডিও ডেটা নিন (শুধু ProductVideo থেকে)
+#         main_video = product.videos.filter(is_featured=True).first() or product.videos.first()
+        
+#         # Build context
+#         context = {
+#             'product': product,
+#             'variations': variations,
+#             'payment_methods': payment_methods,
+#             'caution_text': product.caution,
+#             'same_brand_products': same_brand_products,
+#             'main_video': main_video,  # 👈 শুধু ProductVideo থেকে
+#             'has_video': product.videos.exists(),  # 👈 শুধু ProductVideo চেক
+#             'currency_symbol': '৳',
+#         }
+        
+#         cache.set(cache_key, context, 300)
+    
+#     load_time = time.time() - start_time
+#     print(f"Product detail page loaded in {load_time:.2f} seconds")
+    
+#     return render(request, get_theme_template('shop/product_detail.html'), context)
+
+
+
+# products/views.py
+
+from django.core.cache import cache
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Prefetch, Sum
+import time
+
 def product_detail(request, slug):
     """
-    Optimized product detail view with minimal queries
+    Optimized product detail view - minimal DB queries + proper cache
     """
     start_time = time.time()
     
-    cache_key = f'product_detail_{slug}'
-    cached_data = cache.get(cache_key)
+    cache_key = f'product_detail_{slug}_v2'
+    context = cache.get(cache_key)
     
-    if cached_data:
-        context = cached_data
-    else:
+    if context is None:
+        # ✅ Single query with all prefetches
         product = get_object_or_404(
-            Product.objects.select_related('brand')
-                          .prefetch_related(
-                              Prefetch(
-                                  'images',
-                                  queryset=ProductImage.objects.only(
-                                      'id', 'image', 'product_id', 'is_featured', 'alt_text', 'display_order'
-                                  ).order_by('display_order', 'id')
-                              ),
-                              Prefetch(
-                                  'categories',
-                                  queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
-                              ),
-                              Prefetch(
-                                  'variations',
-                                  queryset=ProductVariation.objects.filter(
-                                      is_active=True, stock__gt=0
-                                  ).prefetch_related(
-                                      Prefetch(
-                                          'attributes',
-                                          queryset=AttributeValue.objects.select_related('attribute').only(
-                                              'id', 'value', 'attribute__name'
-                                          )
-                                      )
-                                  ).only('id', 'product_id', 'price', 'stock', 'sku')
-                              ),
-                              Prefetch(
-                                  'productattribute_set',
-                                  queryset=ProductAttribute.objects.select_related(
-                                      'attribute_value__attribute'
-                                  ).only(
-                                      'id', 'product_id', 
-                                      'attribute_value__value', 
-                                      'attribute_value__attribute__name'
-                                  )
-                              ),
-                              Prefetch(
-                                  'reviews',
-                                  queryset=Review.objects.filter(is_approved=True)
-                                                .select_related('user')
-                                                .only(
-                                                    'id', 'product_id', 'user_id', 'rating', 
-                                                    'title', 'comment', 'created_at',
-                                                    'user__username', 'user__first_name', 'user__last_name'
-                                                ).order_by('-created_at')
-                              ),
-                              # 👇 শুধু ProductVideo Prefetch
-                              Prefetch(
-                                  'videos',
-                                  queryset=ProductVideo.objects.filter(
-                                      is_active=True  # যদি is_active ফিল্ড থাকে
-                                  ).order_by('display_order', '-created_at')
-                              )
-                          ),
+            Product.objects
+                .select_related('brand')
+                .prefetch_related(
+                    # Images (ordered)
+                    Prefetch(
+                        'images',
+                        queryset=ProductImage.objects
+                            .only('id', 'image', 'product_id', 'is_featured', 'alt_text', 'display_order')
+                            .order_by('-is_featured', 'display_order', 'id')
+                    ),
+                    # Categories
+                    Prefetch(
+                        'categories',
+                        queryset=Category.objects.only('id', 'name', 'slug', 'parent_id')
+                    ),
+                    # Attributes (specs)
+                    Prefetch(
+                        'productattribute_set',
+                        queryset=ProductAttribute.objects
+                            .select_related('attribute_value__attribute')
+                            .only(
+                                'id', 'product_id',
+                                'attribute_value__value',
+                                'attribute_value__attribute__name'
+                            )
+                    ),
+                    # Variations
+                    Prefetch(
+                        'variations',
+                        queryset=ProductVariation.objects
+                            .filter(is_active=True, stock__gt=0)
+                            .prefetch_related(
+                                Prefetch(
+                                    'attributes',
+                                    queryset=AttributeValue.objects
+                                        .select_related('attribute')
+                                        .only('id', 'value', 'attribute__name')
+                                )
+                            )
+                            .only('id', 'product_id', 'price', 'stock', 'sku')
+                    ),
+                    # Videos
+                    Prefetch(
+                        'videos',
+                        queryset=ProductVideo.objects
+                            .filter(is_active=True)
+                            .only('id', 'product_id', 'video_file', 'video_url', 'thumbnail', 'title', 'is_featured', 'display_order')
+                            .order_by('-is_featured', 'display_order')
+                    ),
+                ),
             slug=slug,
             is_active=True
         )
         
-        # Process variations
+        # Build variations dict
         variations_dict = {}
         for variation in product.variations.all():
             for attr in variation.attributes.all():
@@ -1513,46 +1638,66 @@ def product_detail(request, slug):
                 variations_dict[attr_name].add(attr.value)
         
         variations = {
-            attr_name: sorted(list(values)) 
+            attr_name: sorted(list(values))
             for attr_name, values in variations_dict.items()
         }
         
-        # Get payment methods
-        payment_methods = cache.get('payment_methods')
-        if not payment_methods:
-            payment_methods = list(PaymentMethod.objects.filter(is_active=True).only('id', 'name', 'icon', 'description'))
-            cache.set('payment_methods', payment_methods, 3600)
-        
-        # 👇 Same brand products
+        # Same brand products (optimized)
         same_brand_products = []
-        if product.brand:
-            same_brand_products = Product.objects.filter(
-                brand=product.brand,
-                is_active=True
-            ).exclude(id=product.id).select_related('brand')[:4]
+        if product.brand_id:
+            same_brand_products = list(
+                Product.objects
+                    .filter(brand_id=product.brand_id, is_active=True)
+                    .exclude(id=product.id)
+                    .select_related('brand')
+                    .prefetch_related(
+                        Prefetch(
+                            'images',
+                            queryset=ProductImage.objects
+                                .only('id', 'image', 'product_id', 'is_featured')
+                                .order_by('-is_featured', 'id')
+                        )
+                    )
+                    .only('id', 'name', 'slug', 'price', 'discount_price', 'brand__name', 'brand__slug')[:4]
+            )
         
-        # 👇 ভিডিও ডেটা নিন (শুধু ProductVideo থেকে)
-        main_video = product.videos.filter(is_featured=True).first() or product.videos.first()
+        # Main video
+        main_video = None
+        for v in product.videos.all():
+            if v.is_featured:
+                main_video = v
+                break
+        if not main_video and product.videos.exists():
+            main_video = product.videos.first()
         
-        # Build context
+        # Currency
+        try:
+            from core.models import CurrencySettingsTable
+            active_currency = CurrencySettingsTable.objects.filter(is_active=True).first()
+            currency_symbol = active_currency.currency_symbol if active_currency else '৳'
+        except Exception:
+            currency_symbol = '৳'
+        
+        # ✅ Store only primitives in cache-friendly form
         context = {
             'product': product,
             'variations': variations,
-            'payment_methods': payment_methods,
-            'caution_text': product.caution,
             'same_brand_products': same_brand_products,
-            'main_video': main_video,  # 👈 শুধু ProductVideo থেকে
-            'has_video': product.videos.exists(),  # 👈 শুধু ProductVideo চেক
-            'currency_symbol': '৳',
+            'main_video': main_video,
+            'has_video': product.videos.exists(),
+            'currency_symbol': currency_symbol,
         }
         
-        cache.set(cache_key, context, 300)
+        # ✅ Cache for 10 minutes
+        try:
+            cache.set(cache_key, context, 600)
+        except Exception as e:
+            print(f"Cache set error: {e}")
     
     load_time = time.time() - start_time
-    print(f"Product detail page loaded in {load_time:.2f} seconds")
+    print(f"⚡ Product detail loaded in {load_time:.3f}s — {slug}")
     
-    return render(request, 'shop/product_detail.html', context)
-
+    return render(request, get_theme_template('shop/product_detail.html'), context)
     
 
 def get_frequently_bought(request):

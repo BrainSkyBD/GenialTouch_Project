@@ -93,7 +93,7 @@ def remove_from_cart(request, cart_key):
                 'status': 'success',
                 'cart_item_count': context['cart_item_count'],
                 'cart_total': str(context['cart_total']),
-                'cart_items_html': render_to_string('partials/cart_items.html', context),
+                'cart_items_html': render_to_string(get_theme_template('partials/cart_items.html'), context),
                 'cart_key': cart_key,
                 'product_name': product_name
             })

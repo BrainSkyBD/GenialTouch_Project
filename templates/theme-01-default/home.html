@@ -137,7 +137,11 @@
                             <span class="was">{{ currency_symbol }}{{ product.price }}</span>
                             {% endif %}
                         </div>
-                        <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+                        {% if product.is_in_stock %}
+                            <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+                        {% else %}
+                            <button class="add-cart-btn" disabled style="background:#8a8f9a;cursor:not-allowed;">Out of Stock</button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -194,7 +198,11 @@
                             <span class="was">{{ currency_symbol }}{{ product.price }}</span>
                             {% endif %}
                         </div>
-                        <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+                        {% if product.is_in_stock %}
+    <button class="add-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+{% else %}
+    <button class="add-cart-btn" disabled style="background:#8a8f9a;cursor:not-allowed;">Out of Stock</button>
+{% endif %}
                     </div>
                 </div>
                 {% endfor %}

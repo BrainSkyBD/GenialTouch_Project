@@ -1,0 +1,1649 @@
+{% extends 'theme-01-default/base.html' %}
+{% load static %}
+
+{% block title %}
+{% if category %}{{ category.name }} - Products{% elif query %}Search: {{ query }}{% elif is_featured_filter %}Deals{% elif is_new_arrivals %}New Arrivals{% elif selected_brand_slug %}{{ selected_brand_slug|title }} - Products{% else %}All Products{% endif %} | {{ brand_info.brand_name|default:'GenialTouch' }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   PRODUCT LIST PAGE
+   ============================================================ */
+.plp-page{
+    max-width:1536px;
+    margin:0 auto;
+    padding:20px 24px 60px;
+    -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- Breadcrumb + Header ---------- */
+.plp-header{margin-bottom:18px;}
+.plp-breadcrumb{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+.plp-breadcrumb a{color:var(--muted);transition:color .15s;}
+.plp-breadcrumb a:hover{color:var(--red);}
+.plp-breadcrumb .sep{color:#c4c8d4;}
+.plp-breadcrumb .current{color:var(--navy);font-weight:600;}
+
+.plp-title-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+}
+.plp-title{
+    font-size:24px;
+    font-weight:700;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.plp-title .count{
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    background:var(--cream);
+    padding:5px 12px;
+    border-radius:20px;
+}
+
+/* ---------- Toolbar ---------- */
+.plp-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 16px;
+    background:#fff;
+    border-radius:12px;
+    border:1px solid var(--line);
+    box-shadow:0 2px 12px rgba(15,42,92,0.04);
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+.plp-toolbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.plp-toolbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;}
+
+.plp-filter-toggle{
+    display:none;
+    align-items:center;
+    gap:7px;
+    padding:9px 14px;
+    background:var(--navy);
+    color:#fff;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:700;
+    border:none;
+    cursor:pointer;
+    transition:all .15s;
+    position:relative;
+}
+.plp-filter-toggle:hover{background:var(--navy-dark);}
+.plp-filter-toggle svg{width:15px;height:15px;}
+.plp-filter-toggle .filter-count{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+    background:var(--red);
+    color:#fff;
+    font-size:10.5px;
+    border-radius:9px;
+    margin-left:3px;
+}
+
+.plp-view-toggle{
+    display:flex;
+    gap:3px;
+    background:var(--cream);
+    padding:3px;
+    border-radius:8px;
+    border:1px solid var(--line);
+}
+.plp-view-btn{
+    width:34px;
+    height:32px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    background:transparent;
+    cursor:pointer;
+    transition:all .15s;
+    border:none;
+}
+.plp-view-btn svg{width:16px;height:16px;}
+.plp-view-btn.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(15,42,92,0.1);}
+
+.plp-results{font-size:13px;color:var(--muted);font-weight:500;}
+.plp-results strong{color:var(--navy);font-weight:700;}
+
+.plp-sort{position:relative;}
+.plp-sort-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 14px;
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    transition:all .15s;
+    min-width:180px;
+    justify-content:space-between;
+}
+.plp-sort-btn:hover{border-color:var(--navy);}
+.plp-sort-btn svg{width:13px;height:13px;color:var(--muted);transition:transform .2s;}
+.plp-sort.open .plp-sort-btn svg{transform:rotate(180deg);}
+.plp-sort-menu{
+    position:absolute;
+    top:calc(100% + 6px);
+    right:0;
+    min-width:220px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 12px 32px rgba(15,42,92,0.16);
+    padding:6px;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-6px);
+    transition:all .18s;
+    z-index:50;
+}
+.plp-sort.open .plp-sort-menu{opacity:1;visibility:visible;transform:translateY(0);}
+.plp-sort-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 12px;
+    border-radius:7px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .12s;
+    text-decoration:none;
+}
+.plp-sort-option:hover{background:var(--cream);color:var(--red);}
+.plp-sort-option.active{background:#fef8f8;color:var(--red);font-weight:700;}
+.plp-sort-option .check{margin-left:auto;color:var(--red);display:none;}
+.plp-sort-option.active .check{display:block;}
+
+/* ---------- Layout ---------- */
+.plp-layout{
+    display:grid;
+    grid-template-columns:270px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.plp-sidebar{
+    background:#fff;
+    border-radius:14px;
+    border:1px solid var(--line);
+    box-shadow:0 2px 12px rgba(15,42,92,0.04);
+    overflow:hidden;
+    position:sticky;
+    top:100px;
+    max-height:calc(100vh - 120px);
+    display:flex;
+    flex-direction:column;
+}
+.plp-sidebar-header{
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(135deg,#f8f9fc,var(--cream));
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.plp-sidebar-header h3{
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+.plp-sidebar-header h3 svg{width:16px;height:16px;color:var(--red);}
+.plp-sidebar-clear{
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--red);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:5px;
+    transition:background .15s;
+    text-decoration:none;
+}
+.plp-sidebar-clear:hover{background:#fef8f8;}
+
+.plp-sidebar-body{overflow-y:auto;flex:1;padding:6px 0;}
+.plp-sidebar-body::-webkit-scrollbar{width:6px;}
+.plp-sidebar-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+.plp-filter-group{border-bottom:1px solid var(--line);padding:6px 0;}
+.plp-filter-group:last-child{border-bottom:none;}
+.plp-filter-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 18px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy);
+    cursor:pointer;
+    user-select:none;
+    transition:background .15s;
+}
+.plp-filter-head:hover{background:var(--cream);}
+.plp-filter-head svg{width:14px;height:14px;color:var(--muted);transition:transform .2s;}
+.plp-filter-group.collapsed .plp-filter-head svg{transform:rotate(-90deg);}
+.plp-filter-group.collapsed .plp-filter-content{display:none;}
+.plp-filter-content{padding:4px 18px 14px;}
+
+.plp-cat-list{display:flex;flex-direction:column;gap:2px;}
+.plp-cat-link{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:7px 10px;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink);
+    transition:all .12s;
+    text-decoration:none;
+}
+.plp-cat-link:hover{background:var(--cream);color:var(--red);}
+.plp-cat-link.active{background:#fef8f8;color:var(--red);font-weight:700;}
+.plp-cat-link .cat-ic{
+    width:22px;
+    height:22px;
+    border-radius:6px;
+    background:var(--cream);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:800;
+    color:var(--navy);
+    overflow:hidden;
+    flex-shrink:0;
+}
+.plp-cat-link.active .cat-ic{background:var(--red);color:#fff;}
+.plp-cat-link .cat-ic img{width:100%;height:100%;object-fit:cover;}
+
+.plp-check-list{display:flex;flex-direction:column;gap:2px;}
+.plp-check-item{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:7px 8px;
+    border-radius:7px;
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .12s;
+    user-select:none;
+}
+.plp-check-item:hover{background:var(--cream);}
+.plp-check-item input{position:absolute;opacity:0;pointer-events:none;}
+.plp-checkbox{
+    width:18px;
+    height:18px;
+    border:1.5px solid var(--line);
+    border-radius:5px;
+    background:#fff;
+    flex-shrink:0;
+    position:relative;
+    transition:all .15s;
+}
+.plp-check-item:hover .plp-checkbox{border-color:var(--navy);}
+.plp-check-item input:checked ~ .plp-checkbox{background:var(--red);border-color:var(--red);}
+.plp-check-item input:checked ~ .plp-checkbox::after{
+    content:"";
+    position:absolute;
+    top:2px;
+    left:5.5px;
+    width:5px;
+    height:10px;
+    border:solid #fff;
+    border-width:0 2.2px 2.2px 0;
+    transform:rotate(45deg);
+}
+.plp-check-item .label{flex:1;line-height:1.35;}
+.plp-check-item .count{
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:600;
+    background:var(--cream);
+    padding:2px 7px;
+    border-radius:10px;
+}
+.plp-check-item.disabled{opacity:0.45;cursor:not-allowed;}
+.plp-check-item.disabled .plp-checkbox{background:#f3f4f7;}
+
+.plp-price-inputs{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.plp-price-input{
+    flex:1;
+    padding:9px 11px;
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    outline:none;
+    -moz-appearance:textfield;
+    transition:border-color .15s;
+    min-width:0;
+}
+.plp-price-input::-webkit-outer-spin-button,
+.plp-price-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.plp-price-input:focus{border-color:var(--navy);}
+.plp-price-input::placeholder{color:#a9b0bd;}
+.plp-price-sep{color:var(--muted);font-weight:600;}
+.plp-price-apply{
+    width:100%;
+    padding:9px;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    border-radius:7px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .15s;
+}
+.plp-price-apply:hover{background:var(--red);}
+
+.plp-rating-list{display:flex;flex-direction:column;gap:3px;}
+.plp-rating-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 10px;
+    border-radius:7px;
+    font-size:13px;
+    cursor:pointer;
+    transition:background .12s;
+    color:var(--ink);
+    text-decoration:none;
+}
+.plp-rating-item:hover{background:var(--cream);}
+.plp-rating-item.active{background:#fef8f8;color:var(--red);font-weight:700;}
+.plp-rating-stars{display:flex;gap:1px;}
+.plp-rating-stars svg{width:13px;height:13px;}
+.plp-rating-stars .filled{fill:var(--gold);stroke:var(--gold);}
+.plp-rating-stars .empty{fill:none;stroke:#d0d4dd;}
+.plp-rating-item .up{font-size:12px;color:var(--muted);font-weight:500;}
+
+/* ============================================================
+   PRODUCTS
+   ============================================================ */
+.plp-products{min-width:0;}
+
+.plp-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+}
+
+.plp-card{
+    background:#fff;
+    border-radius:14px;
+    border:1px solid var(--line);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition:all .25s ease;
+    position:relative;
+}
+.plp-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 14px 32px rgba(15,42,92,0.12);
+    border-color:transparent;
+}
+.plp-media{
+    position:relative;
+    aspect-ratio:1;
+    background:#f9fafc;
+    overflow:hidden;
+    display:block;
+}
+.plp-media img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .4s ease;
+    display:block;
+}
+.plp-card:hover .plp-media img{transform:scale(1.06);}
+
+.plp-badges{
+    position:absolute;
+    top:10px;
+    left:10px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    z-index:2;
+}
+.plp-badge{
+    font-size:10.5px;
+    font-weight:800;
+    padding:3px 8px;
+    border-radius:5px;
+    letter-spacing:0.3px;
+    line-height:1;
+}
+.plp-badge.discount{background:var(--red);color:#fff;}
+.plp-badge.new{background:var(--green);color:#fff;}
+.plp-badge.featured{background:var(--gold);color:#fff;}
+
+.plp-quick-actions{
+    position:absolute;
+    top:10px;
+    right:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    opacity:0;
+    transform:translateX(10px);
+    transition:all .25s ease;
+    z-index:2;
+}
+.plp-card:hover .plp-quick-actions{opacity:1;transform:translateX(0);}
+.plp-quick-btn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:#fff;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(15,42,92,0.12);
+    transition:all .15s;
+    border:none;
+    text-decoration:none;
+}
+.plp-quick-btn:hover{background:var(--red);color:#fff;}
+.plp-quick-btn svg{width:15px;height:15px;}
+
+.plp-body{
+    padding:12px 14px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    flex:1;
+}
+
+.plp-brand{
+    font-size:10.5px;
+    font-weight:700;
+    color:var(--navy);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    text-decoration:none;
+    opacity:0.7;
+    transition:opacity .15s;
+}
+.plp-brand:hover{opacity:1;color:var(--red);}
+
+.plp-name{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.4;
+    min-height:38px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-decoration:none;
+    transition:color .15s;
+}
+.plp-name:hover{color:var(--red);}
+
+.plp-rating-mini{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:11.5px;
+    color:var(--muted);
+}
+.plp-rating-mini .stars{display:flex;gap:1px;}
+.plp-rating-mini .stars svg{width:12px;height:12px;}
+.plp-rating-mini .stars .filled{fill:var(--gold);stroke:var(--gold);}
+.plp-rating-mini .stars .empty{fill:none;stroke:#d0d4dd;}
+
+.plp-price-row{
+    display:flex;
+    align-items:baseline;
+    gap:7px;
+    margin-top:auto;
+    flex-wrap:wrap;
+}
+.plp-price-now{
+    color:var(--red);
+    font-size:16px;
+    font-weight:800;
+    line-height:1;
+}
+.plp-price-was{
+    color:var(--muted);
+    font-size:12px;
+    text-decoration:line-through;
+    font-weight:500;
+}
+
+.plp-stock{
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+.plp-stock .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.plp-stock.in{color:var(--green);}
+.plp-stock.low{color:#b8860b;}
+.plp-stock.out{color:var(--red);}
+
+.plp-add-btn{
+    margin-top:4px;
+    background:var(--navy);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    padding:9px;
+    border-radius:8px;
+    text-align:center;
+    transition:all .15s;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+.plp-add-btn svg{width:14px;height:14px;}
+.plp-add-btn:hover:not(:disabled){background:var(--red);}
+.plp-add-btn.added{background:var(--green);}
+.plp-add-btn:disabled{opacity:0.55;cursor:not-allowed;}
+
+/* ---------- LIST VIEW ---------- */
+.plp-grid.list-view{grid-template-columns:1fr;gap:12px;}
+.plp-grid.list-view .plp-card{flex-direction:row;align-items:center;}
+.plp-grid.list-view .plp-media{
+    width:180px;
+    height:180px;
+    aspect-ratio:auto;
+    flex-shrink:0;
+}
+.plp-grid.list-view .plp-body{
+    padding:16px 20px;
+    flex-direction:row;
+    gap:20px;
+    align-items:center;
+}
+.plp-grid.list-view .plp-info-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:0;
+}
+.plp-grid.list-view .plp-name{
+    font-size:15.5px;
+    min-height:auto;
+    -webkit-line-clamp:2;
+}
+.plp-grid.list-view .plp-price-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:3px;
+    margin-top:0;
+}
+.plp-grid.list-view .plp-action-col{
+    flex-shrink:0;
+    min-width:180px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.plp-grid.list-view .plp-quick-actions{
+    flex-direction:row;
+    opacity:1;
+    transform:none;
+    position:static;
+}
+
+/* ---------- Pagination ---------- */
+.plp-pagination{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:32px;
+    flex-wrap:wrap;
+}
+.plp-page-btn{
+    min-width:40px;
+    height:40px;
+    padding:0 12px;
+    border-radius:9px;
+    background:#fff;
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .15s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+}
+.plp-page-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--cream);}
+.plp-page-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.plp-page-btn.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none;}
+.plp-page-btn svg{width:15px;height:15px;}
+
+/* ---------- Empty State ---------- */
+.plp-empty{
+    background:#fff;
+    border-radius:14px;
+    border:1px solid var(--line);
+    padding:70px 24px;
+    text-align:center;
+    box-shadow:0 2px 12px rgba(15,42,92,0.04);
+}
+.plp-empty svg{
+    width:80px;
+    height:80px;
+    margin:0 auto 18px;
+    opacity:.35;
+    color:var(--navy);
+}
+.plp-empty h3{
+    font-size:20px;
+    font-weight:700;
+    color:var(--navy);
+    margin-bottom:8px;
+}
+.plp-empty p{
+    font-size:13.5px;
+    color:var(--muted);
+    margin-bottom:20px;
+    max-width:400px;
+    margin-left:auto;
+    margin-right:auto;
+    line-height:1.6;
+}
+.plp-empty-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--red);
+    color:#fff;
+    padding:11px 24px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    transition:all .2s;
+    text-decoration:none;
+}
+.plp-empty-btn:hover{background:var(--navy);transform:translateY(-2px);}
+
+/* ---------- Active Filters Chips ---------- */
+.plp-active-filters{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+    padding:10px 14px;
+    background:#fff;
+    border-radius:10px;
+    border:1px solid var(--line);
+}
+.plp-active-label{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+}
+.plp-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 10px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+}
+.plp-chip .remove{
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:rgba(0,0,0,0.06);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:11px;
+    color:var(--muted);
+    transition:all .12s;
+    border:none;
+    padding:0;
+    text-decoration:none;
+}
+.plp-chip .remove:hover{background:var(--red);color:#fff;}
+
+/* ---------- Mobile Filter Overlay ---------- */
+.plp-filter-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(15,42,92,0.5);
+    backdrop-filter:blur(3px);
+    z-index:990;
+    opacity:0;
+    transition:opacity .25s;
+}
+.plp-filter-overlay.active{display:block;opacity:1;}
+
+.plp-filter-close{
+    display:none;
+    position:absolute;
+    top:12px;
+    right:14px;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--cream);
+    border:1px solid var(--line);
+    align-items:center;
+    justify-content:center;
+    color:var(--navy);
+    cursor:pointer;
+    z-index:5;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1200px){
+    .plp-grid{grid-template-columns:repeat(3,1fr);}
+    .plp-layout{grid-template-columns:240px 1fr;}
+}
+
+@media (max-width:1024px){
+    .plp-layout{grid-template-columns:220px 1fr;}
+    .plp-grid.list-view .plp-media{width:150px;height:150px;}
+}
+
+@media (max-width:900px){
+    .plp-page{padding:14px 14px 40px;}
+    .plp-layout{grid-template-columns:1fr;}
+    .plp-sidebar{
+        position:fixed;
+        top:0;
+        left:0;
+        bottom:0;
+        width:320px;
+        max-width:88vw;
+        max-height:100vh;
+        border-radius:0;
+        z-index:1000;
+        transform:translateX(-100%);
+        transition:transform .3s ease;
+        box-shadow:4px 0 30px rgba(0,0,0,0.2);
+    }
+    .plp-sidebar.open{transform:translateX(0);}
+    .plp-filter-close{display:flex;}
+    .plp-filter-toggle{display:inline-flex;}
+    .plp-title{font-size:20px;}
+    .plp-toolbar{padding:10px 12px;}
+    .plp-results{display:none;}
+    .plp-sort-btn{min-width:auto;padding:8px 12px;font-size:12.5px;}
+    .plp-grid{grid-template-columns:repeat(2,1fr);gap:14px;}
+    .plp-grid.list-view .plp-card{flex-direction:column;}
+    .plp-grid.list-view .plp-media{width:100%;height:auto;aspect-ratio:1;}
+    .plp-grid.list-view .plp-body{flex-direction:column;padding:12px;gap:7px;align-items:stretch;}
+    .plp-grid.list-view .plp-action-col{min-width:0;}
+    .plp-grid.list-view .plp-price-row{flex-direction:row;}
+    .plp-grid.list-view .plp-quick-actions{position:absolute;flex-direction:column;}
+}
+
+@media (max-width:600px){
+    .plp-page{padding:12px 12px 36px;}
+    .plp-header{margin-bottom:12px;}
+    .plp-title{font-size:18px;}
+    .plp-title .count{font-size:11.5px;padding:4px 10px;}
+    .plp-toolbar{padding:9px 10px;gap:8px;margin-bottom:14px;}
+    .plp-view-toggle{display:none;}
+    .plp-sort-btn{padding:7px 10px;font-size:12px;gap:5px;}
+    .plp-filter-toggle{padding:7px 11px;font-size:12px;}
+    .plp-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .plp-body{padding:10px;gap:6px;}
+    .plp-name{font-size:12.5px;min-height:34px;}
+    .plp-price-now{font-size:14.5px;}
+    .plp-price-was{font-size:11px;}
+    .plp-add-btn{padding:7px;font-size:11.5px;}
+    .plp-add-btn svg{width:12px;height:12px;}
+    .plp-brand{font-size:9.5px;}
+    .plp-rating-mini{font-size:10.5px;}
+    .plp-rating-mini .stars svg{width:10.5px;height:10.5px;}
+    .plp-badges{top:6px;left:6px;gap:4px;}
+    .plp-badge{font-size:9.5px;padding:2px 6px;}
+    .plp-quick-actions{top:6px;right:6px;gap:4px;}
+    .plp-quick-btn{width:30px;height:30px;}
+    .plp-quick-btn svg{width:13px;height:13px;}
+    .plp-pagination{gap:4px;margin-top:20px;}
+    .plp-page-btn{min-width:34px;height:34px;font-size:12.5px;padding:0 9px;}
+}
+
+@media (max-width:380px){
+    .plp-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<div class="plp-page">
+
+    <!-- ============ BREADCRUMB + TITLE ============ -->
+    <div class="plp-header">
+        <nav class="plp-breadcrumb" aria-label="Breadcrumb">
+            <a href="{% url 'home' %}">Home</a>
+            <span class="sep">/</span>
+            {% if category %}
+                {% if category.parent %}
+                    <a href="{% url 'products_by_category' category.parent.slug %}">{{ category.parent.name }}</a>
+                    <span class="sep">/</span>
+                {% endif %}
+                <span class="current">{{ category.name }}</span>
+            {% elif query %}
+                <span class="current">Search: "{{ query }}"</span>
+            {% elif is_featured_filter %}
+                <span class="current">Special Deals</span>
+            {% elif is_new_arrivals %}
+                <span class="current">New Arrivals</span>
+            {% elif selected_brand_slug %}
+                <span class="current">{{ selected_brand_slug|title }}</span>
+            {% else %}
+                <span class="current">All Products</span>
+            {% endif %}
+        </nav>
+
+        <div class="plp-title-bar">
+            <h1 class="plp-title">
+                {% if category %}{{ category.name }}
+                {% elif query %}Search Results
+                {% elif is_featured_filter %}🔥 Special Deals
+                {% elif is_new_arrivals %}🆕 New Arrivals
+                {% elif selected_brand_slug %}{{ selected_brand_slug|title }}
+                {% else %}All Products{% endif %}
+                {% if total_products %}
+                    <span class="count">{{ total_products }} item{{ total_products|pluralize }}</span>
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <!-- ============ TOOLBAR ============ -->
+    <div class="plp-toolbar">
+        <div class="plp-toolbar-left">
+            <button type="button" class="plp-filter-toggle" id="filterToggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <line x1="4" y1="6" x2="20" y2="6"/>
+                    <line x1="7" y1="12" x2="17" y2="12"/>
+                    <line x1="10" y1="18" x2="14" y2="18"/>
+                </svg>
+                Filters
+                {% if active_filter_count %}
+                    <span class="filter-count">{{ active_filter_count }}</span>
+                {% endif %}
+            </button>
+
+            <span class="plp-results">
+                Showing <strong>{{ products.start_index|default:0 }}-{{ products.end_index|default:0 }}</strong>
+                of <strong>{{ total_products }}</strong> products
+            </span>
+        </div>
+
+        <div class="plp-toolbar-right">
+            <div class="plp-view-toggle" id="viewToggle">
+                <button type="button" class="plp-view-btn active" data-view="grid" aria-label="Grid view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                </button>
+                <button type="button" class="plp-view-btn" data-view="list" aria-label="List view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="plp-sort" id="sortDropdown">
+                <button type="button" class="plp-sort-btn" id="sortToggle">
+                    <span id="sortLabel">
+                        {% if sort_option == 'price_asc' %}Price: Low to High
+                        {% elif sort_option == 'price_desc' %}Price: High to Low
+                        {% elif sort_option == 'rating' %}Top Rated
+                        {% elif sort_option == 'newest' %}Newest First
+                        {% elif sort_option == 'popular' %}Most Popular
+                        {% else %}Sort by: Featured{% endif %}
+                    </span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+                <div class="plp-sort-menu">
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=" 
+                       class="plp-sort-option {% if not sort_option %}active{% endif %}">
+                        Featured
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=price_asc" 
+                       class="plp-sort-option {% if sort_option == 'price_asc' %}active{% endif %}">
+                        Price: Low to High
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=price_desc" 
+                       class="plp-sort-option {% if sort_option == 'price_desc' %}active{% endif %}">
+                        Price: High to Low
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=rating" 
+                       class="plp-sort-option {% if sort_option == 'rating' %}active{% endif %}">
+                        Top Rated
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=newest" 
+                       class="plp-sort-option {% if sort_option == 'newest' %}active{% endif %}">
+                        Newest First
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                    <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}sort=popular" 
+                       class="plp-sort-option {% if sort_option == 'popular' %}active{% endif %}">
+                        Most Popular
+                        <svg class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ ACTIVE FILTERS ============ -->
+    {% if active_filter_count > 0 %}
+    <div class="plp-active-filters">
+        <span class="plp-active-label">Active:</span>
+
+        {% if min_price or max_price %}
+        <span class="plp-chip">
+            {% if min_price and max_price %}{{ currency_symbol }}{{ min_price }} - {{ currency_symbol }}{{ max_price }}
+            {% elif min_price %}From {{ currency_symbol }}{{ min_price }}
+            {% elif max_price %}Up to {{ currency_symbol }}{{ max_price }}{% endif %}
+            <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if sort_option %}sort={{ sort_option }}{% endif %}" class="remove">✕</a>
+        </span>
+        {% endif %}
+
+        {% if selected_rating %}
+        <span class="plp-chip">
+            {{ selected_rating }}★ & up
+            <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if sort_option %}sort={{ sort_option }}{% endif %}" class="remove">✕</a>
+        </span>
+        {% endif %}
+
+        <a href="{% url 'product_list' %}" class="plp-chip" style="background:var(--red);color:#fff;border-color:var(--red);text-decoration:none;">
+            Clear All ✕
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ============ LAYOUT ============ -->
+    <div class="plp-layout">
+
+        <!-- ============ SIDEBAR ============ -->
+        <aside class="plp-sidebar" id="filterSidebar">
+            <button type="button" class="plp-filter-close" id="filterClose">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/>
+                </svg>
+            </button>
+
+            <div class="plp-sidebar-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    Filters
+                </h3>
+                {% if active_filter_count %}
+                <a href="{% url 'product_list' %}" class="plp-sidebar-clear">Clear All</a>
+                {% endif %}
+            </div>
+
+            <div class="plp-sidebar-body">
+
+                <!-- Categories -->
+                {% if sidebar_categories %}
+                <div class="plp-filter-group">
+                    <div class="plp-filter-head">
+                        Categories
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="plp-filter-content">
+                        <div class="plp-cat-list">
+                            {% for cat in sidebar_categories %}
+                            <a href="{% url 'products_by_category' cat.slug %}" 
+                               class="plp-cat-link {% if selected_category == cat.slug %}active{% endif %}">
+                                <span class="cat-ic">
+                                    {% if cat.image %}
+                                        <img src="{{ cat.image.url }}" alt="">
+                                    {% else %}
+                                        {{ cat.name|first }}
+                                    {% endif %}
+                                </span>
+                                {{ cat.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Brands -->
+                {% if all_context_brands %}
+                <div class="plp-filter-group">
+                    <div class="plp-filter-head">
+                        Brand
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="plp-filter-content">
+                        <div class="plp-check-list">
+                            {% for brand in all_context_brands %}
+                            <label class="plp-check-item">
+                                <input type="checkbox" class="brand-filter-checkbox" value="{{ brand.slug }}"
+                                       {% if brand.slug in selected_brands %}checked{% endif %}>
+                                <span class="plp-checkbox"></span>
+                                <span class="label">{{ brand.name }}</span>
+                                <span class="count">{{ brand.product_count }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Price Range -->
+                {% if price_range.min_price %}
+                <div class="plp-filter-group">
+                    <div class="plp-filter-head">
+                        Price Range
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="plp-filter-content">
+                        <div class="plp-price-inputs">
+                            <input type="number" class="plp-price-input" id="minPrice" 
+                                   value="{{ min_price|default:'' }}" 
+                                   placeholder="{{ price_range.min_price|floatformat:0 }}" min="0">
+                            <span class="plp-price-sep">–</span>
+                            <input type="number" class="plp-price-input" id="maxPrice" 
+                                   value="{{ max_price|default:'' }}" 
+                                   placeholder="{{ price_range.max_price|floatformat:0 }}" min="0">
+                        </div>
+                        <button type="button" class="plp-price-apply" id="applyPrice">Apply Price</button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Ratings -->
+                <div class="plp-filter-group">
+                    <div class="plp-filter-head">
+                        Customer Rating
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="plp-filter-content">
+                        <div class="plp-rating-list">
+                            {% for r in "4321"|make_list %}
+                            <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}rating={{ r }}{% if sort_option %}&sort={{ sort_option }}{% endif %}"
+                               class="plp-rating-item {% if selected_rating == r %}active{% endif %}">
+                                <div class="plp-rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= r|add:"0" %}
+                                            <svg class="filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        {% else %}
+                                            <svg class="empty" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="up">& up</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attributes -->
+                {% if attribute_groups %}
+                {% for attr_name, values in attribute_groups.items %}
+                <div class="plp-filter-group">
+                    <div class="plp-filter-head">
+                        {{ attr_name }}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="plp-filter-content">
+                        <div class="plp-check-list">
+                            {% for attr in values|slice:":8" %}
+                            <label class="plp-check-item {% if not attr.is_available %}disabled{% endif %}">
+                                <input type="checkbox" class="attr-filter-checkbox" value="{{ attr.id }}"
+                                       {% if attr.id|stringformat:"s" in selected_attributes %}checked{% endif %}
+                                       {% if not attr.is_available %}disabled{% endif %}>
+                                <span class="plp-checkbox"></span>
+                                <span class="label">{{ attr.value }}</span>
+                                <span class="count">{{ attr.product_count }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+            </div>
+        </aside>
+
+        <!-- ============ PRODUCTS ============ -->
+        <div class="plp-products">
+
+            {% if products %}
+            <div class="plp-grid" id="productGrid">
+                {% for product in products %}
+                <div class="plp-card">
+                    <a href="{{ product.get_absolute_url }}" class="plp-media">
+                        <div class="plp-badges">
+                            {% if product.get_discount_percentage > 0 %}
+                                <span class="plp-badge discount">-{{ product.get_discount_percentage }}%</span>
+                            {% endif %}
+                            {% if product.is_featured %}
+                                <span class="plp-badge featured">⭐ Featured</span>
+                            {% endif %}
+                        </div>
+
+                        {% with product.get_main_image as img %}
+                            {% if img %}
+                                <img src="{{ img.thumbnail.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+                            {% else %}
+                                <img src="/static/img/no-image.jpg" alt="{{ product.name }}" loading="lazy">
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+
+                    <div class="plp-quick-actions">
+                        <button type="button" class="plp-quick-btn wishlist-btn" 
+                                data-product-id="{{ product.id }}" title="Wishlist">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+                            </svg>
+                        </button>
+                        <a href="{{ product.get_absolute_url }}" class="plp-quick-btn" title="View details">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="plp-body">
+                        <div class="plp-info-col">
+                            {% if product.brand %}
+                            <a href="{% url 'products_by_brand' product.brand.slug %}" class="plp-brand">{{ product.brand.name }}</a>
+                            {% endif %}
+
+                            <a href="{{ product.get_absolute_url }}" class="plp-name">{{ product.name }}</a>
+
+                            {% if product.avg_rating %}
+                            <div class="plp-rating-mini">
+                                <div class="stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= product.avg_rating %}
+                                            <svg class="filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        {% else %}
+                                            <svg class="empty" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span>{{ product.avg_rating }}</span>
+                                {% if product.review_count %}
+                                <span>({{ product.review_count }})</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="plp-action-col">
+                            <div class="plp-price-row">
+                                <span class="plp-price-now">{{ currency_symbol }}{{ product.get_price }}</span>
+                                {% if product.discount_price %}
+                                <span class="plp-price-was">{{ currency_symbol }}{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+
+                            {% if product.is_in_stock %}
+                                {% with stock=product.get_total_stock %}
+                                    {% if stock > 10 %}
+                                        <div class="plp-stock in"><span class="dot"></span> In Stock</div>
+                                    {% elif stock > 0 %}
+                                        <div class="plp-stock low"><span class="dot"></span> Only {{ stock }} left</div>
+                                    {% else %}
+                                        <div class="plp-stock in"><span class="dot"></span> In Stock</div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <div class="plp-stock out"><span class="dot"></span> Out of Stock</div>
+                            {% endif %}
+
+                            {% if product.is_in_stock %}
+                                <button type="button" class="plp-add-btn add-cart-btn" data-product-id="{{ product.id }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                        <circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+                                        <path d="M2 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H5"/>
+                                    </svg>
+                                    Add to Cart
+                                </button>
+                            {% else %}
+                                <button type="button" class="plp-add-btn" disabled>Out of Stock</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ============ PAGINATION ============ -->
+            {% if products.has_other_pages %}
+            <div class="plp-pagination">
+                {% if products.has_previous %}
+                    <a href="?page={{ products.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}" class="plp-page-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </a>
+                {% else %}
+                    <span class="plp-page-btn disabled">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </span>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if num == products.number %}
+                        <span class="plp-page-btn active">{{ num }}</span>
+                    {% elif num > products.number|add:"-3" and num < products.number|add:"3" %}
+                        <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}" class="plp-page-btn">{{ num }}</a>
+                    {% elif num == 1 or num == products.paginator.num_pages %}
+                        <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}" class="plp-page-btn">{{ num }}</a>
+                    {% elif num == products.number|add:"-3" or num == products.number|add:"3" %}
+                        <span class="plp-page-btn disabled">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if sort_option %}&sort={{ sort_option }}{% endif %}" class="plp-page-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </a>
+                {% else %}
+                    <span class="plp-page-btn disabled">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="plp-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <h3>No products found</h3>
+                <p>We couldn't find any products matching your criteria. Try adjusting your filters or search terms.</p>
+                <a href="{% url 'product_list' %}" class="plp-empty-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 3 3 12 12 12"/>
+                    </svg>
+                    Reset Filters
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="plp-filter-overlay" id="filterOverlay"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    // ============================================================
+    // MOBILE FILTER TOGGLE
+    // ============================================================
+    const filterToggle = document.getElementById('filterToggle');
+    const filterSidebar = document.getElementById('filterSidebar');
+    const filterClose = document.getElementById('filterClose');
+    const filterOverlay = document.getElementById('filterOverlay');
+
+    function openFilters() {
+        if (filterSidebar) filterSidebar.classList.add('open');
+        if (filterOverlay) filterOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeFilters() {
+        if (filterSidebar) filterSidebar.classList.remove('open');
+        if (filterOverlay) filterOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (filterToggle) filterToggle.addEventListener('click', openFilters);
+    if (filterClose) filterClose.addEventListener('click', closeFilters);
+    if (filterOverlay) filterOverlay.addEventListener('click', closeFilters);
+
+    // ============================================================
+    // COLLAPSIBLE FILTER GROUPS
+    // ============================================================
+    document.querySelectorAll('.plp-filter-head').forEach(head => {
+        head.addEventListener('click', function() {
+            this.parentElement.classList.toggle('collapsed');
+        });
+    });
+
+    // ============================================================
+    // SORT DROPDOWN
+    // ============================================================
+    const sortDropdown = document.getElementById('sortDropdown');
+    const sortToggle = document.getElementById('sortToggle');
+
+    if (sortToggle && sortDropdown) {
+        sortToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sortDropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            if (!sortDropdown.contains(e.target)) {
+                sortDropdown.classList.remove('open');
+            }
+        });
+    }
+
+    // ============================================================
+    // VIEW TOGGLE
+    // ============================================================
+    const viewToggle = document.getElementById('viewToggle');
+    const productGrid = document.getElementById('productGrid');
+
+    if (viewToggle && productGrid) {
+        const btns = viewToggle.querySelectorAll('.plp-view-btn');
+        const savedView = localStorage.getItem('plp_view') || 'grid';
+
+        if (savedView === 'list') {
+            productGrid.classList.add('list-view');
+            btns.forEach(b => b.classList.toggle('active', b.dataset.view === 'list'));
+        }
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                btns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                if (view === 'list') {
+                    productGrid.classList.add('list-view');
+                } else {
+                    productGrid.classList.remove('list-view');
+                }
+                localStorage.setItem('plp_view', view);
+            });
+        });
+    }
+
+    // ============================================================
+    // BRAND FILTER
+    // ============================================================
+    document.querySelectorAll('.brand-filter-checkbox').forEach(cb => {
+        cb.addEventListener('change', applyBrandFilters);
+    });
+
+    function applyBrandFilters() {
+        const selected = Array.from(document.querySelectorAll('.brand-filter-checkbox:checked'))
+            .map(cb => cb.value);
+
+        const params = new URLSearchParams(window.location.search);
+        params.delete('brand');
+        params.delete('page');
+
+        selected.forEach(b => params.append('brand', b));
+        window.location.href = window.location.pathname + '?' + params.toString();
+    }
+
+    // ============================================================
+    // ATTRIBUTE FILTER
+    // ============================================================
+    document.querySelectorAll('.attr-filter-checkbox').forEach(cb => {
+        cb.addEventListener('change', applyAttributeFilters);
+    });
+
+    function applyAttributeFilters() {
+        const selected = Array.from(document.querySelectorAll('.attr-filter-checkbox:checked'))
+            .map(cb => cb.value);
+
+        const params = new URLSearchParams(window.location.search);
+        params.delete('attribute');
+        params.delete('page');
+
+        selected.forEach(a => params.append('attribute', a));
+        window.location.href = window.location.pathname + '?' + params.toString();
+    }
+
+    // ============================================================
+    // PRICE FILTER
+    // ============================================================
+    const applyPriceBtn = document.getElementById('applyPrice');
+    const minPriceInput = document.getElementById('minPrice');
+    const maxPriceInput = document.getElementById('maxPrice');
+
+    if (applyPriceBtn) {
+        applyPriceBtn.addEventListener('click', function() {
+            const params = new URLSearchParams(window.location.search);
+            params.delete('min_price');
+            params.delete('max_price');
+            params.delete('page');
+
+            const min = minPriceInput?.value?.trim();
+            const max = maxPriceInput?.value?.trim();
+
+            if (min) params.set('min_price', min);
+            if (max) params.set('max_price', max);
+
+            window.location.href = window.location.pathname + '?' + params.toString();
+        });
+    }
+
+    [minPriceInput, maxPriceInput].forEach(inp => {
+        if (inp) {
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyPriceBtn.click();
+                }
+            });
+        }
+    });
+
+    // ============================================================
+    // WISHLIST
+    // ============================================================
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.wishlist-btn');
+        if (!btn) return;
+        e.preventDefault();
+        btn.classList.toggle('active');
+
+        const svg = btn.querySelector('svg');
+        if (btn.classList.contains('active')) {
+            svg.style.fill = 'var(--red)';
+            svg.style.stroke = 'var(--red)';
+            if (window.showToast) window.showToast('Added to wishlist ❤️');
+            let wc = parseInt(localStorage.getItem('wishCount') || '0') + 1;
+            localStorage.setItem('wishCount', wc);
+            const wb = document.getElementById('wishBadge');
+            const wl = document.getElementById('wishCount');
+            if (wb) wb.textContent = wc;
+            if (wl) wl.textContent = wc + (wc === 1 ? ' item' : ' items');
+        } else {
+            svg.style.fill = '';
+            svg.style.stroke = '';
+            if (window.showToast) window.showToast('Removed from wishlist');
+        }
+    });
+
+    // ============================================================
+    // ADD TO CART
+    // ============================================================
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.add-cart-btn');
+        if (!btn || btn.disabled) return;
+
+        e.preventDefault();
+        const pid = btn.dataset.productId;
+        if (!pid) return;
+
+        btn.disabled = true;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = 'Adding...';
+
+        fetch(`/cart/add/${pid}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.getCookie ? window.getCookie('csrftoken') : '',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'quantity=1'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.innerHTML = '✓ Added';
+                btn.classList.add('added');
+                if (window.updateCartUI) window.updateCartUI(data.cart_item_count, data.cart_items_html);
+                if (window.openCartDropdown) window.openCartDropdown();
+                if (window.showToast) window.showToast((data.product_name || 'Product') + ' added 🛒');
+            } else {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                if (window.showToast) window.showToast(data.message || 'Failed');
+            }
+        })
+        .catch(err => {
+            console.error('[PLP] Cart error:', err);
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            if (window.showToast) window.showToast('Something went wrong');
+        })
+        .finally(() => {
+            setTimeout(() => {
+                if (btn.classList.contains('added')) {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('added');
+                    btn.disabled = false;
+                }
+            }, 1600);
+        });
+    });
+
+    // ============================================================
+    // SIDEBAR SCROLL PERSIST
+    // ============================================================
+    const sidebarBody = document.querySelector('.plp-sidebar-body');
+    if (sidebarBody) {
+        const scrollPos = sessionStorage.getItem('plp_sidebar_scroll');
+        if (scrollPos) sidebarBody.scrollTop = parseInt(scrollPos);
+        sidebarBody.addEventListener('scroll', () => {
+            sessionStorage.setItem('plp_sidebar_scroll', sidebarBody.scrollTop);
+        });
+    }
+
+    console.log('[PLP] Product list page initialized');
+})();
+</script>
+{% endblock %}

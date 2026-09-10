@@ -1,0 +1,871 @@
+{% extends 'theme-01-default/base.html' %}
+{% load static %}
+
+{% block title %}Login | {{ brand_info.brand_name|default:'GenialTouch' }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   LOGIN PAGE STYLES
+   ============================================================ */
+.auth-page{
+    min-height:calc(100vh - 200px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    background:linear-gradient(135deg, #f8f9fc 0%, #eef2f9 100%);
+    position:relative;
+    overflow:hidden;
+}
+.auth-page::before{
+    content:"";
+    position:absolute;
+    top:-100px;
+    right:-100px;
+    width:400px;
+    height:400px;
+    background:radial-gradient(circle, rgba(217,31,44,0.08) 0%, transparent 70%);
+    border-radius:50%;
+    pointer-events:none;
+}
+.auth-page::after{
+    content:"";
+    position:absolute;
+    bottom:-100px;
+    left:-100px;
+    width:400px;
+    height:400px;
+    background:radial-gradient(circle, rgba(15,42,92,0.08) 0%, transparent 70%);
+    border-radius:50%;
+    pointer-events:none;
+}
+
+.auth-wrap{
+    width:100%;
+    max-width:1000px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(15,42,92,0.12);
+    border:1px solid var(--line);
+    position:relative;
+    z-index:2;
+}
+
+/* ============================================================
+   LEFT: VISUAL SIDE
+   ============================================================ */
+.auth-visual{
+    background:linear-gradient(135deg, var(--navy), var(--navy-dark));
+    padding:50px 40px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+    overflow:hidden;
+    color:#fff;
+}
+.auth-visual::before{
+    content:"";
+    position:absolute;
+    top:-60px;
+    right:-60px;
+    width:250px;
+    height:250px;
+    background:rgba(217,31,44,0.15);
+    border-radius:50%;
+}
+.auth-visual::after{
+    content:"";
+    position:absolute;
+    bottom:-80px;
+    left:-80px;
+    width:280px;
+    height:280px;
+    background:rgba(245,180,0,0.12);
+    border-radius:50%;
+}
+
+.auth-visual-content{position:relative;z-index:2;}
+
+.auth-visual-logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:24px;
+    font-weight:800;
+    color:#fff;
+    margin-bottom:40px;
+    font-family:'Poppins', sans-serif;
+}
+.auth-visual-logo .accent{color:var(--gold);}
+
+.auth-visual-title{
+    font-size:30px;
+    font-weight:800;
+    line-height:1.2;
+    margin-bottom:16px;
+    font-family:'Poppins', sans-serif;
+}
+.auth-visual-title .accent-line{
+    color:var(--gold);
+    display:block;
+    font-style:italic;
+    font-size:20px;
+    margin-top:6px;
+    font-weight:700;
+}
+.auth-visual-desc{
+    font-size:14.5px;
+    line-height:1.7;
+    color:#cfd8ee;
+    margin-bottom:30px;
+}
+
+.auth-visual-features{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+.auth-feature{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:13.5px;
+    color:#e8edf8;
+    font-weight:500;
+}
+.auth-feature-icon{
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    backdrop-filter:blur(8px);
+}
+.auth-feature-icon svg{width:17px;height:17px;color:var(--gold);}
+
+.auth-visual-footer{
+    position:relative;
+    z-index:2;
+    font-size:12.5px;
+    color:#8a9cc4;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+/* ============================================================
+   RIGHT: FORM SIDE
+   ============================================================ */
+.auth-form-wrap{
+    padding:50px 45px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.auth-form-header{margin-bottom:26px;}
+.auth-form-title{
+    font-size:26px;
+    font-weight:800;
+    color:var(--navy);
+    margin-bottom:6px;
+    font-family:'Poppins', sans-serif;
+}
+.auth-form-subtitle{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.5;
+}
+
+/* Messages */
+.auth-messages{
+    margin-bottom:18px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.auth-message{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    padding:11px 14px;
+    border-radius:9px;
+    font-size:12.5px;
+    font-weight:500;
+    line-height:1.5;
+    animation:authSlideDown .3s ease;
+}
+@keyframes authSlideDown{
+    from{opacity:0;transform:translateY(-6px);}
+    to{opacity:1;transform:translateY(0);}
+}
+.auth-message svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+.auth-message.error{background:#fdeceb;color:#c1121f;border:1px solid #f7c8c3;}
+.auth-message.success{background:#e7f6ea;color:var(--green-dark);border:1px solid #c8e6cd;}
+.auth-message.info{background:#e6edfb;color:var(--navy);border:1px solid #c8d4f0;}
+.auth-message.warning{background:#fff3da;color:#8b6914;border:1px solid #f5e0a8;}
+
+/* Form */
+.auth-form{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+.auth-field{display:flex;flex-direction:column;gap:7px;}
+.auth-field label{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+.auth-field label .req{color:var(--red);font-weight:800;}
+
+.auth-input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+}
+.auth-input-icon{
+    position:absolute;
+    left:14px;
+    color:var(--muted);
+    pointer-events:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.auth-input-icon svg{width:17px;height:17px;}
+
+.auth-field input{
+    width:100%;
+    padding:13px 14px 13px 44px;
+    border:1.5px solid var(--line);
+    border-radius:11px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fff;
+    transition:all .15s;
+    outline:none;
+}
+.auth-field input:focus{
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(15,42,92,0.08);
+}
+.auth-field input::placeholder{color:#a9b0bd;}
+.auth-field.error input{
+    border-color:var(--red);
+    background:#fef8f8;
+}
+.auth-field-error{
+    font-size:11.5px;
+    color:var(--red);
+    font-weight:600;
+    display:none;
+    align-items:center;
+    gap:4px;
+}
+.auth-field.error .auth-field-error{display:flex;}
+
+/* Password toggle */
+.auth-password-toggle{
+    position:absolute;
+    right:12px;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    color:var(--muted);
+    transition:all .15s;
+}
+.auth-password-toggle:hover{background:var(--cream);color:var(--navy);}
+.auth-password-toggle svg{width:17px;height:17px;}
+
+/* Options */
+.auth-options{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:-2px;
+}
+.auth-remember{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--ink);
+    user-select:none;
+    font-weight:500;
+}
+.auth-remember input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+}
+.auth-remember .box{
+    width:18px;
+    height:18px;
+    border:1.5px solid var(--line);
+    border-radius:5px;
+    background:#fff;
+    flex-shrink:0;
+    position:relative;
+    transition:all .15s;
+}
+.auth-remember:hover .box{border-color:var(--navy);}
+.auth-remember input:checked ~ .box{
+    background:var(--red);
+    border-color:var(--red);
+}
+.auth-remember input:checked ~ .box::after{
+    content:"";
+    position:absolute;
+    top:2px;
+    left:5.5px;
+    width:5px;
+    height:10px;
+    border:solid #fff;
+    border-width:0 2.2px 2.2px 0;
+    transform:rotate(45deg);
+}
+.auth-forgot{
+    font-size:13px;
+    font-weight:600;
+    color:var(--navy);
+    text-decoration:none;
+    transition:color .15s;
+}
+.auth-forgot:hover{color:var(--red);text-decoration:underline;}
+
+/* Submit */
+.auth-submit{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    padding:14px;
+    background:var(--red);
+    color:#fff;
+    border:none;
+    border-radius:11px;
+    font-size:14.5px;
+    font-weight:800;
+    cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 6px 16px rgba(217,31,44,0.25);
+    margin-top:4px;
+    font-family:inherit;
+    letter-spacing:0.3px;
+}
+.auth-submit:hover:not(:disabled){
+    background:var(--navy);
+    box-shadow:0 8px 22px rgba(15,42,92,0.3);
+    transform:translateY(-2px);
+}
+.auth-submit:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+}
+.auth-submit svg{width:17px;height:17px;}
+
+/* Divider */
+.auth-divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:20px 0 4px;
+}
+.auth-divider::before,
+.auth-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+}
+.auth-divider span{
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+/* Social */
+.auth-socials{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+}
+.auth-social-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:11px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    transition:all .15s;
+    text-decoration:none;
+    font-family:inherit;
+}
+.auth-social-btn:hover{
+    border-color:var(--navy);
+    background:var(--cream);
+    transform:translateY(-1px);
+}
+.auth-social-btn svg{width:17px;height:17px;flex-shrink:0;}
+
+/* Switch */
+.auth-switch{
+    text-align:center;
+    margin-top:24px;
+    font-size:13.5px;
+    color:var(--muted);
+    font-weight:500;
+}
+.auth-switch a{
+    color:var(--red);
+    font-weight:700;
+    text-decoration:none;
+    transition:color .15s;
+}
+.auth-switch a:hover{color:var(--navy);text-decoration:underline;}
+
+/* Security note */
+.auth-secure{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:18px;
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:500;
+}
+.auth-secure svg{width:13px;height:13px;color:var(--green);}
+
+/* Demo hint */
+.auth-demo-hint{
+    margin-top:14px;
+    padding:10px 12px;
+    background:#f0f6ff;
+    border:1px dashed #b8cdf0;
+    border-radius:9px;
+    font-size:11.5px;
+    color:var(--navy);
+    line-height:1.5;
+    text-align:center;
+}
+.auth-demo-hint strong{color:var(--red);}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:900px){
+    .auth-page{padding:20px 16px;min-height:auto;}
+    .auth-wrap{
+        grid-template-columns:1fr;
+        max-width:480px;
+        border-radius:16px;
+    }
+    .auth-visual{
+        padding:32px 28px;
+        min-height:auto;
+    }
+    .auth-visual-logo{margin-bottom:20px;font-size:20px;}
+    .auth-visual-title{font-size:22px;margin-bottom:10px;}
+    .auth-visual-title .accent-line{font-size:16px;}
+    .auth-visual-desc{font-size:13px;margin-bottom:18px;}
+    .auth-visual-features{display:none;}
+    .auth-visual-footer{font-size:11.5px;}
+    .auth-form-wrap{padding:32px 28px;}
+    .auth-form-title{font-size:22px;}
+}
+
+@media (max-width:520px){
+    .auth-page{padding:16px 12px;}
+    .auth-wrap{border-radius:14px;}
+    .auth-visual{padding:24px 22px;}
+    .auth-visual-title{font-size:19px;}
+    .auth-form-wrap{padding:26px 22px;}
+    .auth-form-title{font-size:20px;}
+    .auth-form-subtitle{font-size:12.5px;}
+    .auth-field input{padding:12px 12px 12px 40px;font-size:13.5px;}
+    .auth-input-icon{left:12px;}
+    .auth-input-icon svg{width:15px;height:15px;}
+    .auth-submit{padding:12px;font-size:13.5px;}
+    .auth-socials{grid-template-columns:1fr;}
+    .auth-options{gap:8px;}
+}
+
+@media (max-width:380px){
+    .auth-visual-title{font-size:17px;}
+    .auth-form-title{font-size:18px;}
+    .auth-form-wrap{padding:22px 18px;}
+}
+</style>
+
+<div class="auth-page">
+    <div class="auth-wrap">
+
+        <!-- ============ LEFT: VISUAL ============ -->
+        <div class="auth-visual">
+            <div class="auth-visual-content">
+                <div class="auth-visual-logo">
+                    {{ brand_info.brand_name|default:'SHINRAI' }} <span class="accent">{{ brand_info.brand_tagline|default:'JAPAN' }}</span>
+                </div>
+
+                <h2 class="auth-visual-title">
+                    Welcome Back!
+                    <span class="accent-line">Sign in to continue shopping</span>
+                </h2>
+
+                <p class="auth-visual-desc">
+                    Access your orders, wishlist, saved addresses, and exclusive member-only deals.
+                </p>
+
+                <div class="auth-visual-features">
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                        </div>
+                        Track your orders in real-time
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+                            </svg>
+                        </div>
+                        Save your favourite products
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <rect x="1" y="4" width="22" height="16" rx="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                            </svg>
+                        </div>
+                        Faster checkout & secure payments
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>
+                            </svg>
+                        </div>
+                        Exclusive member-only offers
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-visual-footer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>
+                </svg>
+                Trusted by thousands of happy customers
+            </div>
+        </div>
+
+        <!-- ============ RIGHT: FORM ============ -->
+        <div class="auth-form-wrap">
+            <div class="auth-form-header">
+                <h1 class="auth-form-title">Sign In</h1>
+                <p class="auth-form-subtitle">Enter your email and password to access your account</p>
+            </div>
+
+            <!-- Django Messages -->
+            {% if messages %}
+            <div class="auth-messages">
+                {% for message in messages %}
+                    <div class="auth-message {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+                        {% if message.tags == 'error' %}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        {% elif message.tags == 'success' %}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                        {% else %}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form class="auth-form" method="POST" action="{% url 'login' %}" novalidate id="loginForm">
+                {% csrf_token %}
+
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
+
+                <!-- Email -->
+                <div class="auth-field" id="field-email">
+                    <label for="id_email">Email Address <span class="req">*</span></label>
+                    <div class="auth-input-wrap">
+                        <span class="auth-input-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </span>
+                        <input type="email"
+                               name="email"
+                               id="id_email"
+                               placeholder="you@example.com"
+                               value="{{ request.POST.email|default:'' }}"
+                               autocomplete="email"
+                               autofocus
+                               required>
+                    </div>
+                    <span class="auth-field-error" id="error-email">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Please enter a valid email address
+                    </span>
+                </div>
+
+                <!-- Password -->
+                <div class="auth-field" id="field-password">
+                    <label for="id_password">Password <span class="req">*</span></label>
+                    <div class="auth-input-wrap">
+                        <span class="auth-input-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </span>
+                        <input type="password"
+                               name="password"
+                               id="id_password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password"
+                               required>
+                        <button type="button" class="auth-password-toggle" id="passwordToggle" aria-label="Show password">
+                            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="auth-field-error" id="error-password">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Password is required
+                    </span>
+                </div>
+
+                <!-- Options -->
+                <div class="auth-options">
+                    <label class="auth-remember">
+                        <input type="checkbox" name="remember_me">
+                        <span class="box"></span>
+                        Remember me
+                    </label>
+                    <a href="#" class="auth-forgot">Forgot password?</a>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="auth-submit" id="submitBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>Or continue with</span>
+            </div>
+
+            <!-- Social buttons (visual only, wire up later) -->
+            <div class="auth-socials">
+                <button type="button" class="auth-social-btn" disabled style="opacity:.6;cursor:not-allowed;">
+                    <svg viewBox="0 0 24 24" fill="#1877F2">
+                        <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/>
+                    </svg>
+                    Facebook
+                </button>
+                <button type="button" class="auth-social-btn" disabled style="opacity:.6;cursor:not-allowed;">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                </button>
+            </div>
+
+            <!-- Switch -->
+            <div class="auth-switch">
+                Don't have an account? <a href="{% url 'register' %}">Create one now</a>
+            </div>
+
+            <!-- Security -->
+            <div class="auth-secure">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>
+                </svg>
+                Protected with 256-bit SSL encryption
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    // ============================================================
+    // PASSWORD VISIBILITY TOGGLE
+    // ============================================================
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordInput = document.getElementById('id_password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    const eyeOpen = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+    `;
+    const eyeClosed = `
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+    `;
+
+    if (passwordToggle && passwordInput && eyeIcon) {
+        passwordToggle.addEventListener('click', function() {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.innerHTML = isPassword ? eyeClosed : eyeOpen;
+            this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    // ============================================================
+    // FORM VALIDATION
+    // ============================================================
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const emailField = document.getElementById('field-email');
+    const passwordField = document.getElementById('field-password');
+    const emailInput = document.getElementById('id_email');
+    const passInput = document.getElementById('id_password');
+
+    function validateEmail() {
+        const val = (emailInput.value || '').trim();
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const valid = val.length > 0 && re.test(val);
+        emailField.classList.toggle('error', !valid);
+        return valid;
+    }
+
+    function validatePassword() {
+        const val = passInput.value;
+        const valid = val.length > 0;
+        passwordField.classList.toggle('error', !valid);
+        return valid;
+    }
+
+    if (emailInput) {
+        emailInput.addEventListener('blur', validateEmail);
+        emailInput.addEventListener('input', function() {
+            if (emailField.classList.contains('error')) validateEmail();
+        });
+    }
+
+    if (passInput) {
+        passInput.addEventListener('blur', validatePassword);
+        passInput.addEventListener('input', function() {
+            if (passwordField.classList.contains('error')) validatePassword();
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const v1 = validateEmail();
+            const v2 = validatePassword();
+
+            if (!v1 || !v2) {
+                e.preventDefault();
+                if (window.showToast) {
+                    window.showToast('Please fill in all required fields');
+                }
+                if (!v1) emailInput.focus();
+                else if (!v2) passInput.focus();
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="animation:spin 1s linear infinite;width:17px;height:17px;">
+                    <circle cx="12" cy="12" r="10" opacity="0.25"/>
+                    <path d="M12 2a10 10 0 0 1 10 10"/>
+                </svg>
+                Signing In...
+            `;
+        });
+    }
+
+    // Add spinner keyframes
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg);}}';
+    document.head.appendChild(style);
+
+    console.log('[Login] Page initialized');
+})();
+</script>
+{% endblock %}
